@@ -117,7 +117,7 @@ JuhBDI implements a cognitive architecture where the AI maintains persistent **B
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                    BDI Control Loop                  │
+│                    BDI Control Loop                 │
 │                                                     │
 │   Beliefs ──→ Desires ──→ Intentions ──→ Actions    │
 │     ↑                                       │       │
