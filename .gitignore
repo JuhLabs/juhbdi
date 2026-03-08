@@ -17,3 +17,4 @@ docs/
 # Dev screenshots
 *.png
 !site/*.png
+!site/icons/*.png
