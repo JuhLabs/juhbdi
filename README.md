@@ -3,8 +3,11 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/v1.4.0-lavender?style=flat-square&label=JuhBDI&labelColor=1e1e2e&color=b4befe" alt="version" />
-  <img src="https://img.shields.io/badge/642-green?style=flat-square&label=tests&labelColor=1e1e2e&color=a6e3a1" alt="tests" />
+  <img src="https://img.shields.io/badge/v1.4.1-lavender?style=flat-square&label=JuhBDI&labelColor=1e1e2e&color=b4befe" alt="version" />
+  <a href="https://www.npmjs.com/package/juhbdi"><img src="https://img.shields.io/npm/v/juhbdi?style=flat-square&label=npm&labelColor=1e1e2e&color=f9e2af" alt="npm" /></a>
+  <a href="https://www.npmjs.com/package/juhbdi"><img src="https://img.shields.io/npm/dm/juhbdi?style=flat-square&label=downloads&labelColor=1e1e2e&color=f9e2af" alt="downloads" /></a>
+  <a href="https://github.com/JuhLabs/juhbdi"><img src="https://img.shields.io/github/stars/JuhLabs/juhbdi?style=flat-square&labelColor=1e1e2e&color=f2cdcd" alt="stars" /></a>
+  <img src="https://img.shields.io/badge/670-green?style=flat-square&label=tests&labelColor=1e1e2e&color=a6e3a1" alt="tests" />
   <img src="https://img.shields.io/badge/0-green?style=flat-square&label=failures&labelColor=1e1e2e&color=a6e3a1" alt="failures" />
   <img src="https://img.shields.io/badge/TypeScript-blue?style=flat-square&label=lang&labelColor=1e1e2e&color=89b4fa" alt="typescript" />
   <img src="https://img.shields.io/badge/Bun-peach?style=flat-square&label=runtime&labelColor=1e1e2e&color=fab387" alt="bun" />
@@ -52,6 +55,12 @@ Most AI coding tools do what you tell them. JuhBDI does what you *mean*.
 - **No more blind execution** — Socratic challenge catches bad ideas before they become bad code
 
 ## Install
+
+### npm (all platforms)
+
+```bash
+npx juhbdi
+```
 
 ### macOS
 
