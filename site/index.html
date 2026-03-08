@@ -1359,15 +1359,15 @@ nav {
 
   <div class="reveal" style="max-width: 720px; margin: 0 auto;">
     <div class="platform-tabs">
-      <button class="platform-tab active" onclick="switchPlatform('macos')">
+      <button class="platform-tab active" onclick="switchPlatform('macos', this)">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
         macOS
       </button>
-      <button class="platform-tab" onclick="switchPlatform('linux')">
+      <button class="platform-tab" onclick="switchPlatform('linux', this)">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.368 1.884 1.43.868.065 1.544-.413 2.058-.934l.035-.038c.142-.14.271-.281.392-.396.207-.245.424-.397.562-.535.326-.391.451-.702.451-1.071 0-.197-.018-.523-.074-.873a3.1 3.1 0 01-.038-.344c.02-.263.078-.49.196-.801.2-.459.391-.928.391-1.499 0-.501-.14-.94-.289-1.32-.083-.199-.178-.387-.262-.543-.141-.271-.252-.482-.262-.681-.011-.207.031-.397.134-.653.134-.327.313-.757.313-1.29 0-.822-.377-1.375-.72-1.81a7.93 7.93 0 00-.6-.667c-.456-.441-1.124-.727-1.675-.962-.545-.236-.93-.55-1.198-.862-.334-.39-.394-.71-.394-1.188V6.1c0-1.637-.125-3.143-.836-4.301C15.413.766 14.198 0 12.504 0z"/></svg>
         Linux
       </button>
-      <button class="platform-tab" onclick="switchPlatform('windows')">
+      <button class="platform-tab" onclick="switchPlatform('windows', this)">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
         Windows
       </button>
@@ -2005,12 +2005,12 @@ nav {
 
   <!-- Doc nav tabs -->
   <div style="display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap;" class="reveal">
-    <button class="platform-tab active" onclick="switchDoc('commands')" style="font-size: 0.8rem; padding: 0.4rem 1rem;">Commands</button>
-    <button class="platform-tab" onclick="switchDoc('bdi-loop')" style="font-size: 0.8rem; padding: 0.4rem 1rem;">BDI Loop</button>
-    <button class="platform-tab" onclick="switchDoc('routing')" style="font-size: 0.8rem; padding: 0.4rem 1rem;">Model Routing</button>
-    <button class="platform-tab" onclick="switchDoc('agents')" style="font-size: 0.8rem; padding: 0.4rem 1rem;">Agents &amp; Hooks</button>
-    <button class="platform-tab" onclick="switchDoc('architecture')" style="font-size: 0.8rem; padding: 0.4rem 1rem;">Architecture</button>
-    <button class="platform-tab" onclick="switchDoc('openclaw-docs')" style="font-size: 0.8rem; padding: 0.4rem 1rem;">OpenClaw Plugin</button>
+    <button class="platform-tab active" onclick="switchDoc('commands', this)" style="font-size: 0.8rem; padding: 0.4rem 1rem;">Commands</button>
+    <button class="platform-tab" onclick="switchDoc('bdi-loop', this)" style="font-size: 0.8rem; padding: 0.4rem 1rem;">BDI Loop</button>
+    <button class="platform-tab" onclick="switchDoc('routing', this)" style="font-size: 0.8rem; padding: 0.4rem 1rem;">Model Routing</button>
+    <button class="platform-tab" onclick="switchDoc('agents', this)" style="font-size: 0.8rem; padding: 0.4rem 1rem;">Agents &amp; Hooks</button>
+    <button class="platform-tab" onclick="switchDoc('architecture', this)" style="font-size: 0.8rem; padding: 0.4rem 1rem;">Architecture</button>
+    <button class="platform-tab" onclick="switchDoc('openclaw-docs', this)" style="font-size: 0.8rem; padding: 0.4rem 1rem;">OpenClaw Plugin</button>
   </div>
 
   <!-- Commands panel -->
@@ -2145,7 +2145,8 @@ nav {
           <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--teal); font-weight: 600;">statusline</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Notification</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Catppuccin Mocha gradient context display</td></tr>
           <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--teal); font-weight: 600;">context-monitor</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">PostToolUse</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">3-tier warnings + auto-handoff at critical context</td></tr>
           <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--teal); font-weight: 600;">session-primer</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">SessionStart</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Surfaces pending tasks and relevant memory</td></tr>
-          <tr><td style="padding: 0.6rem 1rem; color: var(--teal); font-weight: 600;">auto-trigger</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">UserPromptSubmit</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Suggests JuhBDI commands on natural language prompts</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--teal); font-weight: 600;">auto-trigger</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">UserPromptSubmit</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Suggests JuhBDI commands on natural language prompts</td></tr>
+          <tr><td style="padding: 0.6rem 1rem; color: var(--teal); font-weight: 600;">precompact</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">PreCompact</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Auto-saves session state before context compaction</td></tr>
         </tbody>
       </table>
     </div>
@@ -2182,7 +2183,7 @@ nav {
         <div><span class="accent">site/</span>                 <span class="comment"># Landing page (juhlabs.com/juhbdi)</span></div>
         <div><span class="accent">.claude-plugin/</span></div>
         <div><span class="output">&boxvr;&boxh;&boxh; plugin.json</span>      <span class="comment"># Plugin manifest</span></div>
-        <div><span class="output">&boxdr;&boxh;&boxh; hooks/</span>           <span class="comment"># 4 event hooks (.cjs)</span></div>
+        <div><span class="output">&boxdr;&boxh;&boxh; hooks/</span>           <span class="comment"># 5 event hooks (.cjs)</span></div>
       </div>
     </div>
   </div>
@@ -2334,17 +2335,17 @@ nav {
 // ============================================
 // Platform install tab switcher
 // ============================================
-function switchPlatform(platform) {
+function switchPlatform(platform, btn) {
   document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.platform-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('platform-' + platform).classList.add('active');
-  event.currentTarget.classList.add('active');
+  btn.classList.add('active');
 }
 
 // ============================================
 // Documentation tab switcher
 // ============================================
-function switchDoc(doc) {
+function switchDoc(doc, btn) {
   const container = document.getElementById('docs');
   container.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
   container.querySelectorAll('.doc-panel').forEach(p => {
@@ -2353,7 +2354,7 @@ function switchDoc(doc) {
   });
   document.getElementById('doc-' + doc).classList.add('active');
   document.getElementById('doc-' + doc).style.display = 'block';
-  event.currentTarget.classList.add('active');
+  btn.classList.add('active');
 }
 
 // Auto-detect platform and set default tab
@@ -2498,14 +2499,18 @@ function switchDoc(doc) {
 
   function link(vs, fs) {
     const p = gl.createProgram();
-    gl.attachShader(p, compile(vs, gl.VERTEX_SHADER));
-    gl.attachShader(p, compile(fs, gl.FRAGMENT_SHADER));
+    const vsShader = compile(vs, gl.VERTEX_SHADER);
+    const fsShader = compile(fs, gl.FRAGMENT_SHADER);
+    if (!vsShader || !fsShader) { canvas.style.display = 'none'; return null; }
+    gl.attachShader(p, vsShader);
+    gl.attachShader(p, fsShader);
     gl.linkProgram(p);
     return p;
   }
 
   const progParticle = link(vertParticle, fragParticle);
   const progLine = link(vertLine, fragLine);
+  if (!progParticle || !progLine) return;
 
   // Particle program locations
   const pAttrPos = gl.getAttribLocation(progParticle, 'aPos');

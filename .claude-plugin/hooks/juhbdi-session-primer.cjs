@@ -28,8 +28,8 @@ async function main() {
       if (handoffAge < 2 * 60 * 60 * 1000 && latest.prompt_file) {
         try {
           handoffContext = fs.readFileSync(latest.prompt_file, "utf-8");
-          // Clear the latest pointer so it doesn't reload next time
-          fs.unlinkSync(latestPath);
+          // Clear the latest pointer so it doesn't reload next time (rename to avoid race with precompact)
+          fs.renameSync(latestPath, latestPath + ".consumed");
         } catch { /* ignore */ }
       }
     }

@@ -248,7 +248,29 @@ blank
 if [[ "$REMOTE_INSTALL" == true ]]; then
   # Download the release package from JuhLabs
   info "Downloading JuhBDI v${VERSION}..."
-  if curl -fsSL "$DOWNLOAD_URL" | tar xz -C "$SCRIPT_DIR" 2>/dev/null; then
+  TARBALL="${SCRIPT_DIR}/juhbdi-${VERSION}.tar.gz"
+  if curl -fsSL "$DOWNLOAD_URL" -o "$TARBALL" 2>/dev/null; then
+    # Verify SHA256 checksum if available
+    SHA_URL="https://www.juhlabs.com/juhbdi/juhbdi-${VERSION}.tar.gz.sha256"
+    EXPECTED_SHA=$(curl -fsSL "$SHA_URL" 2>/dev/null | awk '{print $1}')
+    if [[ -n "$EXPECTED_SHA" ]]; then
+      if command -v sha256sum &>/dev/null; then
+        ACTUAL_SHA=$(sha256sum "$TARBALL" | awk '{print $1}')
+      else
+        ACTUAL_SHA=$(shasum -a 256 "$TARBALL" | awk '{print $1}')
+      fi
+      if [[ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]]; then
+        fail "SHA256 verification failed — tarball may be corrupted or tampered with."
+        rm -f "$TARBALL"
+        blank
+        exit 1
+      fi
+      ok "SHA256 verified"
+    else
+      warn "SHA256 checksum not available — skipping verification"
+    fi
+    tar xz -C "$SCRIPT_DIR" -f "$TARBALL" 2>/dev/null
+    rm -f "$TARBALL"
     ok "Downloaded JuhBDI v${VERSION}"
   else
     fail "Download failed. Check your internet connection."
@@ -274,7 +296,7 @@ if [[ ! -d "${SCRIPT_DIR}/node_modules" ]]; then
     ok "Dependencies installed via npm"
   fi
 else
-  DEP_COUNT=$(node -e "const p=require('${SCRIPT_DIR}/package.json'); console.log(Object.keys(p.dependencies||{}).length)" 2>/dev/null || echo "?")
+  DEP_COUNT=$(node -e "const p=require(process.argv[1]); console.log(Object.keys(p.dependencies||{}).length)" "${SCRIPT_DIR}/package.json" 2>/dev/null || echo "?")
   ok "${DEP_COUNT} dependencies bundled"
 fi
 
@@ -320,34 +342,36 @@ if [[ "$INSTALL_MODE" == "global" ]]; then
   fi
   node -e "
     const fs = require('fs');
+    const [,, regPath, cacheDir, version] = process.argv;
     let reg;
-    try { reg = JSON.parse(fs.readFileSync('${REGISTRY}', 'utf-8')); } catch { reg = {version:2,plugins:{}}; }
+    try { reg = JSON.parse(fs.readFileSync(regPath, 'utf-8')); } catch { reg = {version:2,plugins:{}}; }
     if (!reg.plugins) reg.plugins = {};
     const existing = (reg.plugins['juhbdi@juhlabs'] || [])[0];
     reg.plugins['juhbdi@juhlabs'] = [{
       scope: 'user',
-      installPath: '${CACHE_DIR}',
-      version: '${VERSION}',
+      installPath: cacheDir,
+      version: version,
       installedAt: (existing && existing.installedAt) || new Date().toISOString(),
       lastUpdated: new Date().toISOString()
     }];
-    fs.writeFileSync('${REGISTRY}', JSON.stringify(reg, null, 2) + '\n');
-  " 2>/dev/null && ok "Plugin registered in installed_plugins.json" || warn "Could not update registry"
+    fs.writeFileSync(regPath, JSON.stringify(reg, null, 2) + '\n');
+  " "$REGISTRY" "$CACHE_DIR" "$VERSION" 2>/dev/null && ok "Plugin registered in installed_plugins.json" || warn "Could not update registry"
 
   # --- 3c: Enable plugin + register marketplace in settings.json ---
   node -e "
     const fs = require('fs');
-    const s = JSON.parse(fs.readFileSync('${SETTINGS}', 'utf-8'));
+    const [,, settingsPath, mktPath] = process.argv;
+    const s = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
     // Enable plugin
     if (!s.enabledPlugins) s.enabledPlugins = {};
     s.enabledPlugins['juhbdi@juhlabs'] = true;
     // Register marketplace for future updates
     if (!s.extraKnownMarketplaces) s.extraKnownMarketplaces = {};
     s.extraKnownMarketplaces['juhlabs'] = {
-      source: { source: 'directory', path: '${HOME}/.claude/plugins/marketplaces/juhlabs' }
+      source: { source: 'directory', path: mktPath }
     };
-    fs.writeFileSync('${SETTINGS}', JSON.stringify(s, null, 2) + '\n');
-  " 2>/dev/null && ok "Plugin enabled in settings.json" || warn "Could not update settings"
+    fs.writeFileSync(settingsPath, JSON.stringify(s, null, 2) + '\n');
+  " "$SETTINGS" "${HOME}/.claude/plugins/marketplaces/juhlabs" 2>/dev/null && ok "Plugin enabled in settings.json" || warn "Could not update settings"
 
   # --- 3d: Set up marketplace (for future `claude plugin install` updates) ---
   MARKETPLACE_DIR="${HOME}/.claude/plugins/marketplaces/juhlabs"
@@ -387,14 +411,15 @@ MKTEOF
   # Set statusLine in settings.json (overwrite any existing)
   node -e "
     const fs = require('fs');
-    const s = JSON.parse(fs.readFileSync('${SETTINGS}', 'utf-8'));
+    const [,, settingsPath] = process.argv;
+    const s = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
     s.statusLine = {
       type: 'command',
       command: 'node ~/.claude/juhbdi-statusline.cjs',
       padding: 1
     };
-    fs.writeFileSync('${SETTINGS}', JSON.stringify(s, null, 2) + '\n');
-  " 2>/dev/null && ok "Statusline configured in settings" || warn "Could not set statusline config"
+    fs.writeFileSync(settingsPath, JSON.stringify(s, null, 2) + '\n');
+  " "$SETTINGS" 2>/dev/null && ok "Statusline configured in settings" || warn "Could not set statusline config"
 
 else
   step $CURRENT_STEP "Registering local plugin..."
@@ -413,10 +438,10 @@ fi
 
 # Verify manifest
 if [[ -f "${SCRIPT_DIR}/.claude-plugin/plugin.json" ]]; then
-  PLUGIN_VER=$(node -e "console.log(require('${SCRIPT_DIR}/.claude-plugin/plugin.json').version)" 2>/dev/null || echo "?")
+  PLUGIN_VER=$(node -e "console.log(require(process.argv[1]).version)" "${SCRIPT_DIR}/.claude-plugin/plugin.json" 2>/dev/null || echo "?")
   HOOK_COUNT=0
   if [[ -f "${SCRIPT_DIR}/hooks/hooks.json" ]]; then
-    HOOK_COUNT=$(node -e "const h=require('${SCRIPT_DIR}/hooks/hooks.json').hooks||{}; let c=0; for(const k in h) c+=h[k].length; console.log(c)" 2>/dev/null || echo "?")
+    HOOK_COUNT=$(node -e "const h=require(process.argv[1]).hooks||{}; let c=0; for(const k in h) c+=h[k].length; console.log(c)" "${SCRIPT_DIR}/hooks/hooks.json" 2>/dev/null || echo "?")
   fi
   ok "Manifest v${PLUGIN_VER} — ${HOOK_COUNT} hooks"
 fi

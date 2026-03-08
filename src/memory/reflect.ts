@@ -70,7 +70,7 @@ export function extractPrinciples(waveResult: WaveResult, existingBank: Principl
       });
     } else {
       results.push({
-        id: `p-${Date.now()}-${outcome.task_id}`,
+        id: `p-${Date.now()}-${Math.random().toString(36).slice(2)}-${outcome.task_id}`,
         principle: `When "${outcome.planned_approach}" was planned, "${outcome.actual_approach}" worked better for: ${outcome.description}`,
         source_tasks: [outcome.task_id],
         confidence: 0.5 + divergence * 0.3,

@@ -9,8 +9,8 @@ const path = require("path");
 
 const THRESHOLDS = {
   WARNING: 35,   // Start warning
-  URGENT: 25,    // Strong warning + prepare handoff
-  CRITICAL: 18,  // Auto-save handoff + demand stop
+  URGENT: 28,    // Strong warning + prepare handoff
+  CRITICAL: 22,  // Auto-save handoff + demand stop
 };
 const DEBOUNCE_TOOL_USES = 4;
 
@@ -119,7 +119,8 @@ async function main() {
   }
 
   if (currentLevel === "NORMAL") {
-    writeMonitorState(sessionId, { last_level: "NORMAL", tool_uses_since_warning: 0, handoff_written: false });
+    const prevState = readMonitorState(sessionId);
+    writeMonitorState(sessionId, { last_level: "NORMAL", tool_uses_since_warning: 0, handoff_written: prevState.handoff_written });
     console.log(JSON.stringify({}));
     return;
   }
