@@ -1,0 +1,34 @@
+{
+  "hooks": {
+    "Notification": [
+      {
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/hooks/juhbdi-statusline.cjs"
+      }
+    ],
+    "PreCompact": [
+      {
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/hooks/juhbdi-precompact.cjs"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/hooks/juhbdi-context-monitor.cjs"
+      }
+    ],
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/hooks/juhbdi-session-primer.cjs"
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/hooks/juhbdi-auto-trigger.cjs"
+      }
+    ]
+  }
+}

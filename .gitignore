@@ -1,0 +1,19 @@
+node_modules/
+dist/
+openclaw-bdi/node_modules/
+openclaw-bdi/dist/
+.DS_Store
+*.log
+.juhbdi/
+schemas/*.json
+.worktrees/
+
+# Local Claude Code settings
+.claude/
+
+# Internal docs (never publish)
+docs/
+
+# Dev screenshots
+*.png
+!site/*.png

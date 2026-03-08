@@ -1,0 +1,2711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JuhBDI — Intent-Driven Autonomous Development Engine</title>
+<meta name="description" content="JuhBDI is an enterprise-grade autonomous development engine built on the BDI cognitive model. Governed, auditable, and self-improving AI-driven software development.">
+<style>
+:root {
+  --base: #1e1e2e;
+  --mantle: #181825;
+  --crust: #11111b;
+  --surface0: #313244;
+  --surface1: #45475a;
+  --surface2: #585b70;
+  --text: #cdd6f4;
+  --subtext: #a6adc8;
+  --lavender: #b4befe;
+  --blue: #89b4fa;
+  --sapphire: #74c7ec;
+  --teal: #94e2d5;
+  --green: #a6e3a1;
+  --yellow: #f9e2af;
+  --peach: #fab387;
+  --maroon: #eba0ac;
+  --red: #f38ba8;
+  --pink: #f5c2e7;
+  --mauve: #cba6f7;
+}
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  background: var(--base);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+section {
+  padding: 6rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+h2 {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+h2 + p.section-sub {
+  text-align: center;
+  color: var(--subtext);
+  max-width: 650px;
+  margin: 0 auto 3rem;
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+a {
+  color: var(--lavender);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: var(--blue);
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ============================================
+   NAV
+   ============================================ */
+
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(17, 17, 27, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(69, 71, 90, 0.3);
+  transition: background 0.3s;
+}
+
+.nav-brand {
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--lavender);
+  letter-spacing: -0.01em;
+}
+
+.nav-links {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.nav-links a {
+  color: var(--subtext);
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover {
+  color: var(--text);
+}
+
+.nav-cta {
+  background: var(--lavender);
+  color: var(--crust) !important;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: opacity 0.2s;
+}
+
+.nav-cta:hover {
+  opacity: 0.85;
+  color: var(--crust) !important;
+}
+
+/* ============================================
+   HERO SECTION
+   ============================================ */
+
+#hero {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  padding: 6rem 2rem 4rem;
+  max-width: none;
+}
+
+#webgl-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+#hero::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -55%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(ellipse, rgba(137,180,250,0.07) 0%, rgba(180,190,254,0.04) 30%, transparent 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+#hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background: linear-gradient(to bottom, transparent, var(--base));
+  z-index: 0;
+  pointer-events: none;
+}
+
+#hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-eyebrow {
+  font-size: 0.85rem;
+  color: var(--mauve);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.hero-title-row {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  justify-content: center;
+}
+
+.hero-logo {
+  width: clamp(140px, 18vw, 240px);
+  height: auto;
+  filter: drop-shadow(0 0 30px rgba(180, 190, 254, 0.4));
+  animation: logoFloat 4s ease-in-out infinite;
+}
+
+@keyframes logoFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.hero-title {
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--lavender), var(--blue), var(--teal), var(--mauve));
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: titleGradient 8s ease infinite;
+  filter: drop-shadow(0 0 40px rgba(180, 190, 254, 0.3));
+}
+
+@keyframes titleGradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.hero-tagline {
+  font-size: clamp(1rem, 2.5vw, 1.4rem);
+  color: var(--subtext);
+  margin-top: 1rem;
+  font-weight: 300;
+  letter-spacing: 0.03em;
+  max-width: 600px;
+}
+
+.hero-description {
+  font-size: 1rem;
+  color: var(--subtext);
+  margin-top: 1.5rem;
+  max-width: 560px;
+  line-height: 1.7;
+  opacity: 0.85;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--lavender), var(--blue), var(--sapphire));
+  background-size: 200% 200%;
+  animation: gradientShift 4s ease infinite;
+  color: var(--crust);
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  transition: transform 0.2s, box-shadow 0.3s;
+  display: inline-block;
+  box-shadow: 0 4px 15px rgba(180, 190, 254, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(137, 180, 250, 0.4);
+  color: var(--crust);
+}
+
+.btn-secondary {
+  border: 1.5px solid transparent;
+  background: linear-gradient(var(--base), var(--base)) padding-box,
+              linear-gradient(135deg, var(--surface1), var(--lavender), var(--mauve)) border-box;
+  background-size: 100% 100%, 200% 200%;
+  animation: gradientShift 4s ease infinite;
+  color: var(--text);
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: transform 0.2s, box-shadow 0.3s;
+  display: inline-block;
+}
+
+.btn-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(203, 166, 247, 0.25);
+  color: var(--text);
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.hero-scroll {
+  margin-top: 3rem;
+  animation: bounce 2s ease infinite;
+  color: var(--surface2);
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-10px); }
+  60% { transform: translateY(-5px); }
+}
+
+/* ============================================
+   PROBLEM / WHY SECTION
+   ============================================ */
+
+#why {
+  text-align: center;
+}
+
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  margin-top: 2rem;
+  text-align: left;
+}
+
+.why-item {
+  padding: 1.5rem;
+  border-left: 3px solid var(--surface1);
+  transition: border-color 0.3s;
+}
+
+.why-item:hover {
+  border-left-color: var(--lavender);
+}
+
+.why-item h3 {
+  font-size: 1.05rem;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.why-item p {
+  color: var(--subtext);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+/* ============================================
+   PIPELINE SECTION
+   ============================================ */
+
+#pipeline {
+  text-align: center;
+}
+
+.pipeline-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  flex-wrap: nowrap;
+  margin-top: 2rem;
+}
+
+.pipeline-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  position: relative;
+}
+
+.pipeline-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid;
+  background: var(--base);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.pipeline-circle:hover {
+  transform: scale(1.1);
+}
+
+.pipeline-circle svg {
+  width: 32px;
+  height: 32px;
+}
+
+.pipeline-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.pipeline-desc {
+  font-size: 0.75rem;
+  color: var(--subtext);
+  max-width: 100px;
+  line-height: 1.4;
+  margin-top: 0.25rem;
+}
+
+.pipeline-arrow {
+  width: 60px;
+  height: 2px;
+  position: relative;
+  margin: 0 -4px;
+  align-self: center;
+  margin-bottom: 3.5rem;
+}
+
+.pipeline-arrow .arrow-line {
+  width: 100%;
+  height: 2px;
+  background: var(--surface1);
+  position: relative;
+}
+
+.pipeline-arrow .arrow-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  top: -3px;
+  animation: particleFlow 2s ease-in-out infinite;
+}
+
+@keyframes particleFlow {
+  0% { left: 0; opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { left: calc(100% - 8px); opacity: 0; }
+}
+
+.pipeline-arrow:nth-of-type(1) .arrow-particle { animation-delay: 0s; }
+.pipeline-arrow:nth-of-type(2) .arrow-particle { animation-delay: 0.4s; }
+.pipeline-arrow:nth-of-type(3) .arrow-particle { animation-delay: 0.8s; }
+.pipeline-arrow:nth-of-type(4) .arrow-particle { animation-delay: 1.2s; }
+
+.pipeline-detail {
+  margin-top: 3rem;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  text-align: left;
+}
+
+.pipeline-detail-item {
+  padding: 1.25rem;
+  background: var(--surface0);
+  border-radius: 10px;
+  border-top: 2px solid;
+}
+
+.pipeline-detail-item h4 {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.pipeline-detail-item p {
+  font-size: 0.8rem;
+  color: var(--subtext);
+  line-height: 1.5;
+}
+
+/* ============================================
+   ARCHITECTURE SECTION
+   ============================================ */
+
+#architecture {
+  text-align: center;
+}
+
+.arch-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.arch-svg {
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@keyframes orbitSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.arch-orbit {
+  animation: orbitSpin 30s linear infinite;
+  transform-origin: 300px 250px;
+}
+
+.arch-pulse {
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.arch-pulse-delay1 { animation-delay: 0.5s; }
+.arch-pulse-delay2 { animation-delay: 1s; }
+.arch-pulse-delay3 { animation-delay: 1.5s; }
+
+.arch-explainer {
+  margin-top: 2.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  text-align: left;
+}
+
+.arch-explainer-item {
+  padding: 1.25rem;
+}
+
+.arch-explainer-item h4 {
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.arch-explainer-item p {
+  font-size: 0.88rem;
+  color: var(--subtext);
+  line-height: 1.6;
+}
+
+/* ============================================
+   FEATURES SECTION
+   ============================================ */
+
+#features {
+  text-align: center;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.feature-card {
+  background: var(--surface0);
+  border-radius: 12px;
+  padding: 2rem 1.5rem;
+  text-align: left;
+  border-top: 3px solid;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+.feature-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 1rem;
+}
+
+.feature-card h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+  color: var(--text);
+}
+
+.feature-card p {
+  font-size: 0.88rem;
+  color: var(--subtext);
+  line-height: 1.6;
+}
+
+/* ============================================
+   BENCHMARKS SECTION
+   ============================================ */
+
+#benchmarks {
+  text-align: center;
+}
+
+.benchmark-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.benchmark-card {
+  background: var(--surface0);
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: left;
+}
+
+.benchmark-card h3 {
+  font-size: 1.05rem;
+  margin-bottom: 1rem;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.benchmark-card .metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--surface1);
+}
+
+.benchmark-card .metric-row:last-child {
+  border-bottom: none;
+}
+
+.metric-label {
+  color: var(--subtext);
+  font-size: 0.88rem;
+}
+
+.metric-value {
+  font-weight: 700;
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-pass { color: var(--green); }
+.metric-perf { color: var(--blue); }
+.metric-cost { color: var(--peach); }
+
+.benchmark-note {
+  margin-top: 1.5rem;
+  color: var(--subtext);
+  font-size: 0.82rem;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* ============================================
+   STATS SECTION
+   ============================================ */
+
+#stats {
+  background: var(--mantle);
+  max-width: none;
+  padding: 4rem 2rem;
+}
+
+.stats-container {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  flex-wrap: wrap;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.stat-item {
+  text-align: center;
+  min-width: 110px;
+}
+
+.stat-number {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  color: var(--subtext);
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ============================================
+   CODE EXAMPLES SECTION
+   ============================================ */
+
+#code-examples {
+  text-align: center;
+}
+
+.terminal {
+  background: var(--crust);
+  border-radius: 12px;
+  overflow: hidden;
+  text-align: left;
+  max-width: 800px;
+  margin: 2rem auto 0;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+.terminal-bar {
+  background: var(--surface0);
+  padding: 12px 16px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.terminal-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.terminal-body {
+  padding: 1.5rem;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 0.83rem;
+  line-height: 1.8;
+  overflow-x: auto;
+}
+
+.terminal-body .prompt { color: var(--green); }
+.terminal-body .cmd { color: var(--blue); }
+.terminal-body .arg { color: var(--peach); }
+.terminal-body .output { color: var(--subtext); }
+.terminal-body .success { color: var(--green); }
+.terminal-body .accent { color: var(--lavender); }
+.terminal-body .comment { color: var(--surface2); font-style: italic; }
+
+/* ============================================
+   PHILOSOPHY SECTION
+   ============================================ */
+
+#philosophy {
+  text-align: center;
+}
+
+.philosophy-content {
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.philosophy-content blockquote {
+  border-left: 3px solid var(--mauve);
+  padding-left: 1.5rem;
+  margin: 2rem 0;
+  font-size: 1.1rem;
+  color: var(--text);
+  font-style: italic;
+  line-height: 1.7;
+}
+
+.philosophy-content p {
+  color: var(--subtext);
+  font-size: 0.95rem;
+  line-height: 1.8;
+  margin-bottom: 1.25rem;
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+
+#footer {
+  background: var(--crust);
+  text-align: center;
+  padding: 3rem 2rem;
+  max-width: none;
+  border-top: 1px solid var(--surface0);
+}
+
+.footer-brand {
+  color: var(--lavender);
+  font-weight: 800;
+  font-size: 1.3rem;
+  margin-bottom: 0.25rem;
+}
+
+.footer-by {
+  color: var(--subtext);
+  font-size: 0.9rem;
+  margin-bottom: 1.25rem;
+}
+
+.footer-by a {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.footer-links a {
+  color: var(--subtext);
+  font-size: 0.88rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: color 0.2s;
+}
+
+.footer-links a:hover {
+  color: var(--text);
+}
+
+.footer-links svg {
+  width: 16px;
+  height: 16px;
+}
+
+.footer-meta {
+  margin-top: 1.25rem;
+  color: var(--surface2);
+  font-size: 0.8rem;
+}
+
+.footer-built {
+  margin-top: 0.75rem;
+  color: var(--surface2);
+  font-style: italic;
+  font-size: 0.8rem;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 900px) {
+  .features-grid,
+  .benchmark-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .pipeline-detail {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .pipeline-detail-item:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  nav {
+    padding: 0.75rem 1rem;
+  }
+
+  .nav-links {
+    gap: 0.75rem;
+  }
+
+  .nav-links a:not(.nav-cta) {
+    display: none;
+  }
+
+  .hero-title-row {
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .hero-logo {
+    width: clamp(90px, 28vw, 140px);
+  }
+
+  .hero-title {
+    font-size: clamp(2.4rem, 12vw, 4rem);
+  }
+
+  .hero-tagline {
+    font-size: clamp(0.9rem, 3.5vw, 1.15rem);
+  }
+
+  .hero-description {
+    font-size: 0.9rem;
+    padding: 0 0.5rem;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .btn-primary, .btn-secondary {
+    width: 100%;
+    max-width: 280px;
+    text-align: center;
+  }
+
+  .pipeline-container {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .pipeline-circle {
+    width: 60px;
+    height: 60px;
+  }
+
+  .pipeline-circle svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .pipeline-arrow {
+    width: 2px;
+    height: 24px;
+    margin: 0;
+    margin-bottom: 0;
+  }
+
+  .pipeline-arrow .arrow-line {
+    width: 2px;
+    height: 100%;
+  }
+
+  .pipeline-arrow .arrow-particle {
+    left: -3px !important;
+    animation: particleFlowVert 2s ease-in-out infinite;
+  }
+
+  @keyframes particleFlowVert {
+    0% { top: 0; opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { top: calc(100% - 8px); opacity: 0; }
+  }
+
+  .pipeline-label {
+    font-size: 0.75rem;
+  }
+
+  .pipeline-desc {
+    display: none;
+  }
+
+  .pipeline-detail {
+    grid-template-columns: 1fr;
+  }
+
+  .pipeline-detail-item:last-child {
+    grid-column: auto;
+  }
+
+  .features-grid,
+  .benchmark-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .feature-card {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .why-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .arch-explainer {
+    grid-template-columns: 1fr;
+  }
+
+  .arch-svg {
+    max-width: 100%;
+  }
+
+  .stats-container {
+    gap: 1.25rem 1.5rem;
+    justify-content: center;
+  }
+
+  .stat-item {
+    min-width: 80px;
+  }
+
+  .terminal-body {
+    font-size: 0.7rem;
+    padding: 1rem;
+    line-height: 1.6;
+  }
+
+  .install-copy-btn {
+    position: static !important;
+    transform: none !important;
+    display: block;
+    margin-top: 0.5rem;
+    width: fit-content;
+  }
+
+  #install-cmd {
+    word-break: break-all;
+  }
+
+  .philosophy-content blockquote {
+    font-size: 1rem;
+    padding-left: 1rem;
+  }
+
+  section {
+    padding: 3rem 1.25rem;
+  }
+
+  #hero {
+    padding: 5rem 1.25rem 3rem;
+    min-height: 100svh;
+  }
+
+  h2 {
+    font-size: clamp(1.5rem, 6vw, 2.2rem);
+  }
+
+  h2 + p.section-sub {
+    font-size: 0.92rem;
+    margin-bottom: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-logo {
+    width: clamp(70px, 24vw, 100px);
+  }
+
+  .hero-title {
+    font-size: clamp(2rem, 14vw, 3rem);
+  }
+
+  .stats-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .stat-number {
+    font-size: clamp(1.5rem, 8vw, 2.2rem);
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+  }
+
+  .terminal-body {
+    font-size: 0.62rem;
+  }
+
+  .benchmark-card {
+    padding: 1.25rem;
+  }
+
+  .feature-card {
+    padding: 1.25rem 1rem;
+  }
+
+  .pipeline-circle {
+    width: 50px;
+    height: 50px;
+  }
+
+  .pipeline-circle svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .footer-links {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .platform-tabs {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .platform-tab {
+    font-size: 0.75rem !important;
+    padding: 0.4rem 1rem !important;
+  }
+}
+
+/* ============================================
+   PLATFORM INSTALL TABS
+   ============================================ */
+
+.platform-tabs {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.platform-tab {
+  background: transparent;
+  border: 1.5px solid var(--surface1);
+  color: var(--subtext);
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.platform-tab:hover {
+  border-color: var(--lavender);
+  color: var(--text);
+}
+
+.platform-tab.active {
+  background: var(--surface0);
+  border-color: var(--lavender);
+  color: var(--lavender);
+}
+
+.platform-tab svg {
+  width: 16px;
+  height: 16px;
+}
+
+.platform-panel {
+  display: none;
+}
+
+.platform-panel.active {
+  display: block;
+}
+
+.doc-panel {
+  display: none;
+}
+
+.doc-panel.active {
+  display: block;
+}
+
+/* ============================================
+   GITHUB STAR CTA
+   ============================================ */
+
+.github-star-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: linear-gradient(135deg, var(--surface0), var(--surface1));
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+  color: var(--text);
+  padding: 1rem 2.5rem;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.github-star-cta::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--lavender), var(--blue), var(--mauve), var(--peach));
+  background-size: 300% 300%;
+  animation: gradientShift 4s ease infinite;
+  z-index: -1;
+}
+
+.github-star-cta:hover {
+  background: linear-gradient(135deg, var(--lavender), var(--blue));
+  color: var(--crust);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(180, 190, 254, 0.35);
+}
+
+.github-star-cta svg {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+</style>
+</head>
+<body>
+
+<canvas id="webgl-bg"></canvas>
+
+<!-- ==================== NAV ==================== -->
+<nav>
+  <div class="nav-brand">JuhBDI</div>
+  <div class="nav-links">
+    <a href="#pipeline">How It Works</a>
+    <a href="#features">Features</a>
+    <a href="#benchmarks">Benchmarks</a>
+    <a href="#openclaw">OpenClaw</a>
+    <a href="#docs">Docs</a>
+    <a href="#install" class="nav-cta" style="background: linear-gradient(135deg, var(--green), var(--teal)); color: var(--base);">Install</a>
+    <a href="https://github.com/JuhLabs/juhbdi" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 0.4rem;">
+      <svg viewBox="0 0 24 24" fill="currentColor" style="width: 16px; height: 16px;"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+</nav>
+
+<!-- ==================== HERO ==================== -->
+<section id="hero">
+  <div class="hero-eyebrow">Open Source &middot; Claude Code Plugin &middot; MIT License</div>
+  <div class="hero-title-row">
+    <img src="juhbdilogo.png" alt="JuhBDI Logo" class="hero-logo" />
+    <h1 class="hero-title">JuhBDI</h1>
+  </div>
+  <p class="hero-tagline">Intent-Driven Autonomous Development Engine</p>
+  <p class="hero-description">An enterprise-grade AI development harness built on the BDI cognitive model. You define intent. JuhBDI challenges it, plans it, executes it in governed parallel waves, and learns from every outcome.</p>
+  <div class="hero-actions">
+    <a href="https://github.com/JuhLabs/juhbdi" target="_blank" rel="noopener" class="btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+      <svg viewBox="0 0 24 24" fill="currentColor" style="width: 20px; height: 20px;"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+      View on GitHub
+    </a>
+    <a href="#pipeline" class="btn-secondary">See How It Works</a>
+  </div>
+  <div class="hero-scroll">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ==================== INSTALL (right after hero) ==================== -->
+<section id="install" style="padding-top: 2rem; padding-bottom: 3rem;">
+  <h2 class="reveal">Install</h2>
+  <p class="section-sub reveal">One command. Works globally across all your projects.</p>
+
+  <div class="reveal" style="max-width: 720px; margin: 0 auto;">
+    <div class="platform-tabs">
+      <button class="platform-tab active" onclick="switchPlatform('macos')">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        macOS
+      </button>
+      <button class="platform-tab" onclick="switchPlatform('linux')">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.368 1.884 1.43.868.065 1.544-.413 2.058-.934l.035-.038c.142-.14.271-.281.392-.396.207-.245.424-.397.562-.535.326-.391.451-.702.451-1.071 0-.197-.018-.523-.074-.873a3.1 3.1 0 01-.038-.344c.02-.263.078-.49.196-.801.2-.459.391-.928.391-1.499 0-.501-.14-.94-.289-1.32-.083-.199-.178-.387-.262-.543-.141-.271-.252-.482-.262-.681-.011-.207.031-.397.134-.653.134-.327.313-.757.313-1.29 0-.822-.377-1.375-.72-1.81a7.93 7.93 0 00-.6-.667c-.456-.441-1.124-.727-1.675-.962-.545-.236-.93-.55-1.198-.862-.334-.39-.394-.71-.394-1.188V6.1c0-1.637-.125-3.143-.836-4.301C15.413.766 14.198 0 12.504 0z"/></svg>
+        Linux
+      </button>
+      <button class="platform-tab" onclick="switchPlatform('windows')">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+        Windows
+      </button>
+    </div>
+
+    <!-- macOS panel -->
+    <div id="platform-macos" class="platform-panel active">
+      <div class="terminal" style="max-width: 720px; margin: 0 auto;">
+        <div class="terminal-bar">
+          <div class="terminal-dot" style="background: var(--red);"></div>
+          <div class="terminal-dot" style="background: var(--yellow);"></div>
+          <div class="terminal-dot" style="background: var(--green);"></div>
+          <span style="color: var(--subtext); font-size: 0.7rem; margin-left: 0.75rem;">macOS</span>
+        </div>
+        <div class="terminal-body">
+          <div><span class="comment"># Install globally with one command</span></div>
+          <div style="position: relative;">
+            <span class="prompt">$</span> <span class="cmd" id="install-cmd-macos">curl -fsSL https://www.juhlabs.com/juhbdi/install.sh | bash -s -- --global</span>
+            <button class="install-copy-btn" onclick="navigator.clipboard.writeText('curl -fsSL https://www.juhlabs.com/juhbdi/install.sh | bash -s -- --global').then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)})" style="position:absolute;right:0;top:50%;transform:translateY(-50%);background:var(--surface0);border:1px solid var(--surface1);color:var(--subtext);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:0.75rem;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--lavender)';this.style.color='var(--lavender)'" onmouseout="this.style.borderColor='var(--surface1)';this.style.color='var(--subtext)'">Copy</button>
+          </div>
+          <div style="margin-top: 0.75rem;"><span class="comment"># Or download and run interactively</span></div>
+          <div><span class="prompt">$</span> <span class="cmd">curl -fsSL https://www.juhlabs.com/juhbdi/install.sh -o install.sh && bash install.sh</span></div>
+        </div>
+      </div>
+      <div style="margin-top: 1rem; text-align: center; color: var(--subtext); font-size: 0.8rem;">
+        Requires Node.js, Git, and Claude Code CLI. Bun auto-installs if missing.
+      </div>
+    </div>
+
+    <!-- Linux panel -->
+    <div id="platform-linux" class="platform-panel">
+      <div class="terminal" style="max-width: 720px; margin: 0 auto;">
+        <div class="terminal-bar">
+          <div class="terminal-dot" style="background: var(--red);"></div>
+          <div class="terminal-dot" style="background: var(--yellow);"></div>
+          <div class="terminal-dot" style="background: var(--green);"></div>
+          <span style="color: var(--subtext); font-size: 0.7rem; margin-left: 0.75rem;">Linux (Ubuntu/Debian/Fedora/Arch)</span>
+        </div>
+        <div class="terminal-body">
+          <div><span class="comment"># Ensure prerequisites are installed</span></div>
+          <div><span class="prompt">$</span> <span class="cmd">sudo apt install -y nodejs npm git</span>  <span class="comment"># Debian/Ubuntu</span></div>
+          <div style="margin-top: 0.75rem;"><span class="comment"># Install JuhBDI globally</span></div>
+          <div style="position: relative;">
+            <span class="prompt">$</span> <span class="cmd" id="install-cmd-linux">curl -fsSL https://www.juhlabs.com/juhbdi/install.sh | bash -s -- --global</span>
+            <button class="install-copy-btn" onclick="navigator.clipboard.writeText('curl -fsSL https://www.juhlabs.com/juhbdi/install.sh | bash -s -- --global').then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)})" style="position:absolute;right:0;top:50%;transform:translateY(-50%);background:var(--surface0);border:1px solid var(--surface1);color:var(--subtext);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:0.75rem;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--lavender)';this.style.color='var(--lavender)'" onmouseout="this.style.borderColor='var(--surface1)';this.style.color='var(--subtext)'">Copy</button>
+          </div>
+          <div style="margin-top: 0.75rem;"><span class="comment"># If CLI not on PATH after install, add ~/.local/bin</span></div>
+          <div><span class="prompt">$</span> <span class="cmd">echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc</span></div>
+        </div>
+      </div>
+      <div style="margin-top: 1rem; text-align: center; color: var(--subtext); font-size: 0.8rem;">
+        Requires Node.js, Git, and Claude Code CLI. Bun auto-installs if missing. Works on Ubuntu, Debian, Fedora, Arch, and WSL2.
+      </div>
+    </div>
+
+    <!-- Windows panel -->
+    <div id="platform-windows" class="platform-panel">
+      <div class="terminal" style="max-width: 720px; margin: 0 auto;">
+        <div class="terminal-bar">
+          <div class="terminal-dot" style="background: var(--red);"></div>
+          <div class="terminal-dot" style="background: var(--yellow);"></div>
+          <div class="terminal-dot" style="background: var(--green);"></div>
+          <span style="color: var(--subtext); font-size: 0.7rem; margin-left: 0.75rem;">Windows (WSL2)</span>
+        </div>
+        <div class="terminal-body">
+          <div><span class="comment"># Step 1: Install WSL2 (PowerShell as Admin)</span></div>
+          <div><span class="prompt">PS&gt;</span> <span class="cmd">wsl --install</span></div>
+          <div style="margin-top: 0.75rem;"><span class="comment"># Step 2: Open WSL2 terminal (Ubuntu) and install prerequisites</span></div>
+          <div><span class="prompt">$</span> <span class="cmd">sudo apt install -y nodejs npm git</span></div>
+          <div style="margin-top: 0.75rem;"><span class="comment"># Step 3: Install JuhBDI</span></div>
+          <div style="position: relative;">
+            <span class="prompt">$</span> <span class="cmd">curl -fsSL https://www.juhlabs.com/juhbdi/install.sh | bash -s -- --global</span>
+            <button class="install-copy-btn" onclick="navigator.clipboard.writeText('curl -fsSL https://www.juhlabs.com/juhbdi/install.sh | bash -s -- --global').then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)})" style="position:absolute;right:0;top:50%;transform:translateY(-50%);background:var(--surface0);border:1px solid var(--surface1);color:var(--subtext);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:0.75rem;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--lavender)';this.style.color='var(--lavender)'" onmouseout="this.style.borderColor='var(--surface1)';this.style.color='var(--subtext)'">Copy</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 1rem; text-align: center; color: var(--subtext); font-size: 0.8rem;">
+        Requires WSL2 with Ubuntu. Claude Code runs inside WSL2, not native Windows.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== WHY ==================== -->
+<section id="why">
+  <h2 class="reveal">The Problem with AI-Assisted Development</h2>
+  <p class="section-sub reveal">AI coding tools are powerful, but they lack structure. Without governance, traceability, and memory, you get speed without trust.</p>
+
+  <div class="why-grid">
+    <div class="why-item reveal">
+      <h3>No Audit Trail</h3>
+      <p>Most AI tools generate code with no record of why decisions were made, what alternatives were considered, or what constraints were applied. When something breaks, you're debugging a black box.</p>
+    </div>
+    <div class="why-item reveal">
+      <h3>No Intent Verification</h3>
+      <p>AI happily implements whatever you ask, even if it contradicts your project goals or violates constraints you've already defined. There's no Socratic challenge, no sanity check.</p>
+    </div>
+    <div class="why-item reveal">
+      <h3>No Learning Across Sessions</h3>
+      <p>Every conversation starts from zero. The same mistakes repeat. Successful approaches aren't remembered. Cost-effective model tiers aren't learned. Context resets destroy institutional knowledge.</p>
+    </div>
+    <div class="why-item reveal">
+      <h3>No Cost Intelligence</h3>
+      <p>Most tools route everything through the most expensive model. A simple rename doesn't need the same compute as an architecture refactor, but the bill doesn't know the difference.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PIPELINE ==================== -->
+<section id="pipeline">
+  <h2 class="reveal">How It Works</h2>
+  <p class="section-sub reveal">Every development request flows through a governed five-stage pipeline. Nothing executes without challenge. Everything leaves a trail.</p>
+
+  <div class="pipeline-container reveal">
+    <!-- Intent -->
+    <div class="pipeline-node">
+      <div class="pipeline-circle" style="border-color: var(--lavender); box-shadow: 0 0 20px rgba(180,190,254,0.15);">
+        <svg viewBox="0 0 32 32" fill="none" stroke="var(--lavender)" stroke-width="2">
+          <circle cx="16" cy="16" r="6"/>
+          <circle cx="16" cy="16" r="12"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="16" y1="26" x2="16" y2="30"/>
+          <line x1="2" y1="16" x2="6" y2="16"/>
+          <line x1="26" y1="16" x2="30" y2="16"/>
+        </svg>
+      </div>
+      <span class="pipeline-label" style="color: var(--lavender);">Intent</span>
+      <span class="pipeline-desc">Define goals, constraints, tradeoff weights</span>
+    </div>
+
+    <div class="pipeline-arrow">
+      <div class="arrow-line"></div>
+      <div class="arrow-particle" style="background: var(--lavender);"></div>
+    </div>
+
+    <!-- Challenge -->
+    <div class="pipeline-node">
+      <div class="pipeline-circle" style="border-color: var(--peach); box-shadow: 0 0 20px rgba(250,179,135,0.15);">
+        <svg viewBox="0 0 32 32" fill="none" stroke="var(--peach)" stroke-width="2">
+          <path d="M16 4 L28 28 L4 28 Z"/>
+          <line x1="16" y1="13" x2="16" y2="20"/>
+          <circle cx="16" cy="24" r="1" fill="var(--peach)"/>
+        </svg>
+      </div>
+      <span class="pipeline-label" style="color: var(--peach);">Challenge</span>
+      <span class="pipeline-desc">Socratic validation against all constraints</span>
+    </div>
+
+    <div class="pipeline-arrow">
+      <div class="arrow-line"></div>
+      <div class="arrow-particle" style="background: var(--peach);"></div>
+    </div>
+
+    <!-- Plan -->
+    <div class="pipeline-node">
+      <div class="pipeline-circle" style="border-color: var(--blue); box-shadow: 0 0 20px rgba(137,180,250,0.15);">
+        <svg viewBox="0 0 32 32" fill="none" stroke="var(--blue)" stroke-width="2">
+          <rect x="6" y="4" width="20" height="24" rx="2"/>
+          <line x1="10" y1="10" x2="22" y2="10"/>
+          <line x1="10" y1="15" x2="22" y2="15"/>
+          <line x1="10" y1="20" x2="18" y2="20"/>
+        </svg>
+      </div>
+      <span class="pipeline-label" style="color: var(--blue);">Plan</span>
+      <span class="pipeline-desc">Wave decomposition with receding horizon</span>
+    </div>
+
+    <div class="pipeline-arrow">
+      <div class="arrow-line"></div>
+      <div class="arrow-particle" style="background: var(--blue);"></div>
+    </div>
+
+    <!-- Execute -->
+    <div class="pipeline-node">
+      <div class="pipeline-circle" style="border-color: var(--green); box-shadow: 0 0 20px rgba(166,227,161,0.15);">
+        <svg viewBox="0 0 32 32" fill="none" stroke="var(--green)" stroke-width="2">
+          <polygon points="10,6 26,16 10,26" fill="none"/>
+        </svg>
+      </div>
+      <span class="pipeline-label" style="color: var(--green);">Execute</span>
+      <span class="pipeline-desc">Isolated agents with automatic recovery</span>
+    </div>
+
+    <div class="pipeline-arrow">
+      <div class="arrow-line"></div>
+      <div class="arrow-particle" style="background: var(--green);"></div>
+    </div>
+
+    <!-- Learn -->
+    <div class="pipeline-node">
+      <div class="pipeline-circle" style="border-color: var(--mauve); box-shadow: 0 0 20px rgba(203,166,247,0.15);">
+        <svg viewBox="0 0 32 32" fill="none" stroke="var(--mauve)" stroke-width="2">
+          <circle cx="16" cy="14" r="8"/>
+          <path d="M12 24 L12 28 L20 28 L20 24"/>
+          <line x1="14" y1="28" x2="18" y2="28"/>
+        </svg>
+      </div>
+      <span class="pipeline-label" style="color: var(--mauve);">Learn</span>
+      <span class="pipeline-desc">Principles, trust updates, memory recording</span>
+    </div>
+  </div>
+
+  <!-- Detailed pipeline explanations -->
+  <div class="pipeline-detail reveal">
+    <div class="pipeline-detail-item" style="border-top-color: var(--lavender);">
+      <h4 style="color: var(--lavender);">1. Intent Specification</h4>
+      <p>Define your project as structured goals with measurable targets, hard/soft constraints, tradeoff weights (quality vs speed vs security), and human-in-the-loop gates. This is your source of truth.</p>
+    </div>
+    <div class="pipeline-detail-item" style="border-top-color: var(--peach);">
+      <h4 style="color: var(--peach);">2. Socratic Challenge</h4>
+      <p>Every request is evaluated against every constraint. Hard violations block execution. Soft conflicts generate warnings. Overrides are logged with reasoning. Nothing slips through unchecked.</p>
+    </div>
+    <div class="pipeline-detail-item" style="border-top-color: var(--blue);">
+      <h4 style="color: var(--blue);">3. Wave Planning</h4>
+      <p>Tasks are decomposed into waves using receding-horizon planning: only the next wave is fully specified. After execution, beliefs update and the next wave is replanned with fresh context.</p>
+    </div>
+    <div class="pipeline-detail-item" style="border-top-color: var(--green);">
+      <h4 style="color: var(--green);">4. Governed Execution</h4>
+      <p>Each task runs in an isolated git worktree with intent verification, HITL gate checks, and governance validation. Failures trigger automatic diagnostician + strategist recovery.</p>
+    </div>
+    <div class="pipeline-detail-item" style="border-top-color: var(--mauve);">
+      <h4 style="color: var(--mauve);">5. Reflection &amp; Learning</h4>
+      <p>Post-execution, principles are extracted from plan-vs-actual divergence. Trust scores update. Successful approaches are recorded for future pre-task speculation. Every run makes the next one better.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== ARCHITECTURE ==================== -->
+<section id="architecture">
+  <h2 class="reveal">BDI Architecture</h2>
+  <p class="section-sub reveal">Built on the Belief-Desire-Intention cognitive model from agent theory. Not a prompt wrapper — a thinking architecture.</p>
+
+  <div class="arch-container reveal">
+    <svg class="arch-svg" viewBox="0 0 600 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Orbital ring -->
+      <g class="arch-orbit">
+        <circle cx="300" cy="250" r="170" stroke="var(--surface1)" stroke-width="1" stroke-dasharray="8 8" fill="none"/>
+      </g>
+
+      <!-- Connection lines between BDI nodes -->
+      <line x1="300" y1="110" x2="160" y2="350" stroke="var(--surface1)" stroke-width="1.5" class="arch-pulse"/>
+      <line x1="300" y1="110" x2="440" y2="350" stroke="var(--surface1)" stroke-width="1.5" class="arch-pulse arch-pulse-delay1"/>
+      <line x1="160" y1="350" x2="440" y2="350" stroke="var(--surface1)" stroke-width="1.5" class="arch-pulse arch-pulse-delay2"/>
+
+      <!-- Animated arrows on connections -->
+      <circle r="4" fill="var(--teal)">
+        <animateMotion dur="3s" repeatCount="indefinite">
+          <mpath href="#path-bd"/>
+        </animateMotion>
+      </circle>
+      <path id="path-bd" d="M300,110 L160,350" fill="none" stroke="none"/>
+
+      <circle r="4" fill="var(--peach)">
+        <animateMotion dur="3s" repeatCount="indefinite" begin="1s">
+          <mpath href="#path-di"/>
+        </animateMotion>
+      </circle>
+      <path id="path-di" d="M160,350 L440,350" fill="none" stroke="none"/>
+
+      <circle r="4" fill="var(--lavender)">
+        <animateMotion dur="3s" repeatCount="indefinite" begin="2s">
+          <mpath href="#path-ib"/>
+        </animateMotion>
+      </circle>
+      <path id="path-ib" d="M440,350 L300,110" fill="none" stroke="none"/>
+
+      <!-- Satellite connections -->
+      <line x1="300" y1="110" x2="480" y2="100" stroke="var(--surface0)" stroke-width="1" stroke-dasharray="4 4" class="arch-pulse arch-pulse-delay3"/>
+      <line x1="160" y1="350" x2="60" y2="250" stroke="var(--surface0)" stroke-width="1" stroke-dasharray="4 4" class="arch-pulse"/>
+      <line x1="440" y1="350" x2="540" y2="250" stroke="var(--surface0)" stroke-width="1" stroke-dasharray="4 4" class="arch-pulse arch-pulse-delay1"/>
+      <line x1="300" y1="300" x2="300" y2="450" stroke="var(--surface0)" stroke-width="1" stroke-dasharray="4 4" class="arch-pulse arch-pulse-delay2"/>
+
+      <!-- BELIEFS node -->
+      <circle cx="300" cy="110" r="45" fill="var(--base)" stroke="var(--teal)" stroke-width="2.5"/>
+      <text x="300" y="107" text-anchor="middle" fill="var(--teal)" font-size="13" font-weight="700">Beliefs</text>
+      <text x="300" y="122" text-anchor="middle" fill="var(--subtext)" font-size="9">State + Memory</text>
+
+      <!-- DESIRES node -->
+      <circle cx="160" cy="350" r="45" fill="var(--base)" stroke="var(--peach)" stroke-width="2.5"/>
+      <text x="160" y="347" text-anchor="middle" fill="var(--peach)" font-size="13" font-weight="700">Desires</text>
+      <text x="160" y="362" text-anchor="middle" fill="var(--subtext)" font-size="9">Goals + Intent</text>
+
+      <!-- INTENTIONS node -->
+      <circle cx="440" cy="350" r="45" fill="var(--base)" stroke="var(--lavender)" stroke-width="2.5"/>
+      <text x="440" y="347" text-anchor="middle" fill="var(--lavender)" font-size="13" font-weight="700">Intentions</text>
+      <text x="440" y="362" text-anchor="middle" fill="var(--subtext)" font-size="9">Plans + Tasks</text>
+
+      <!-- Satellite: Memory -->
+      <rect x="20" y="225" width="80" height="50" rx="8" fill="var(--surface0)" stroke="var(--teal)" stroke-width="1.5"/>
+      <text x="60" y="248" text-anchor="middle" fill="var(--teal)" font-size="11" font-weight="600">Memory</text>
+      <text x="60" y="262" text-anchor="middle" fill="var(--subtext)" font-size="8">A-MEM</text>
+
+      <!-- Satellite: Governance -->
+      <rect x="500" y="225" width="80" height="50" rx="8" fill="var(--surface0)" stroke="var(--red)" stroke-width="1.5"/>
+      <text x="540" y="248" text-anchor="middle" fill="var(--red)" font-size="11" font-weight="600">Govern</text>
+      <text x="540" y="262" text-anchor="middle" fill="var(--subtext)" font-size="8">HITL Gates</text>
+
+      <!-- Satellite: Model Routing -->
+      <rect x="440" y="75" width="80" height="50" rx="8" fill="var(--surface0)" stroke="var(--blue)" stroke-width="1.5"/>
+      <text x="480" y="98" text-anchor="middle" fill="var(--blue)" font-size="11" font-weight="600">Routing</text>
+      <text x="480" y="112" text-anchor="middle" fill="var(--subtext)" font-size="8">5-Signal</text>
+
+      <!-- Satellite: Audit Trail -->
+      <rect x="260" y="430" width="80" height="50" rx="8" fill="var(--surface0)" stroke="var(--green)" stroke-width="1.5"/>
+      <text x="300" y="453" text-anchor="middle" fill="var(--green)" font-size="11" font-weight="600">Audit</text>
+      <text x="300" y="467" text-anchor="middle" fill="var(--subtext)" font-size="8">SHA-256</text>
+    </svg>
+  </div>
+
+  <div class="arch-explainer reveal">
+    <div class="arch-explainer-item">
+      <h4 style="color: var(--teal);">Beliefs</h4>
+      <p>The system's understanding of the world: project state, compressed history, codebase structure (PageRank-weighted repo map), and cross-linked memory from past executions. Updated after every wave.</p>
+    </div>
+    <div class="arch-explainer-item">
+      <h4 style="color: var(--peach);">Desires</h4>
+      <p>What you want: structured goals with measurable targets, weighted constraints, and tradeoff preferences. These never change during execution unless you explicitly update them.</p>
+    </div>
+    <div class="arch-explainer-item">
+      <h4 style="color: var(--lavender);">Intentions</h4>
+      <p>The committed execution plan: atomic tasks organized into waves, each with verification commands, goal alignment, and model tier routing. Replanned after every wave based on updated beliefs.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FEATURES ==================== -->
+<section id="features">
+  <h2 class="reveal">Core Capabilities</h2>
+  <p class="section-sub reveal">Every feature exists because unstructured AI development fails in predictable ways. These are the structural answers.</p>
+
+  <div class="features-grid">
+    <!-- Model Routing -->
+    <div class="feature-card reveal" style="border-top-color: var(--blue);">
+      <svg class="feature-icon" viewBox="0 0 48 48" fill="none" stroke="var(--blue)" stroke-width="2">
+        <circle cx="24" cy="24" r="20" stroke-dasharray="4 4"/>
+        <line x1="24" y1="24" x2="24" y2="6"/>
+        <line x1="24" y1="24" x2="40" y2="16"/>
+        <line x1="24" y1="24" x2="38" y2="36"/>
+        <line x1="24" y1="24" x2="10" y2="36"/>
+        <line x1="24" y1="24" x2="8" y2="16"/>
+        <circle cx="24" cy="6" r="3" fill="var(--blue)"/>
+        <circle cx="40" cy="16" r="3" fill="var(--blue)"/>
+        <circle cx="38" cy="36" r="3" fill="var(--blue)"/>
+        <circle cx="10" cy="36" r="3" fill="var(--blue)"/>
+        <circle cx="8" cy="16" r="3" fill="var(--blue)"/>
+      </svg>
+      <h3>Intelligent Model Routing</h3>
+      <p>5-signal algorithm evaluates override, memory match, structural complexity, tradeoff bias, and failure escalation for every task. Trust scoring learns which tiers actually work, so you stop overpaying for simple tasks.</p>
+    </div>
+
+    <!-- Audit Trail -->
+    <div class="feature-card reveal" style="border-top-color: var(--green);">
+      <svg class="feature-icon" viewBox="0 0 48 48" fill="none" stroke="var(--green)" stroke-width="2">
+        <circle cx="12" cy="24" r="6"/>
+        <circle cx="24" cy="24" r="6"/>
+        <circle cx="36" cy="24" r="6"/>
+        <line x1="18" y1="24" x2="18" y2="24"/>
+        <line x1="30" y1="24" x2="30" y2="24"/>
+      </svg>
+      <h3>Tamper-Evident Audit Trail</h3>
+      <p>Every decision is logged with SHA-256 chaining: what was decided, why, what alternatives were considered, which constraints applied. Designed with enterprise compliance and EU AI Act traceability in mind.</p>
+    </div>
+
+    <!-- Wave Execution -->
+    <div class="feature-card reveal" style="border-top-color: var(--peach);">
+      <svg class="feature-icon" viewBox="0 0 48 48" fill="none" stroke="var(--peach)" stroke-width="2">
+        <line x1="8" y1="24" x2="16" y2="24"/>
+        <line x1="16" y1="24" x2="24" y2="12"/>
+        <line x1="16" y1="24" x2="24" y2="24"/>
+        <line x1="16" y1="24" x2="24" y2="36"/>
+        <line x1="24" y1="12" x2="40" y2="12"/>
+        <line x1="24" y1="24" x2="40" y2="24"/>
+        <line x1="24" y1="36" x2="40" y2="36"/>
+        <circle cx="8" cy="24" r="3" fill="var(--peach)"/>
+        <circle cx="40" cy="12" r="3" fill="var(--peach)"/>
+        <circle cx="40" cy="24" r="3" fill="var(--peach)"/>
+        <circle cx="40" cy="36" r="3" fill="var(--peach)"/>
+      </svg>
+      <h3>Wave-Based Execution</h3>
+      <p>Tasks decompose into parallel waves. Each runs in an isolated git worktree. On failure, a diagnostician agent identifies root cause and a strategist agent proposes a new approach — automatic recovery without human intervention.</p>
+    </div>
+
+    <!-- Memory & Learning -->
+    <div class="feature-card reveal" style="border-top-color: var(--mauve);">
+      <svg class="feature-icon" viewBox="0 0 48 48" fill="none" stroke="var(--mauve)" stroke-width="2">
+        <circle cx="24" cy="20" r="12"/>
+        <circle cx="16" cy="16" r="3" fill="var(--mauve)" opacity="0.5"/>
+        <circle cx="28" cy="14" r="2" fill="var(--mauve)" opacity="0.5"/>
+        <circle cx="22" cy="24" r="2.5" fill="var(--mauve)" opacity="0.5"/>
+        <line x1="16" y1="16" x2="28" y2="14"/>
+        <line x1="16" y1="16" x2="22" y2="24"/>
+        <line x1="28" y1="14" x2="22" y2="24"/>
+        <path d="M18 32 L18 40 L30 40 L30 32"/>
+      </svg>
+      <h3>Cross-Linked Memory</h3>
+      <p>A-MEM records every execution as a cross-linked triplet. Before each task, the system speculates on approaches from past experience and surfaces principles extracted from plan-vs-actual divergence. Knowledge compounds.</p>
+    </div>
+
+    <!-- Governance -->
+    <div class="feature-card reveal" style="border-top-color: var(--red);">
+      <svg class="feature-icon" viewBox="0 0 48 48" fill="none" stroke="var(--red)" stroke-width="2">
+        <path d="M24 4 L40 16 L40 32 L24 44 L8 32 L8 16 Z"/>
+        <polyline points="18,24 22,28 30,18" stroke-width="2.5"/>
+      </svg>
+      <h3>Governance Framework</h3>
+      <p>Human-in-the-loop gates for sensitive operations. Destructive command blocking. Constraint enforcement at every step. Intent verification runs before each task — if a task doesn't serve a stated goal, it doesn't execute.</p>
+    </div>
+
+    <!-- Auto-Triggering -->
+    <div class="feature-card reveal" style="border-top-color: var(--teal);">
+      <svg class="feature-icon" viewBox="0 0 48 48" fill="none" stroke="var(--teal)" stroke-width="2">
+        <polyline points="28,4 18,24 28,24 20,44" stroke-width="2.5" stroke-linejoin="round"/>
+      </svg>
+      <h3>Auto-Triggering</h3>
+      <p>A rules engine scores natural language prompts against pattern categories. When confidence exceeds threshold, JuhBDI suggests the appropriate command. You don't need to remember the commands — it meets you where you are.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== BENCHMARKS ==================== -->
+<section id="benchmarks">
+  <h2 class="reveal">Benchmarks</h2>
+  <p class="section-sub reveal">Real numbers from JuhBDI's own test suite and internal benchmarks. No synthetic demos, no cherry-picked runs.</p>
+
+  <div class="benchmark-grid">
+    <!-- Test Suite -->
+    <div class="benchmark-card reveal">
+      <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><polyline points="4,12 9,17 20,6"/></svg> Test Suite</h3>
+      <div class="metric-row">
+        <span class="metric-label">Total tests</span>
+        <span class="metric-value metric-pass">642</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Failures</span>
+        <span class="metric-value metric-pass">0</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Test files</span>
+        <span class="metric-value metric-perf">62+</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Assertions</span>
+        <span class="metric-value metric-perf">1,200+</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Full suite runtime</span>
+        <span class="metric-value metric-perf">~220ms</span>
+      </div>
+    </div>
+
+    <!-- Performance -->
+    <div class="benchmark-card reveal">
+      <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg> Latency</h3>
+      <div class="metric-row">
+        <span class="metric-label">Auto-trigger scoring</span>
+        <span class="metric-value metric-perf">0.01ms / msg</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Trust scoring</span>
+        <span class="metric-value metric-perf">&lt;0.001ms / record</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Difficulty estimation</span>
+        <span class="metric-value metric-perf">0.001ms / task</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Principle extraction</span>
+        <span class="metric-value metric-perf">0.03ms / wave</span>
+      </div>
+    </div>
+
+    <!-- Model Routing -->
+    <div class="benchmark-card reveal">
+      <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--peach)" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Model Routing (50 tasks)</h3>
+      <div class="metric-row">
+        <span class="metric-label">Cost-safe routing</span>
+        <span class="metric-value metric-cost">~90%</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Savings vs all-opus baseline</span>
+        <span class="metric-value metric-cost">80%</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Correct tier selection</span>
+        <span class="metric-value metric-cost">40%</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Conservative (overkill)</span>
+        <span class="metric-value" style="color: var(--yellow);">~50%</span>
+      </div>
+    </div>
+
+    <!-- Competitive Position -->
+    <div class="benchmark-card reveal">
+      <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--mauve)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg> Capability Coverage</h3>
+      <div class="metric-row">
+        <span class="metric-label">Capabilities implemented</span>
+        <span class="metric-value" style="color: var(--lavender);">27 / 27</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Unique to JuhBDI</span>
+        <span class="metric-value" style="color: var(--lavender);">14</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Milestones completed</span>
+        <span class="metric-value metric-perf">10</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Competitors evaluated</span>
+        <span class="metric-value metric-perf">7</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="benchmark-note reveal">Benchmarks from M10 "Apex Predator" release (v1.4.0). Routing accuracy measured across 50 synthetic tasks with known optimal tiers. Capability comparison based on 27-point feature matrix evaluated across 7 competing tools in the Claude Code plugin ecosystem. Full methodology available in the repository.</p>
+</section>
+
+<!-- ==================== STATS ==================== -->
+<section id="stats">
+  <div class="stats-container reveal">
+    <div class="stat-item">
+      <div class="stat-number" style="color: var(--green);" data-target="642">0</div>
+      <div class="stat-label">Tests</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number" style="color: var(--blue);" data-target="94">0</div>
+      <div class="stat-label">Modules</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number" style="color: var(--peach);" data-target="13">0</div>
+      <div class="stat-label">Commands</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number" style="color: var(--mauve);" data-target="5">0</div>
+      <div class="stat-label">Agents</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number" style="color: var(--lavender);">
+        <span data-target="27">0</span>/<span data-target="27">0</span>
+      </div>
+      <div class="stat-label">Capabilities</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number" style="color: var(--teal);" data-target="10">0</div>
+      <div class="stat-label">Milestones</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== OPENCLAW INTEGRATION ==================== -->
+<section id="openclaw" style="padding-bottom: 3rem;">
+  <div class="reveal" style="text-align: center; margin-bottom: 2rem;">
+    <div style="display: flex; align-items: center; justify-content: center; gap: 2rem; margin-bottom: 1.5rem;">
+      <!-- OpenClaw Lobster Logo -->
+      <svg width="72" height="72" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 20px rgba(243, 139, 168, 0.3));">
+        <path d="M60 10 C30 10 15 35 15 55 C15 75 30 95 45 100 L45 110 L55 110 L55 100 C55 100 60 102 65 100 L65 110 L75 110 L75 100 C90 95 105 75 105 55 C105 35 90 10 60 10Z" fill="url(#oc-gradient)"/>
+        <path d="M20 45 C5 40 0 50 5 60 C10 70 20 65 25 55 C28 48 25 45 20 45Z" fill="url(#oc-gradient)"/>
+        <path d="M100 45 C115 40 120 50 115 60 C110 70 100 65 95 55 C92 48 95 45 100 45Z" fill="url(#oc-gradient)"/>
+        <path d="M45 15 Q35 5 30 8" stroke="var(--red)" stroke-width="2" stroke-linecap="round"/>
+        <path d="M75 15 Q85 5 90 8" stroke="var(--red)" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="45" cy="35" r="6" fill="var(--crust)"/>
+        <circle cx="75" cy="35" r="6" fill="var(--crust)"/>
+        <circle cx="46" cy="34" r="2" fill="var(--teal)"/>
+        <circle cx="76" cy="34" r="2" fill="var(--teal)"/>
+        <defs>
+          <linearGradient id="oc-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="var(--red)"/>
+            <stop offset="100%" stop-color="var(--peach)"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div style="font-size: 1.5rem; color: var(--surface2); font-weight: 300;">+</div>
+      <!-- JuhBDI Logo -->
+      <img src="juhbdilogo.png" alt="JuhBDI" width="72" height="72" style="filter: drop-shadow(0 0 20px rgba(180, 190, 254, 0.3)); border-radius: 12px;" />
+    </div>
+  </div>
+
+  <h2 class="reveal" style="background: linear-gradient(135deg, var(--teal), var(--lavender)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">OpenClaw + JuhBDI</h2>
+  <p class="section-sub reveal">Give your OpenClaw agents enterprise-grade governance. Intent verification, SHA-256 audit trails, learning memory, and trust scoring &mdash; works with any LLM.</p>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;" class="reveal">
+    <div style="background: var(--surface0); border-radius: 12px; padding: 1.5rem; border-top: 2px solid var(--teal);">
+      <h4 style="color: var(--teal); margin-bottom: 0.5rem; font-size: 0.95rem;">Intent Verification</h4>
+      <p style="color: var(--subtext); font-size: 0.85rem; line-height: 1.6;">Agents challenge vague or risky requests before executing. Destructive actions flagged automatically. No more blind execution.</p>
+    </div>
+    <div style="background: var(--surface0); border-radius: 12px; padding: 1.5rem; border-top: 2px solid var(--lavender);">
+      <h4 style="color: var(--lavender); margin-bottom: 0.5rem; font-size: 0.95rem;">Audit Trail</h4>
+      <p style="color: var(--subtext); font-size: 0.85rem; line-height: 1.6;">Every decision logged with SHA-256 hash chains. Tamper-evident, verifiable, compliant. Know exactly why your agent did what it did.</p>
+    </div>
+    <div style="background: var(--surface0); border-radius: 12px; padding: 1.5rem; border-top: 2px solid var(--mauve);">
+      <h4 style="color: var(--mauve); margin-bottom: 0.5rem; font-size: 0.95rem;">Learning Memory</h4>
+      <p style="color: var(--subtext); font-size: 0.85rem; line-height: 1.6;">Agents learn from past tasks. Successful approaches recalled. Failed approaches avoided. Principles extracted and applied automatically.</p>
+    </div>
+    <div style="background: var(--surface0); border-radius: 12px; padding: 1.5rem; border-top: 2px solid var(--peach);">
+      <h4 style="color: var(--peach); margin-bottom: 0.5rem; font-size: 0.95rem;">Trust Scoring</h4>
+      <p style="color: var(--subtext); font-size: 0.85rem; line-height: 1.6;">Track model reliability across tasks. Trust builds with successful completions. Low-trust models flagged before they run critical work.</p>
+    </div>
+  </div>
+
+  <div class="terminal reveal" style="max-width: 720px; margin: 0 auto;">
+    <div class="terminal-bar">
+      <div class="terminal-dot" style="background: var(--red);"></div>
+      <div class="terminal-dot" style="background: var(--yellow);"></div>
+      <div class="terminal-dot" style="background: var(--green);"></div>
+      <span style="color: var(--subtext); font-size: 0.7rem; margin-left: 0.75rem;">OpenClaw</span>
+    </div>
+    <div class="terminal-body">
+      <div><span class="comment"># Install the BDI governance plugin</span></div>
+      <div><span class="prompt">$</span> <span class="cmd">openclaw plugins install @juhlabs/openclaw-bdi</span></div>
+      <div style="margin-top: 0.75rem;"><span class="comment"># Or via npm</span></div>
+      <div><span class="prompt">$</span> <span class="cmd">npm install @juhlabs/openclaw-bdi</span></div>
+      <div style="margin-top: 1rem;"><span class="comment"># Your agent now has 5 governance tools:</span></div>
+      <div><span class="output">  <span class="accent">bdi_verify_intent</span>  — Challenge risky actions before execution</span></div>
+      <div><span class="output">  <span class="accent">bdi_recall</span>          — Retrieve past experiences &amp; learned principles</span></div>
+      <div><span class="output">  <span class="accent">bdi_log_decision</span>   — SHA-256 hash-chained audit trail</span></div>
+      <div><span class="output">  <span class="accent">bdi_reflect</span>         — Extract principles from outcomes</span></div>
+      <div><span class="output">  <span class="accent">bdi_assess</span>          — Estimate difficulty &amp; model trust</span></div>
+      <div style="margin-top: 0.75rem;"><span class="comment"># + automatic governance injection &amp; audit hooks</span></div>
+      <div><span class="output"><span class="success">BDI governance layer loaded.</span> Works with Claude, GPT, Gemini, DeepSeek.</span></div>
+    </div>
+  </div>
+
+  <div style="text-align: center; margin-top: 2rem;" class="reveal">
+    <p style="color: var(--subtext); font-size: 0.9rem;">
+      Compatible with all <span style="color: var(--teal); font-weight: 600;">13,700+</span> OpenClaw skills.
+      Makes every skill smarter with governance, memory, and learning.
+    </p>
+  </div>
+</section>
+
+<!-- ==================== DOCUMENTATION ==================== -->
+<section id="docs">
+  <h2 class="reveal">Documentation</h2>
+  <p class="section-sub reveal">Everything you need to understand JuhBDI's architecture, commands, and cognitive model.</p>
+
+  <!-- Doc nav tabs -->
+  <div style="display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap;" class="reveal">
+    <button class="platform-tab active" onclick="switchDoc('commands')" style="font-size: 0.8rem; padding: 0.4rem 1rem;">Commands</button>
+    <button class="platform-tab" onclick="switchDoc('bdi-loop')" style="font-size: 0.8rem; padding: 0.4rem 1rem;">BDI Loop</button>
+    <button class="platform-tab" onclick="switchDoc('routing')" style="font-size: 0.8rem; padding: 0.4rem 1rem;">Model Routing</button>
+    <button class="platform-tab" onclick="switchDoc('agents')" style="font-size: 0.8rem; padding: 0.4rem 1rem;">Agents &amp; Hooks</button>
+    <button class="platform-tab" onclick="switchDoc('architecture')" style="font-size: 0.8rem; padding: 0.4rem 1rem;">Architecture</button>
+    <button class="platform-tab" onclick="switchDoc('openclaw-docs')" style="font-size: 0.8rem; padding: 0.4rem 1rem;">OpenClaw Plugin</button>
+  </div>
+
+  <!-- Commands panel -->
+  <div id="doc-commands" class="doc-panel active reveal" style="max-width: 900px; margin: 0 auto;">
+    <h3 style="color: var(--lavender); margin-bottom: 1rem; font-size: 1.1rem;">Slash Commands</h3>
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--surface1);">
+            <th style="text-align: left; padding: 0.75rem 1rem; color: var(--lavender);">Command</th>
+            <th style="text-align: left; padding: 0.75rem 1rem; color: var(--subtext);">Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--blue); font-family: monospace; white-space: nowrap;">/juhbdi:init</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Initialize project &mdash; scans codebase, asks about goals, creates governance config</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--blue); font-family: monospace; white-space: nowrap;">/juhbdi:plan</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Interactive planning &mdash; discovers intent, analyzes code, generates wave-based roadmap</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--blue); font-family: monospace; white-space: nowrap;">/juhbdi:execute</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Governed execution loop with parallel worktrees, model routing, and auto-recovery</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--blue); font-family: monospace; white-space: nowrap;">/juhbdi:quick</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Fast-track simple tasks (skips full planning, keeps governance)</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--blue); font-family: monospace; white-space: nowrap;">/juhbdi:status</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Dashboard: progress, routing stats, cost intelligence, context health</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--blue); font-family: monospace; white-space: nowrap;">/juhbdi:cost</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Cost analysis: per-task spend, savings vs always-opus, tier distribution</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--blue); font-family: monospace; white-space: nowrap;">/juhbdi:trail</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Query the SHA-256 chained audit trail</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--blue); font-family: monospace; white-space: nowrap;">/juhbdi:audit</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Verify decision trail integrity (tamper detection)</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--blue); font-family: monospace; white-space: nowrap;">/juhbdi:reflect</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Extract learned principles from plan-vs-actual divergence</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--blue); font-family: monospace; white-space: nowrap;">/juhbdi:pause</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Pause execution with full context handoff</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--blue); font-family: monospace; white-space: nowrap;">/juhbdi:resume</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Resume from handoff in a new session</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--blue); font-family: monospace; white-space: nowrap;">/juhbdi:validate</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Validate roadmap structure and intent alignment</td></tr>
+          <tr><td style="padding: 0.6rem 1rem; color: var(--blue); font-family: monospace; white-space: nowrap;">/juhbdi:activate</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Inject JuhBDI activation into CLAUDE.md</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- BDI Loop panel -->
+  <div id="doc-bdi-loop" class="doc-panel reveal" style="max-width: 900px; margin: 0 auto; display: none;">
+    <h3 style="color: var(--lavender); margin-bottom: 1rem; font-size: 1.1rem;">The BDI Cognitive Model</h3>
+    <p style="color: var(--subtext); line-height: 1.7; margin-bottom: 1.5rem;">JuhBDI implements a cognitive architecture where the AI maintains persistent <strong style="color: var(--text);">Beliefs</strong> (what it knows about the project), <strong style="color: var(--text);">Desires</strong> (what the user wants to achieve), and <strong style="color: var(--text);">Intentions</strong> (the concrete plan to get there).</p>
+
+    <div class="terminal" style="margin-bottom: 1.5rem;">
+      <div class="terminal-bar">
+        <div class="terminal-dot" style="background: var(--red);"></div>
+        <div class="terminal-dot" style="background: var(--yellow);"></div>
+        <div class="terminal-dot" style="background: var(--green);"></div>
+      </div>
+      <div class="terminal-body" style="font-size: 0.8rem;">
+        <div><span class="accent">Beliefs</span> <span class="output">&mdash;&gt;</span> <span class="accent">Desires</span> <span class="output">&mdash;&gt;</span> <span class="accent">Intentions</span> <span class="output">&mdash;&gt;</span> <span class="accent">Actions</span></div>
+        <div><span class="output">  &uarr;                                               &darr;</span></div>
+        <div><span class="output">  &larr;&mdash;&mdash;&mdash;&mdash;&mdash; observe outcomes &larr;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;</span></div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+      <div style="background: var(--surface0); border-radius: 10px; padding: 1.25rem; border-left: 3px solid var(--lavender);">
+        <h4 style="color: var(--lavender); margin-bottom: 0.5rem; font-size: 0.9rem;">1. Intent Specification</h4>
+        <p style="color: var(--subtext); font-size: 0.82rem; line-height: 1.6;">Define goals, constraints, and tradeoff weights (quality &harr; speed &harr; security). JuhBDI challenges your request through Socratic review.</p>
+      </div>
+      <div style="background: var(--surface0); border-radius: 10px; padding: 1.25rem; border-left: 3px solid var(--blue);">
+        <h4 style="color: var(--blue); margin-bottom: 0.5rem; font-size: 0.9rem;">2. Wave Planning</h4>
+        <p style="color: var(--subtext); font-size: 0.82rem; line-height: 1.6;">Tasks decomposed into dependency-aware waves. Wave 1 is concrete; future work is refined after each wave (receding-horizon planning).</p>
+      </div>
+      <div style="background: var(--surface0); border-radius: 10px; padding: 1.25rem; border-left: 3px solid var(--teal);">
+        <h4 style="color: var(--teal); margin-bottom: 0.5rem; font-size: 0.9rem;">3. Parallel Execution</h4>
+        <p style="color: var(--subtext); font-size: 0.82rem; line-height: 1.6;">Each task runs in an isolated git worktree with its own agent. Independent tasks execute simultaneously. Every file write passes governance.</p>
+      </div>
+      <div style="background: var(--surface0); border-radius: 10px; padding: 1.25rem; border-left: 3px solid var(--green);">
+        <h4 style="color: var(--green); margin-bottom: 0.5rem; font-size: 0.9rem;">4. Recovery &amp; Learning</h4>
+        <p style="color: var(--subtext); font-size: 0.82rem; line-height: 1.6;">Failed tasks get classified, diagnosed, and retried with alternatives. Successful patterns stored in cross-linked memory (A-MEM) for future use.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Model Routing panel -->
+  <div id="doc-routing" class="doc-panel reveal" style="max-width: 900px; margin: 0 auto; display: none;">
+    <h3 style="color: var(--lavender); margin-bottom: 1rem; font-size: 1.1rem;">5-Signal Model Routing</h3>
+    <p style="color: var(--subtext); line-height: 1.7; margin-bottom: 1.5rem;">Every task is routed to the <strong style="color: var(--text);">cheapest model tier that will succeed</strong>. Trust scoring modulates confidence &mdash; unreliable tiers get less weight.</p>
+
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--surface1);">
+            <th style="text-align: left; padding: 0.75rem 1rem; color: var(--lavender);">Signal</th>
+            <th style="text-align: left; padding: 0.75rem 1rem; color: var(--subtext);">What It Does</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--peach); font-weight: 600;">Override</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Respects explicit tier locks from the user</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--peach); font-weight: 600;">Failure Escalation</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Auto-bumps tier on retries</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--peach); font-weight: 600;">Memory Match</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Learns "this type of task passed with haiku"</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--peach); font-weight: 600;">Structural Complexity</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Multi-factor score: goal weight, verification type, scope, keywords</td></tr>
+          <tr><td style="padding: 0.6rem 1rem; color: var(--peach); font-weight: 600;">Tradeoff Bias</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Quality-biased projects shift toward opus; speed-biased toward haiku</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-top: 1.5rem; background: var(--surface0); border-radius: 10px; padding: 1.25rem; border-left: 3px solid var(--green);">
+      <h4 style="color: var(--green); margin-bottom: 0.5rem; font-size: 0.9rem;">Result: ~80% Cost Savings</h4>
+      <p style="color: var(--subtext); font-size: 0.85rem; line-height: 1.6;">Compared to always routing through the most expensive model. A simple rename doesn't need the same compute as an architecture refactor.</p>
+    </div>
+  </div>
+
+  <!-- Agents & Hooks panel -->
+  <div id="doc-agents" class="doc-panel reveal" style="max-width: 900px; margin: 0 auto; display: none;">
+    <h3 style="color: var(--lavender); margin-bottom: 1rem; font-size: 1.1rem;">Agents</h3>
+    <div style="overflow-x: auto; margin-bottom: 2rem;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--surface1);">
+            <th style="text-align: left; padding: 0.75rem 1rem; color: var(--lavender);">Agent</th>
+            <th style="text-align: left; padding: 0.75rem 1rem; color: var(--subtext);">Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--mauve); font-weight: 600;">task-executor</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Executes tasks in isolated worktrees with TDD verification</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--mauve); font-weight: 600;">diagnostician</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Root-cause analysis on failures (no code access &mdash; pure analysis to prevent bias)</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--mauve); font-weight: 600;">strategist</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Alternative approach generation from banned approaches + memory</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--mauve); font-weight: 600;">librarian</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Compresses execution state, updates project beliefs</td></tr>
+          <tr><td style="padding: 0.6rem 1rem; color: var(--mauve); font-weight: 600;">belief-updater</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Propagates wave outcomes into project state between waves</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="color: var(--lavender); margin-bottom: 1rem; font-size: 1.1rem;">Hooks</h3>
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--surface1);">
+            <th style="text-align: left; padding: 0.75rem 1rem; color: var(--lavender);">Hook</th>
+            <th style="text-align: left; padding: 0.75rem 1rem; color: var(--subtext);">Event</th>
+            <th style="text-align: left; padding: 0.75rem 1rem; color: var(--subtext);">Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--teal); font-weight: 600;">statusline</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Notification</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Catppuccin Mocha gradient context display</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--teal); font-weight: 600;">context-monitor</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">PostToolUse</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">3-tier warnings + auto-handoff at critical context</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--teal); font-weight: 600;">session-primer</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">SessionStart</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Surfaces pending tasks and relevant memory</td></tr>
+          <tr><td style="padding: 0.6rem 1rem; color: var(--teal); font-weight: 600;">auto-trigger</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">UserPromptSubmit</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Suggests JuhBDI commands on natural language prompts</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Architecture panel -->
+  <div id="doc-architecture" class="doc-panel reveal" style="max-width: 900px; margin: 0 auto; display: none;">
+    <h3 style="color: var(--lavender); margin-bottom: 1rem; font-size: 1.1rem;">Project Architecture</h3>
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="terminal-dot" style="background: var(--red);"></div>
+        <div class="terminal-dot" style="background: var(--yellow);"></div>
+        <div class="terminal-dot" style="background: var(--green);"></div>
+      </div>
+      <div class="terminal-body" style="font-size: 0.78rem; line-height: 1.8;">
+        <div><span class="accent">src/</span></div>
+        <div><span class="output">&boxvr;&boxh;&boxh; auto-trigger/</span>     <span class="comment"># Rule-based command suggestion scoring</span></div>
+        <div><span class="output">&boxvr;&boxh;&boxh; bench/</span>            <span class="comment"># Performance benchmarks + routing simulation</span></div>
+        <div><span class="output">&boxvr;&boxh;&boxh; cli-utils/</span>        <span class="comment"># 25+ CLI wrappers (thin shells over core logic)</span></div>
+        <div><span class="output">&boxvr;&boxh;&boxh; core/</span>             <span class="comment"># Config, trail, tradeoffs, patterns</span></div>
+        <div><span class="output">&boxvr;&boxh;&boxh; cost/</span>             <span class="comment"># Token cost estimation + reporting</span></div>
+        <div><span class="output">&boxvr;&boxh;&boxh; integration/</span>      <span class="comment"># End-to-end integration tests</span></div>
+        <div><span class="output">&boxvr;&boxh;&boxh; memory/</span>           <span class="comment"># A-MEM, tool bank, TNR, principles, speculation</span></div>
+        <div><span class="output">&boxvr;&boxh;&boxh; parallel/</span>         <span class="comment"># Execution progress tracking</span></div>
+        <div><span class="output">&boxvr;&boxh;&boxh; repomap/</span>          <span class="comment"># PageRank graph, semantic edges, knowledge extraction</span></div>
+        <div><span class="output">&boxvr;&boxh;&boxh; routing/</span>          <span class="comment"># Trust scoring, difficulty estimation</span></div>
+        <div><span class="output">&boxvr;&boxh;&boxh; schemas/</span>          <span class="comment"># Zod v4 schemas (11 modules)</span></div>
+        <div><span class="output">&boxvr;&boxh;&boxh; trail/</span>            <span class="comment"># Audit trail filtering + formatting</span></div>
+        <div><span class="output">&boxdr;&boxh;&boxh; quick/</span>            <span class="comment"># Quick mode preflight, governance, recording</span></div>
+        <div style="margin-top: 0.5rem;"><span class="accent">openclaw-bdi/</span>         <span class="comment"># OpenClaw governance plugin (28 tests)</span></div>
+        <div><span class="accent">commands/</span>             <span class="comment"># 13 slash commands</span></div>
+        <div><span class="accent">agents/</span>               <span class="comment"># 5 agent system prompts</span></div>
+        <div><span class="accent">hooks/</span>                <span class="comment"># Hook configuration</span></div>
+        <div><span class="accent">site/</span>                 <span class="comment"># Landing page (juhlabs.com/juhbdi)</span></div>
+        <div><span class="accent">.claude-plugin/</span></div>
+        <div><span class="output">&boxvr;&boxh;&boxh; plugin.json</span>      <span class="comment"># Plugin manifest</span></div>
+        <div><span class="output">&boxdr;&boxh;&boxh; hooks/</span>           <span class="comment"># 4 event hooks (.cjs)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OpenClaw Plugin Docs panel -->
+  <div id="doc-openclaw-docs" class="doc-panel reveal" style="max-width: 900px; margin: 0 auto; display: none;">
+    <h3 style="color: var(--lavender); margin-bottom: 1rem; font-size: 1.1rem;">OpenClaw BDI Plugin</h3>
+    <p style="color: var(--subtext); line-height: 1.7; margin-bottom: 1.5rem;">The <code style="background: var(--surface0); padding: 0.15rem 0.5rem; border-radius: 4px; color: var(--teal);">@juhlabs/openclaw-bdi</code> plugin gives OpenClaw agents a BDI governance layer. It works with <strong style="color: var(--text);">any LLM</strong> &mdash; Claude, GPT, Gemini, DeepSeek, or anything else OpenClaw supports.</p>
+
+    <h4 style="color: var(--teal); margin-bottom: 0.75rem; font-size: 0.95rem;">How It Works</h4>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+      <div style="background: var(--surface0); border-radius: 10px; padding: 1rem; border-left: 3px solid var(--teal);">
+        <p style="color: var(--text); font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem;">Guardrails Mode</p>
+        <p style="color: var(--subtext); font-size: 0.8rem; line-height: 1.5;">Hooks into <code style="background: var(--surface1); padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.75rem;">before_prompt_build</code> to inject governance rules. Agents are nudged to verify intent before destructive actions.</p>
+      </div>
+      <div style="background: var(--surface0); border-radius: 10px; padding: 1rem; border-left: 3px solid var(--lavender);">
+        <p style="color: var(--text); font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem;">Automatic Audit</p>
+        <p style="color: var(--subtext); font-size: 0.8rem; line-height: 1.5;">Hooks into <code style="background: var(--surface1); padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.75rem;">after_agent_run</code> to log trail entries and update trust scores. Every agent run is tracked.</p>
+      </div>
+    </div>
+
+    <h4 style="color: var(--teal); margin-bottom: 0.75rem; font-size: 0.95rem;">5 Agent Tools</h4>
+    <div style="overflow-x: auto; margin-bottom: 1.5rem;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--blue); font-family: monospace; white-space: nowrap;">bdi_verify_intent</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Challenge risky or vague actions before execution</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--blue); font-family: monospace; white-space: nowrap;">bdi_recall</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Retrieve past experiences and learned principles</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--blue); font-family: monospace; white-space: nowrap;">bdi_log_decision</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">SHA-256 hash-chained audit trail for every decision</td></tr>
+          <tr style="border-bottom: 1px solid var(--surface0);"><td style="padding: 0.6rem 1rem; color: var(--blue); font-family: monospace; white-space: nowrap;">bdi_reflect</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Extract principles from plan-vs-actual divergence</td></tr>
+          <tr><td style="padding: 0.6rem 1rem; color: var(--blue); font-family: monospace; white-space: nowrap;">bdi_assess</td><td style="padding: 0.6rem 1rem; color: var(--subtext);">Estimate task difficulty and check model trust scores</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4 style="color: var(--teal); margin-bottom: 0.75rem; font-size: 0.95rem;">Install</h4>
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="terminal-dot" style="background: var(--red);"></div>
+        <div class="terminal-dot" style="background: var(--yellow);"></div>
+        <div class="terminal-dot" style="background: var(--green);"></div>
+      </div>
+      <div class="terminal-body">
+        <div><span class="prompt">$</span> <span class="cmd">openclaw plugins install @juhlabs/openclaw-bdi</span></div>
+        <div><span class="comment"># Or via npm: npm install @juhlabs/openclaw-bdi</span></div>
+      </div>
+    </div>
+    <p style="color: var(--subtext); font-size: 0.8rem; margin-top: 0.75rem; text-align: center;">Compatible with all 13,700+ OpenClaw skills. 28 tests, 0 failures.</p>
+  </div>
+</section>
+
+<!-- ==================== CODE EXAMPLES ==================== -->
+<section id="code-examples">
+  <h2 class="reveal">Get Started</h2>
+  <p class="section-sub reveal">Four commands. From intent to governed, tested, auditable code with a learning loop that compounds across every session.</p>
+
+  <div class="terminal reveal">
+    <div class="terminal-bar">
+      <div class="terminal-dot" style="background: var(--red);"></div>
+      <div class="terminal-dot" style="background: var(--yellow);"></div>
+      <div class="terminal-dot" style="background: var(--green);"></div>
+    </div>
+    <div class="terminal-body">
+      <div><span class="comment"># Initialize governance files (intent-spec, state, trail, config)</span></div>
+      <div><span class="prompt">$</span> <span class="cmd">/juhbdi:init</span></div>
+      <div><span class="output">Project initialized. 5 governance files created in .juhbdi/</span></div>
+      <div><span class="output">Edit .juhbdi/intent-spec.json to define your goals and constraints.</span></div>
+      <div style="margin-top: 1rem;"><span class="comment"># Submit a development request through the Socratic pipeline</span></div>
+      <div><span class="prompt">$</span> <span class="cmd">/juhbdi:plan</span> <span class="arg">Build a REST API with auth</span></div>
+      <div><span class="output">Socratic challenge: <span class="success">approved</span> (0 hard conflicts)</span></div>
+      <div><span class="output">Refined request: "REST API with JWT auth, rate limiting, and input validation"</span></div>
+      <div><span class="output">Generated 3 waves, 7 tasks. Roadmap written to .juhbdi/roadmap-intent.json</span></div>
+      <div style="margin-top: 1rem;"><span class="comment"># Execute with isolated agents, model routing, and automatic recovery</span></div>
+      <div><span class="prompt">$</span> <span class="cmd">/juhbdi:execute</span></div>
+      <div><span class="output">Executing 7 tasks across 3 waves to achieve:</span></div>
+      <div><span class="output">  Goal g1: "Implement REST API with authentication" (weight: 0.9)</span></div>
+      <div><span class="output">Wave 1/3 <span class="success">[====]</span> 3/3 tasks passed | routed: haiku x2, sonnet x1</span></div>
+      <div><span class="output">Wave 2/3 <span class="success">[====]</span> 2/2 tasks passed | routed: sonnet x2</span></div>
+      <div><span class="output">Wave 3/3 <span class="success">[====]</span> 2/2 tasks passed | routed: sonnet x1, haiku x1</span></div>
+      <div><span class="output">7 passed, 0 failed. Memory: 7 experiences recorded.</span></div>
+      <div><span class="output">Trust updated: <span class="accent">sonnet 0.92</span>, <span class="accent">haiku 0.88</span></span></div>
+      <div style="margin-top: 1rem;"><span class="comment"># Extract principles from what went differently than planned</span></div>
+      <div><span class="prompt">$</span> <span class="cmd">/juhbdi:reflect</span></div>
+      <div><span class="output">Extracted 2 principles from execution divergence:</span></div>
+      <div><span class="output">  <span class="accent">P1:</span> "Validate auth middleware before route handlers"</span></div>
+      <div><span class="output">  <span class="accent">P2:</span> "Schema-first approach prevents integration failures"</span></div>
+      <div><span class="output">Principles stored. Will be injected into future matching tasks.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PHILOSOPHY ==================== -->
+<section id="philosophy">
+  <h2 class="reveal">What We're Building Toward</h2>
+
+  <div class="philosophy-content reveal">
+    <blockquote>Intuition doesn't scale. Systems do.</blockquote>
+
+    <p>JuhBDI started from a simple observation: AI coding tools are getting faster, but not more trustworthy. You can generate thousands of lines of code in minutes, but you can't explain why any particular decision was made. You can't audit it. You can't prove it respects the constraints your team agreed on.</p>
+
+    <p>We think autonomous development needs the same rigor that autonomous vehicles needed. Not just "does it work?" but "can you prove it works, explain why it works, and show it won't break what was already working?"</p>
+
+    <p>The BDI model gives us that structure. Beliefs maintain state and memory. Desires hold your goals as immutable contracts. Intentions are the executable plans that get challenged, verified, and audited at every step. When something goes wrong, the trail shows exactly what happened and why.</p>
+
+    <p>This is version 1.4.0, the result of 10 milestones of iterative development. Every feature was built using JuhBDI's own pipeline (yes, it builds itself). We're not done — community marketplace is the next frontier — but the core architecture is stable, tested, and ready for teams that need governed autonomy.</p>
+
+    <p style="color: var(--text); font-weight: 500;">Built by <a href="https://www.JuhLabs.com" target="_blank" rel="noopener">Julian Hermstad</a> at <a href="https://www.JuhLabs.com" target="_blank" rel="noopener">JuhLabs</a>.</p>
+  </div>
+</section>
+
+<!-- ==================== GITHUB STAR CTA ==================== -->
+<section style="text-align: center; padding: 4rem 2rem 2rem;">
+  <a href="https://github.com/JuhLabs/JuhBDI" target="_blank" rel="noopener" class="github-star-cta reveal">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+    Finding JuhBDI helpful? Give us a star on GitHub!
+  </a>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<section id="footer">
+  <div class="footer-brand">JuhBDI</div>
+  <div class="footer-by">by <a href="https://www.JuhLabs.com" target="_blank" rel="noopener">JuhLabs</a></div>
+
+  <div class="footer-links">
+    <a href="https://github.com/JuhLabs/juhbdi" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+      GitHub
+    </a>
+    <a href="https://www.linkedin.com/in/julian-h-7b1b07172" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+      LinkedIn
+    </a>
+    <a href="https://www.JuhLabs.com" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      JuhLabs.com
+    </a>
+  </div>
+
+  <div class="footer-meta">MIT License &middot; v1.4.0 &middot; 10 Milestones &middot; 642 Tests, 0 Failures</div>
+  <div class="footer-built">Built with JuhBDI's own pipeline</div>
+</section>
+
+<script>
+// ============================================
+// Platform install tab switcher
+// ============================================
+function switchPlatform(platform) {
+  document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.platform-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('platform-' + platform).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+// ============================================
+// Documentation tab switcher
+// ============================================
+function switchDoc(doc) {
+  const container = document.getElementById('docs');
+  container.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
+  container.querySelectorAll('.doc-panel').forEach(p => {
+    p.classList.remove('active');
+    p.style.display = 'none';
+  });
+  document.getElementById('doc-' + doc).classList.add('active');
+  document.getElementById('doc-' + doc).style.display = 'block';
+  event.currentTarget.classList.add('active');
+}
+
+// Auto-detect platform and set default tab
+(function() {
+  const ua = navigator.userAgent || navigator.platform || '';
+  let detected = null;
+  if (/Win/.test(ua)) detected = 'windows';
+  else if (/Linux/.test(ua) && !/Mac/.test(ua)) detected = 'linux';
+
+  if (detected) {
+    const tabs = document.querySelectorAll('.platform-tab');
+    const panels = document.querySelectorAll('.platform-panel');
+    tabs.forEach(t => t.classList.remove('active'));
+    panels.forEach(p => p.classList.remove('active'));
+    document.getElementById('platform-' + detected).classList.add('active');
+    const tabIndex = detected === 'linux' ? 1 : 2;
+    tabs[tabIndex].classList.add('active');
+  }
+})();
+
+// ============================================
+// WebGL Particle Mesh Background
+// Catppuccin Mocha neural constellation
+// ============================================
+(function() {
+  const canvas = document.getElementById('webgl-bg');
+  const gl = canvas.getContext('webgl2', { alpha: true, antialias: true, premultipliedAlpha: false });
+  if (!gl) { canvas.style.display = 'none'; return; }
+
+  // Catppuccin Mocha palette (normalized 0-1)
+  const COLORS = [
+    [0.651, 0.890, 0.827],  // teal
+    [0.537, 0.784, 0.925],  // sapphire
+    [0.537, 0.706, 0.980],  // blue
+    [0.706, 0.745, 0.996],  // lavender
+    [0.796, 0.651, 0.969],  // mauve
+    [0.980, 0.702, 0.529],  // peach
+    [0.651, 0.890, 0.631],  // green
+  ];
+
+  const isMobile = window.innerWidth < 768;
+  const PARTICLE_COUNT = isMobile ? 90 : 220;
+  const CONNECTION_DIST = isMobile ? 0.28 : 0.22;
+  const MOUSE_RADIUS = 0.18;
+  const MOUSE_STRENGTH = 0.0006;
+
+  let width, height, aspect, dpr;
+  let mouseX = -999, mouseY = -999;
+  let scrollY = 0;
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2);
+    width = window.innerWidth;
+    height = window.innerHeight;
+    aspect = width / height;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    gl.viewport(0, 0, canvas.width, canvas.height);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Mouse tracking (normalized -1 to 1)
+  document.addEventListener('mousemove', (e) => {
+    mouseX = (e.clientX / width) * 2 - 1;
+    mouseY = -((e.clientY / height) * 2 - 1);
+  });
+  document.addEventListener('mouseleave', () => { mouseX = -999; mouseY = -999; });
+  // Touch support for mobile
+  document.addEventListener('touchmove', (e) => {
+    const t = e.touches[0];
+    mouseX = (t.clientX / width) * 2 - 1;
+    mouseY = -((t.clientY / height) * 2 - 1);
+  }, { passive: true });
+  document.addEventListener('touchend', () => { mouseX = -999; mouseY = -999; });
+  window.addEventListener('scroll', () => { scrollY = window.scrollY; }, { passive: true });
+
+  // ---- Shaders ----
+  const vertParticle = `#version 300 es
+    in vec2 aPos;
+    in vec3 aColor;
+    in float aSize;
+    uniform float uAspect;
+    uniform float uTime;
+    out vec3 vColor;
+    out float vAlpha;
+    void main() {
+      vColor = aColor;
+      float pulse = 0.85 + 0.15 * sin(uTime * 1.5 + aPos.x * 10.0 + aPos.y * 7.0);
+      vAlpha = pulse;
+      float sz = aSize * pulse;
+      gl_PointSize = sz;
+      gl_Position = vec4(aPos.x, aPos.y * uAspect, 0.0, 1.0);
+    }`;
+
+  const fragParticle = `#version 300 es
+    precision mediump float;
+    in vec3 vColor;
+    in float vAlpha;
+    out vec4 outColor;
+    void main() {
+      vec2 c = gl_PointCoord - 0.5;
+      float d = length(c);
+      if (d > 0.5) discard;
+      float glow = exp(-d * d * 8.0);
+      float core = smoothstep(0.5, 0.05, d);
+      float alpha = (core * 0.9 + glow * 0.4) * vAlpha;
+      outColor = vec4(vColor * (core + glow * 0.6), alpha * 0.85);
+    }`;
+
+  const vertLine = `#version 300 es
+    in vec2 aPos;
+    in float aAlpha;
+    uniform float uAspect;
+    out float vAlpha;
+    void main() {
+      vAlpha = aAlpha;
+      gl_Position = vec4(aPos.x, aPos.y * uAspect, 0.0, 1.0);
+    }`;
+
+  const fragLine = `#version 300 es
+    precision mediump float;
+    uniform vec3 uLineColor;
+    in float vAlpha;
+    out vec4 outColor;
+    void main() {
+      outColor = vec4(uLineColor, vAlpha * 0.22);
+    }`;
+
+  function compile(src, type) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+      console.error(gl.getShaderInfoLog(s));
+      return null;
+    }
+    return s;
+  }
+
+  function link(vs, fs) {
+    const p = gl.createProgram();
+    gl.attachShader(p, compile(vs, gl.VERTEX_SHADER));
+    gl.attachShader(p, compile(fs, gl.FRAGMENT_SHADER));
+    gl.linkProgram(p);
+    return p;
+  }
+
+  const progParticle = link(vertParticle, fragParticle);
+  const progLine = link(vertLine, fragLine);
+
+  // Particle program locations
+  const pAttrPos = gl.getAttribLocation(progParticle, 'aPos');
+  const pAttrColor = gl.getAttribLocation(progParticle, 'aColor');
+  const pAttrSize = gl.getAttribLocation(progParticle, 'aSize');
+  const pUniAspect = gl.getUniformLocation(progParticle, 'uAspect');
+  const pUniTime = gl.getUniformLocation(progParticle, 'uTime');
+
+  // Line program locations
+  const lAttrPos = gl.getAttribLocation(progLine, 'aPos');
+  const lAttrAlpha = gl.getAttribLocation(progLine, 'aAlpha');
+  const lUniAspect = gl.getUniformLocation(progLine, 'uAspect');
+  const lUniLineColor = gl.getUniformLocation(progLine, 'uLineColor');
+
+  // ---- Particles ----
+  const particles = [];
+  // 3 anchor nodes — BDI triad, larger and brighter
+  const anchors = [
+    { x: -0.4, y: 0.35, col: [0.651, 0.890, 0.827], size: 12 }, // Beliefs — teal
+    { x: 0.4, y: 0.35, col: [0.706, 0.745, 0.996], size: 12 },  // Intentions — lavender
+    { x: 0.0, y: -0.4, col: [0.980, 0.702, 0.529], size: 12 },  // Desires — peach
+  ];
+  anchors.forEach(a => {
+    particles.push({
+      x: a.x, y: a.y,
+      vx: (Math.random() - 0.5) * 0.0002,
+      vy: (Math.random() - 0.5) * 0.0002,
+      r: a.col[0], g: a.col[1], b: a.col[2],
+      size: a.size,
+      anchor: true,
+    });
+  });
+  // Regular constellation particles
+  for (let i = 0; i < PARTICLE_COUNT - 3; i++) {
+    const col = COLORS[Math.floor(Math.random() * COLORS.length)];
+    particles.push({
+      x: (Math.random() - 0.5) * 2.2,
+      y: (Math.random() - 0.5) * 2.2,
+      vx: (Math.random() - 0.5) * 0.0008,
+      vy: (Math.random() - 0.5) * 0.0008,
+      r: col[0], g: col[1], b: col[2],
+      size: 3.0 + Math.random() * 6.0,
+    });
+  }
+
+  // Buffers
+  const posData = new Float32Array(PARTICLE_COUNT * 2);
+  const colorData = new Float32Array(PARTICLE_COUNT * 3);
+  const sizeData = new Float32Array(PARTICLE_COUNT);
+
+  const posBuf = gl.createBuffer();
+  const colorBuf = gl.createBuffer();
+  const sizeBuf = gl.createBuffer();
+
+  // Lines: max possible connections
+  const MAX_LINES = PARTICLE_COUNT * 12;
+  const lineVerts = new Float32Array(MAX_LINES * 4); // 2 verts * 2 components
+  const lineAlphas = new Float32Array(MAX_LINES * 2);
+  const lineVertBuf = gl.createBuffer();
+  const lineAlphaBuf = gl.createBuffer();
+
+  // VAO for particles
+  const vaoP = gl.createVertexArray();
+  gl.bindVertexArray(vaoP);
+  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+  gl.enableVertexAttribArray(pAttrPos);
+  gl.vertexAttribPointer(pAttrPos, 2, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuf);
+  gl.enableVertexAttribArray(pAttrColor);
+  gl.vertexAttribPointer(pAttrColor, 3, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, sizeBuf);
+  gl.enableVertexAttribArray(pAttrSize);
+  gl.vertexAttribPointer(pAttrSize, 1, gl.FLOAT, false, 0, 0);
+  gl.bindVertexArray(null);
+
+  // VAO for lines
+  const vaoL = gl.createVertexArray();
+  gl.bindVertexArray(vaoL);
+  gl.bindBuffer(gl.ARRAY_BUFFER, lineVertBuf);
+  gl.enableVertexAttribArray(lAttrPos);
+  gl.vertexAttribPointer(lAttrPos, 2, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, lineAlphaBuf);
+  gl.enableVertexAttribArray(lAttrAlpha);
+  gl.vertexAttribPointer(lAttrAlpha, 1, gl.FLOAT, false, 0, 0);
+  gl.bindVertexArray(null);
+
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+  gl.clearColor(0, 0, 0, 0);
+
+  function frame(t) {
+    requestAnimationFrame(frame);
+
+    const time = t * 0.001;
+    // Fade out as user scrolls past hero
+    const fadeStart = height * 0.5;
+    const fadeEnd = height * 2.5;
+    const scrollFade = 1.0 - Math.min(1.0, Math.max(0, (scrollY - fadeStart) / (fadeEnd - fadeStart)));
+    canvas.style.opacity = scrollFade;
+    if (scrollFade < 0.01) return;
+
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    const asp = height / width;
+
+    // Update particles
+    let lineCount = 0;
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const p = particles[i];
+
+      // Drift
+      p.x += p.vx;
+      p.y += p.vy;
+
+      // Slight orbital drift
+      if (p.anchor) {
+        // Anchors orbit gently around their origin
+        const ai = particles.indexOf(p);
+        const ax = anchors[ai] ? anchors[ai].x : 0;
+        const ay = anchors[ai] ? anchors[ai].y : 0;
+        p.vx += (ax - p.x) * 0.00003 + Math.sin(time * 0.5 + ai * 2.1) * 0.000008;
+        p.vy += (ay - p.y) * 0.00003 + Math.cos(time * 0.5 + ai * 2.1) * 0.000008;
+      } else {
+        p.vx += Math.sin(time * 0.3 + p.y * 2.0) * 0.000002;
+        p.vy += Math.cos(time * 0.3 + p.x * 2.0) * 0.000002;
+      }
+
+      // Mouse interaction
+      const dx = p.x - mouseX;
+      const dy = p.y - mouseY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < MOUSE_RADIUS && dist > 0.001) {
+        const force = (MOUSE_RADIUS - dist) / MOUSE_RADIUS * MOUSE_STRENGTH;
+        p.vx += (dx / dist) * force;
+        p.vy += (dy / dist) * force;
+      }
+
+      // Damping
+      p.vx *= 0.998;
+      p.vy *= 0.998;
+
+      // Wrap edges
+      if (p.x > 1.2) p.x = -1.2;
+      if (p.x < -1.2) p.x = 1.2;
+      if (p.y > 1.2) p.y = -1.2;
+      if (p.y < -1.2) p.y = 1.2;
+
+      posData[i * 2] = p.x;
+      posData[i * 2 + 1] = p.y;
+      colorData[i * 3] = p.r;
+      colorData[i * 3 + 1] = p.g;
+      colorData[i * 3 + 2] = p.b;
+      sizeData[i] = p.size * dpr;
+
+      // Build connections (check nearby particles)
+      for (let j = i + 1; j < PARTICLE_COUNT && lineCount < MAX_LINES; j++) {
+        const q = particles[j];
+        const ddx = p.x - q.x;
+        const ddy = p.y - q.y;
+        const d2 = ddx * ddx + ddy * ddy;
+        if (d2 < CONNECTION_DIST * CONNECTION_DIST) {
+          const d = Math.sqrt(d2);
+          const alpha = 1.0 - d / CONNECTION_DIST;
+          const idx = lineCount * 4;
+          lineVerts[idx] = p.x;
+          lineVerts[idx + 1] = p.y;
+          lineVerts[idx + 2] = q.x;
+          lineVerts[idx + 3] = q.y;
+          lineAlphas[lineCount * 2] = alpha;
+          lineAlphas[lineCount * 2 + 1] = alpha;
+          lineCount++;
+        }
+      }
+    }
+
+    // Draw connection lines
+    if (lineCount > 0) {
+      gl.useProgram(progLine);
+      gl.uniform1f(lUniAspect, asp);
+      // Slowly shift line color through the palette
+      const lc = Math.sin(time * 0.2) * 0.5 + 0.5;
+      gl.uniform3f(lUniLineColor,
+        0.537 + lc * 0.17,   // blue → lavender
+        0.706 - lc * 0.06,
+        0.980 - lc * 0.01
+      );
+      gl.bindVertexArray(vaoL);
+      gl.bindBuffer(gl.ARRAY_BUFFER, lineVertBuf);
+      gl.bufferData(gl.ARRAY_BUFFER, lineVerts.subarray(0, lineCount * 4), gl.DYNAMIC_DRAW);
+      gl.bindBuffer(gl.ARRAY_BUFFER, lineAlphaBuf);
+      gl.bufferData(gl.ARRAY_BUFFER, lineAlphas.subarray(0, lineCount * 2), gl.DYNAMIC_DRAW);
+      gl.drawArrays(gl.LINES, 0, lineCount * 2);
+      gl.bindVertexArray(null);
+    }
+
+    // Draw particles
+    gl.useProgram(progParticle);
+    gl.uniform1f(pUniAspect, asp);
+    gl.uniform1f(pUniTime, time);
+    gl.bindVertexArray(vaoP);
+    gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, posData, gl.DYNAMIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, colorData, gl.DYNAMIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, sizeBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, sizeData, gl.DYNAMIC_DRAW);
+    gl.drawArrays(gl.POINTS, 0, PARTICLE_COUNT);
+    gl.bindVertexArray(null);
+  }
+
+  requestAnimationFrame(frame);
+})();
+
+// Intersection Observer for scroll-triggered animations
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) {
+      const parent = entry.target.parentElement;
+      const siblings = parent ? Array.from(parent.querySelectorAll('.reveal')) : [];
+      const idx = siblings.indexOf(entry.target);
+      const delay = idx >= 0 ? idx * 120 : 0;
+
+      setTimeout(() => {
+        entry.target.classList.add('visible');
+      }, delay);
+
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, {
+  threshold: 0.1,
+  rootMargin: '0px 0px -40px 0px'
+});
+
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+// Animated number counters
+const statsObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const counters = entry.target.querySelectorAll('[data-target]');
+      counters.forEach((counter, i) => {
+        const target = parseInt(counter.dataset.target);
+        const duration = 1500;
+
+        setTimeout(() => {
+          const start = performance.now();
+
+          function easeOutExpo(t) {
+            return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+          }
+
+          function update(now) {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            const value = Math.round(easeOutExpo(progress) * target);
+            counter.textContent = value;
+
+            if (progress < 1) {
+              requestAnimationFrame(update);
+            }
+          }
+
+          requestAnimationFrame(update);
+        }, i * 100);
+      });
+
+      statsObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.3 });
+
+const statsSection = document.querySelector('#stats .stats-container');
+if (statsSection) statsObserver.observe(statsSection);
+
+// Nav background on scroll
+const nav = document.querySelector('nav');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 50) {
+    nav.style.background = 'rgba(17, 17, 27, 0.95)';
+  } else {
+    nav.style.background = 'rgba(17, 17, 27, 0.85)';
+  }
+}, { passive: true });
+</script>
+
+</body>
+</html>

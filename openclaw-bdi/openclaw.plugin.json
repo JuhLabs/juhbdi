@@ -1,0 +1,15 @@
+{
+  "name": "@juhlabs/openclaw-bdi",
+  "version": "1.0.0",
+  "description": "BDI governance layer — intent verification, SHA-256 audit trails, learning memory, and trust scoring for OpenClaw agents",
+  "entry": "./dist/plugin.js",
+  "capabilities": ["tools", "hooks"],
+  "author": {
+    "name": "Julian Hermstad",
+    "url": "https://www.juhlabs.com"
+  },
+  "license": "MIT",
+  "homepage": "https://www.juhlabs.com/juhbdi",
+  "repository": "https://github.com/JuhLabs/openclaw-bdi",
+  "keywords": ["governance", "bdi", "audit", "memory", "intent", "trust"]
+}

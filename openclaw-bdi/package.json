@@ -1,0 +1,48 @@
+{
+  "name": "@juhlabs/openclaw-bdi",
+  "version": "1.0.0",
+  "description": "BDI governance layer for OpenClaw — intent verification, audit trails, memory, and trust scoring",
+  "main": "dist/plugin.js",
+  "types": "dist/plugin.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "openclaw",
+    "bdi",
+    "governance",
+    "ai-agent",
+    "audit-trail",
+    "intent-verification",
+    "juhlabs",
+    "juhbdi"
+  ],
+  "author": {
+    "name": "Julian Hermstad",
+    "url": "https://www.juhlabs.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JuhLabs/openclaw-bdi"
+  },
+  "homepage": "https://www.juhlabs.com/juhbdi",
+  "dependencies": {
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist/",
+    "openclaw.plugin.json",
+    "README.md"
+  ]
+}

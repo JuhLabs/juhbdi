@@ -1,0 +1,44 @@
+{
+  "name": "juhbdi",
+  "version": "1.4.0",
+  "type": "module",
+  "description": "Enterprise-grade, intent-driven autonomous development engine",
+  "author": "Julian Hermstad",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/julianhermstad/juhbdi.git"
+  },
+  "keywords": [
+    "claude-code",
+    "plugin",
+    "bdi",
+    "autonomous",
+    "development",
+    "ai-agent",
+    "tdd",
+    "governance"
+  ],
+  "bin": {
+    "juhbdi": "./bin/juhbdi.mjs"
+  },
+  "files": [
+    ".claude-plugin/",
+    "src/",
+    "commands/",
+    "agents/",
+    "bin/"
+  ],
+  "scripts": {
+    "test": "bun test && bun test ./.claude-plugin/hooks/",
+    "schema:export": "bun run src/schemas/export.ts"
+  },
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "typescript": "^5.9.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.9"
+  }
+}
