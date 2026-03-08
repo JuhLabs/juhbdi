@@ -1,6 +1,6 @@
 {
   "name": "juhbdi",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Intent-driven autonomous development engine with BDI governance, Socratic challenge, wave execution, and audit compliance",
   "author": {
     "name": "Julian Hermstad"

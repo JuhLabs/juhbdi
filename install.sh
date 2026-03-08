@@ -38,7 +38,7 @@ else
   SURFACE="\033[38;5;240m"
 fi
 
-VERSION="1.4.0"
+VERSION="1.4.1"
 DOWNLOAD_URL="https://www.juhlabs.com/juhbdi/juhbdi-${VERSION}.tar.gz"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 GLOBAL_PLUGIN_DIR="${HOME}/.claude/plugins/cache/juhlabs/juhbdi/${VERSION}"
@@ -386,7 +386,7 @@ if [[ "$INSTALL_MODE" == "global" ]]; then
     {
       "name": "juhbdi",
       "description": "Intent-driven autonomous development engine with BDI governance, Socratic challenge, wave execution, and audit compliance",
-      "version": "1.4.0",
+      "version": "1.4.1",
       "source": "./plugins/juhbdi",
       "author": { "name": "Julian Hermstad" }
     }
