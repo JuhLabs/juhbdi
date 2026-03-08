@@ -9,6 +9,7 @@
   <img src="https://img.shields.io/badge/TypeScript-blue?style=flat-square&label=lang&labelColor=1e1e2e&color=89b4fa" alt="typescript" />
   <img src="https://img.shields.io/badge/Bun-peach?style=flat-square&label=runtime&labelColor=1e1e2e&color=fab387" alt="bun" />
   <img src="https://img.shields.io/badge/MIT-mauve?style=flat-square&label=license&labelColor=1e1e2e&color=cba6f7" alt="license" />
+  <a href="https://www.npmjs.com/package/@juhlabs/openclaw-bdi"><img src="https://img.shields.io/npm/v/@juhlabs/openclaw-bdi?style=flat-square&label=openclaw-bdi&labelColor=1e1e2e&color=f38ba8" alt="npm" /></a>
 </p>
 
 <h1 align="center">JuhBDI</h1>

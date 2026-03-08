@@ -1,6 +1,6 @@
 {
   "name": "@juhlabs/openclaw-bdi",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "BDI governance layer for OpenClaw — intent verification, audit trails, memory, and trust scoring",
   "main": "dist/plugin.js",
   "types": "dist/plugin.d.ts",
@@ -27,7 +27,8 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/JuhLabs/openclaw-bdi"
+    "url": "git+https://github.com/JuhLabs/juhbdi.git",
+    "directory": "openclaw-bdi"
   },
   "homepage": "https://www.juhlabs.com/juhbdi",
   "dependencies": {
