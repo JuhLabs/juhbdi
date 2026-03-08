@@ -785,8 +785,8 @@ nav {
 }
 
 .stat-icon {
-  width: 64px;
-  height: 64px;
+  width: 80px;
+  height: 80px;
   margin: 0 auto 0.5rem;
   display: block;
   object-fit: contain;
@@ -2578,6 +2578,7 @@ function switchDoc(doc, btn) {
     gl.attachShader(p, vsShader);
     gl.attachShader(p, fsShader);
     gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) { canvas.style.display = 'none'; return null; }
     return p;
   }
 
@@ -2825,8 +2826,13 @@ const statsObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
       const counters = entry.target.querySelectorAll('[data-target]');
-      counters.forEach((counter, i) => {
+      let delay = 0;
+      counters.forEach((counter) => {
+        // Skip live counters — they're animated by the fetch code
+        if (counter.closest('.stat-item-live')) return;
         const target = parseInt(counter.dataset.target);
+        if (isNaN(target) || target <= 0) return;
+        const d = delay++;
         const duration = 1500;
 
         setTimeout(() => {
@@ -2848,7 +2854,7 @@ const statsObserver = new IntersectionObserver((entries) => {
           }
 
           requestAnimationFrame(update);
-        }, i * 100);
+        }, d * 100);
       });
 
       statsObserver.unobserve(entry.target);

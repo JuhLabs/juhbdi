@@ -328,7 +328,7 @@ if [[ "$INSTALL_MODE" == "global" ]]; then
   cp -r "${SCRIPT_DIR}/.claude-plugin" "${CACHE_DIR}/.claude-plugin"
   cp -r "${SCRIPT_DIR}/commands" "${CACHE_DIR}/commands"
   cp -r "${SCRIPT_DIR}/agents" "${CACHE_DIR}/agents"
-  cp -r "${SCRIPT_DIR}/hooks" "${CACHE_DIR}/hooks"
+  [[ -d "${SCRIPT_DIR}/hooks" ]] && cp -r "${SCRIPT_DIR}/hooks" "${CACHE_DIR}/hooks"
   cp -r "${SCRIPT_DIR}/src" "${CACHE_DIR}/src"
   cp -r "${SCRIPT_DIR}/node_modules" "${CACHE_DIR}/node_modules"
   cp "${SCRIPT_DIR}/package.json" "${CACHE_DIR}/package.json"

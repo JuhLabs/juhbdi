@@ -6,7 +6,7 @@ export interface SpeculationResult {
   warnings: string[];
   principles: Principle[];
   confidence: number;
-  source: "memory" | "principles" | "both" | "none";
+  source: "memory" | "principles" | "both" | "warnings" | "none";
   source_task_ids: string[];
 }
 
@@ -76,7 +76,7 @@ export function speculate(
   if (!hasMemory && !hasPrinciples && !hasWarnings) return null;
 
   const source: SpeculationResult["source"] =
-    hasMemory && hasPrinciples ? "both" : hasMemory ? "memory" : hasPrinciples ? "principles" : "none";
+    hasMemory && hasPrinciples ? "both" : hasMemory ? "memory" : hasPrinciples ? "principles" : hasWarnings ? "warnings" : "none";
 
   if (bestMatch) sourceIds.push(bestMatch.triplet.id);
 

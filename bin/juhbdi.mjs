@@ -34,13 +34,13 @@ if (process.env.CLAUDE_PLUGIN_ROOT) {
 }
 
 // Launch Claude Code with JuhBDI as plugin
-const { execSync } = await import("node:child_process");
+const { execFileSync } = await import("node:child_process");
 const { dirname: d } = await import("node:path");
 const { fileURLToPath: f } = await import("node:url");
 const pluginDir = d(f(import.meta.url)).replace(/\/bin$/, "");
 
 try {
-  execSync(`npx claude --plugin "${pluginDir}"`, { stdio: "inherit" });
+  execFileSync("npx", ["claude", "--plugin", pluginDir], { stdio: "inherit" });
 } catch {
   process.exit(1);
 }

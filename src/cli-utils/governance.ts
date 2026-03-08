@@ -89,6 +89,12 @@ if (import.meta.main) {
     console.error(JSON.stringify({ error: "Usage: governance.ts <check_json>" }));
     process.exit(1);
   }
-  const check = JSON.parse(raw);
+  let check;
+  try {
+    check = JSON.parse(raw);
+  } catch {
+    console.error(JSON.stringify({ error: "Invalid JSON argument" }));
+    process.exit(1);
+  }
   console.log(JSON.stringify(checkGovernance(check)));
 }

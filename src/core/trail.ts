@@ -45,5 +45,12 @@ export async function readTrail(
     .trim()
     .split("\n")
     .filter((line) => line.length > 0)
-    .map((line) => DecisionTrailEntrySchema.parse(JSON.parse(line)));
+    .map((line) => {
+      try {
+        return DecisionTrailEntrySchema.parse(JSON.parse(line));
+      } catch {
+        return null;
+      }
+    })
+    .filter((entry): entry is DecisionTrailEntry => entry !== null);
 }
