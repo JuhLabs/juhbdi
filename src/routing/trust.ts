@@ -55,3 +55,11 @@ export function updateTrustRecord(record: TrustRecord, feedback: TaskFeedback): 
     last_10_outcomes: outcomes,
   };
 }
+
+import type { AutonomyTier } from "./tiered-autonomy";
+import { determineTier } from "./tiered-autonomy";
+
+export function getTrustTier(record: TrustRecord): AutonomyTier {
+  const score = computeTrustScore(record);
+  return determineTier(score).tier;
+}

@@ -83,6 +83,63 @@ export function checkGovernance(check: GovernanceCheck): GovernanceResult {
   return { allowed, risk_level: riskLevel, violations, requires_approval: requiresApproval };
 }
 
+import { determineTier, checkActionPermission, type ActionScope } from "../routing/tiered-autonomy";
+import { computeTrustScore, type TrustRecord } from "../routing/trust";
+
+/**
+ * Map governance action types to ActionScope types.
+ */
+function mapActionToScope(action: GovernanceCheck["action"]): ActionScope {
+  switch (action) {
+    case "write_file": return "write_files";
+    case "run_command": return "run_commands";
+    case "modify_test": return "modify_tests";
+    case "delete_file": return "delete_files";
+  }
+}
+
+/**
+ * Enhanced governance check that considers trust tier.
+ * Returns the same result as checkGovernance when no trust record is provided.
+ */
+export function checkGovernanceWithTrust(
+  check: GovernanceCheck,
+  trustRecord?: TrustRecord,
+): GovernanceResult {
+  // Base governance check (existing logic)
+  const baseResult = checkGovernance(check);
+
+  // If no trust record, return base result
+  if (!trustRecord) return baseResult;
+
+  // Apply tier-based permission overlay
+  const score = computeTrustScore(trustRecord);
+  const tier = determineTier(score);
+  const scope = mapActionToScope(check.action);
+  const permission = checkActionPermission(tier, scope);
+
+  if (permission === "prohibited") {
+    return {
+      ...baseResult,
+      allowed: false,
+      requires_approval: false,
+      violations: [
+        ...baseResult.violations,
+        `Action "${check.action}" prohibited at ${tier.tier} tier (trust: ${score.toFixed(2)})`,
+      ],
+    };
+  }
+
+  if (permission === "requires_approval") {
+    return {
+      ...baseResult,
+      requires_approval: true,
+    };
+  }
+
+  return baseResult;
+}
+
 if (import.meta.main) {
   const raw = process.argv[2];
   if (!raw) {
