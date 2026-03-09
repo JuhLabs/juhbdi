@@ -1442,8 +1442,8 @@ nav {
         </div>
         <div class="terminal-body">
           <div style="position: relative;">
-            <span class="prompt">$</span> <span class="cmd" style="color: var(--green); font-size: 1.1em; font-weight: 600;">npx juhbdi</span>
-            <button class="install-copy-btn" onclick="navigator.clipboard.writeText('npx juhbdi').then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)})" style="position:absolute;right:0;top:50%;transform:translateY(-50%);background:var(--surface0);border:1px solid var(--surface1);color:var(--subtext);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:0.75rem;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--lavender)';this.style.color='var(--lavender)'" onmouseout="this.style.borderColor='var(--surface1)';this.style.color='var(--subtext)'">Copy</button>
+            <span class="prompt">$</span> <span class="cmd" style="color: var(--green); font-size: 1.1em; font-weight: 600;">npx juhbdi@latest</span>
+            <button class="install-copy-btn" onclick="navigator.clipboard.writeText('npx juhbdi@latest').then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)})" style="position:absolute;right:0;top:50%;transform:translateY(-50%);background:var(--surface0);border:1px solid var(--surface1);color:var(--subtext);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:0.75rem;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--lavender)';this.style.color='var(--lavender)'" onmouseout="this.style.borderColor='var(--surface1)';this.style.color='var(--subtext)'">Copy</button>
           </div>
         </div>
       </div>
@@ -2027,26 +2027,28 @@ nav {
   <div class="reveal" style="text-align: center; margin-bottom: 2rem;">
     <div style="display: flex; align-items: center; justify-content: center; gap: 2rem; margin-bottom: 1.5rem;">
       <!-- OpenClaw Lobster Logo -->
-      <svg width="72" height="72" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 20px rgba(243, 139, 168, 0.3));">
-        <path d="M60 10 C30 10 15 35 15 55 C15 75 30 95 45 100 L45 110 L55 110 L55 100 C55 100 60 102 65 100 L65 110 L75 110 L75 100 C90 95 105 75 105 55 C105 35 90 10 60 10Z" fill="url(#oc-gradient)"/>
-        <path d="M20 45 C5 40 0 50 5 60 C10 70 20 65 25 55 C28 48 25 45 20 45Z" fill="url(#oc-gradient)"/>
-        <path d="M100 45 C115 40 120 50 115 60 C110 70 100 65 95 55 C92 48 95 45 100 45Z" fill="url(#oc-gradient)"/>
-        <path d="M45 15 Q35 5 30 8" stroke="var(--red)" stroke-width="2" stroke-linecap="round"/>
-        <path d="M75 15 Q85 5 90 8" stroke="var(--red)" stroke-width="2" stroke-linecap="round"/>
-        <circle cx="45" cy="35" r="6" fill="var(--crust)"/>
-        <circle cx="75" cy="35" r="6" fill="var(--crust)"/>
-        <circle cx="46" cy="34" r="2" fill="var(--teal)"/>
-        <circle cx="76" cy="34" r="2" fill="var(--teal)"/>
-        <defs>
-          <linearGradient id="oc-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="var(--red)"/>
-            <stop offset="100%" stop-color="var(--peach)"/>
-          </linearGradient>
-        </defs>
-      </svg>
+      <div style="width: 72px; height: 72px; border-radius: 50%; box-shadow: 0 0 20px rgba(243, 139, 168, 0.3); display: flex; align-items: center; justify-content: center; overflow: visible;">
+        <svg width="72" height="72" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M60 10 C30 10 15 35 15 55 C15 75 30 95 45 100 L45 110 L55 110 L55 100 C55 100 60 102 65 100 L65 110 L75 110 L75 100 C90 95 105 75 105 55 C105 35 90 10 60 10Z" fill="url(#oc-gradient)"/>
+          <path d="M20 45 C5 40 0 50 5 60 C10 70 20 65 25 55 C28 48 25 45 20 45Z" fill="url(#oc-gradient)"/>
+          <path d="M100 45 C115 40 120 50 115 60 C110 70 100 65 95 55 C92 48 95 45 100 45Z" fill="url(#oc-gradient)"/>
+          <path d="M45 15 Q35 5 30 8" stroke="var(--red)" stroke-width="2" stroke-linecap="round"/>
+          <path d="M75 15 Q85 5 90 8" stroke="var(--red)" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="45" cy="35" r="6" fill="var(--crust)"/>
+          <circle cx="75" cy="35" r="6" fill="var(--crust)"/>
+          <circle cx="46" cy="34" r="2" fill="var(--teal)"/>
+          <circle cx="76" cy="34" r="2" fill="var(--teal)"/>
+          <defs>
+            <linearGradient id="oc-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="var(--red)"/>
+              <stop offset="100%" stop-color="var(--peach)"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
       <div style="font-size: 1.5rem; color: var(--surface2); font-weight: 300;">+</div>
       <!-- JuhBDI Logo -->
-      <img src="juhbdilogo.png" alt="JuhBDI" width="72" height="72" style="filter: drop-shadow(0 0 20px rgba(180, 190, 254, 0.3)); border-radius: 12px;" />
+      <img src="juhbdilogo.png" alt="JuhBDI" width="72" height="72" style="border-radius: 50%; box-shadow: 0 0 20px rgba(180, 190, 254, 0.3);" />
     </div>
   </div>
 
@@ -2918,8 +2920,10 @@ if (statsSection) statsObserver.observe(statsSection);
   }
 
   // Fetch all sources in parallel
-  const [npmData, ghData, vpsData] = await Promise.allSettled([
+  const [npmOcData, npmJuhData, ghData, vpsData] = await Promise.allSettled([
     fetch('https://api.npmjs.org/downloads/point/last-month/@juhlabs/openclaw-bdi')
+      .then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch('https://api.npmjs.org/downloads/point/last-month/juhbdi')
       .then(r => r.ok ? r.json() : null).catch(() => null),
     fetch('https://api.github.com/repos/JuhLabs/juhbdi')
       .then(r => r.ok ? r.json() : null).catch(() => null),
@@ -2927,7 +2931,7 @@ if (statsSection) statsObserver.observe(statsSection);
       .then(r => r.ok ? r.json() : null).catch(() => null),
   ]);
 
-  const npmDownloads = npmData.value?.downloads || 0;
+  const npmDownloads = (npmOcData.value?.downloads || 0) + (npmJuhData.value?.downloads || 0);
   const ghStars = ghData.value?.stargazers_count || 0;
   const vpsInstalls = vpsData.value?.installs || 0;
 

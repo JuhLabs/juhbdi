@@ -59,7 +59,7 @@ Most AI coding tools do what you tell them. JuhBDI does what you *mean*.
 ### npm (all platforms)
 
 ```bash
-npx juhbdi
+npx juhbdi@latest
 ```
 
 ### macOS
