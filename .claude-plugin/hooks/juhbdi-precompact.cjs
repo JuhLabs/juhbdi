@@ -124,6 +124,16 @@ async function main() {
   const pendingTasks = getPendingTasks(cwd);
   const recentTrail = getRecentTrailEntries(cwd, 5);
 
+  // Count reflexions for handoff context
+  let reflexionCount = 0;
+  try {
+    const reflexionPath = path.join(cwd, ".juhbdi", "reflexion-bank.json");
+    if (fs.existsSync(reflexionPath)) {
+      const bank = JSON.parse(fs.readFileSync(reflexionPath, "utf-8"));
+      reflexionCount = (bank.entries || []).length;
+    }
+  } catch { /* ignore */ }
+
   // Build handoff snapshot
   const snapshot = {
     generated: ts,
@@ -141,6 +151,7 @@ async function main() {
       description: e.description,
       timestamp: e.timestamp,
     })),
+    reflexion_count: reflexionCount,
   };
 
   // Write handoff file
@@ -169,6 +180,9 @@ ${gitState.status ? "```\n" + gitState.status + "\n```" : ""}
 
 ## Pending Tasks
 ${taskList}
+
+## Intelligence State
+Reflexions stored: ${reflexionCount}
 
 ## Recent Decisions
 ${recentTrail.slice(-3).map((e) => `- ${e.event_type}: ${e.description}`).join("\n") || "None recorded."}
