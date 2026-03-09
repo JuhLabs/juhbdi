@@ -4,16 +4,7 @@ import {
   type ReflexionBank,
   type ReflexionEntry,
 } from "../schemas/reflexion";
-
-const STOP_WORDS = new Set([
-  "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for",
-  "of", "with", "by", "from", "is", "it", "as", "be", "was", "are",
-  "this", "that", "has", "had", "not", "all", "can", "will", "its",
-  "use", "used", "using", "into", "each", "also", "been", "have",
-]);
-
-const MIN_WORD_LENGTH = 3;
-const MAX_KEYWORDS = 20;
+import { tokenize, MAX_KEYWORDS } from "./keywords";
 
 /** Inputs needed to generate a reflexion from a task outcome. */
 export interface TaskOutcome {
@@ -28,11 +19,7 @@ export interface TaskOutcome {
 
 /** Extract keywords from text fragments, filtering stop words and short tokens. */
 function extractKeywordsFromTexts(texts: string[]): string[] {
-  const words = texts
-    .join(" ")
-    .toLowerCase()
-    .split(/[\s/\\._\-:,;!?()[\]{}'"]+/)
-    .filter((w) => w.length >= MIN_WORD_LENGTH && !STOP_WORDS.has(w));
+  const words = tokenize(texts.join(" "));
   return [...new Set(words)].slice(0, MAX_KEYWORDS);
 }
 
@@ -95,12 +82,25 @@ export async function loadReflexionBank(bankPath: string): Promise<ReflexionBank
   }
 }
 
-/** Append a reflexion entry to the bank file. Creates file if it doesn't exist. */
+/** Append a reflexion entry to the bank file. Creates file if it doesn't exist. Links related reflexions by keyword overlap. */
 export async function appendReflexion(
   bankPath: string,
   entry: ReflexionEntry,
 ): Promise<void> {
   const bank = await loadReflexionBank(bankPath);
+
+  // Link related reflexions: 40%+ keyword overlap
+  const entryKws = new Set(entry.keywords);
+  if (entryKws.size > 0) {
+    const related: string[] = [];
+    for (const existing of bank.entries) {
+      const overlap = existing.keywords.filter((k) => entryKws.has(k)).length;
+      const ratio = overlap / Math.max(entryKws.size, existing.keywords.length);
+      if (ratio >= 0.4) related.push(existing.id);
+    }
+    entry.related_reflexion_ids = related;
+  }
+
   bank.entries.push(entry);
   await Bun.write(bankPath, JSON.stringify(bank, null, 2));
 }
@@ -113,12 +113,7 @@ export function retrieveReflexions(
 ): ReflexionEntry[] {
   if (bank.entries.length === 0) return [];
 
-  const queryWords = new Set(
-    query
-      .toLowerCase()
-      .split(/\s+/)
-      .filter((w) => w.length > 2),
-  );
+  const queryWords = new Set(tokenize(query));
   if (queryWords.size === 0) return [];
 
   const scored: Array<{ entry: ReflexionEntry; score: number }> = [];
@@ -155,7 +150,7 @@ export function formatReflexionsForPrompt(reflexions: ReflexionEntry[]): string 
   const lines = ["## Past Reflexions\n"];
 
   for (const r of reflexions) {
-    const icon = r.outcome === "success" ? "+" : r.outcome === "failure" ? "!" : "~";
+    const icon = r.outcome === "success" ? "+" : "!";
     lines.push(`### [${icon}] ${r.task_description}`);
     lines.push(`- **Outcome**: ${r.outcome} | **Tested**: ${r.test_passed ? "passed" : "failed"}`);
     lines.push(`- **Approach**: ${r.approach_taken}`);

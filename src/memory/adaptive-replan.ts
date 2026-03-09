@@ -1,5 +1,6 @@
 // src/memory/adaptive-replan.ts — Adaptive re-planning: compare outcomes to expectations, trigger re-plan if divergent
 import type { ReflexionEntry } from "../schemas/reflexion";
+import { tokenize } from "./keywords";
 
 /** What we expect from a step before it runs. */
 export interface StepExpectation {
@@ -16,21 +17,6 @@ export interface StepResult {
   error_output?: string;
 }
 
-const STOP_WORDS = new Set([
-  "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for",
-  "of", "with", "by", "from", "is", "it", "as", "be", "was", "are",
-  "this", "that", "has", "had", "not", "all", "can", "will", "its",
-  "use", "used", "using", "into", "each", "also", "been", "have",
-]);
-
-/** Extract meaningful words from text, filtering stop words and short tokens. */
-function extractWords(text: string): string[] {
-  return text
-    .toLowerCase()
-    .split(/[\s,.\-_/;:!?()[\]{}'"]+/)
-    .filter((w) => w.length > 2 && !STOP_WORDS.has(w));
-}
-
 /**
  * Compute divergence between expected and actual step outcome.
  * Returns 0 (perfect match) to 1 (complete divergence).
@@ -43,8 +29,8 @@ export function computeStepDivergence(
   // If the step failed outright, high divergence
   if (!actual.passed) return 0.8;
 
-  const expectedWords = new Set(extractWords(expected.expected_outcome));
-  const actualWords = new Set(extractWords(actual.actual_outcome));
+  const expectedWords = new Set(tokenize(expected.expected_outcome));
+  const actualWords = new Set(tokenize(actual.actual_outcome));
 
   if (expectedWords.size === 0 && actualWords.size === 0) return 0;
 
@@ -58,10 +44,7 @@ export function computeStepDivergence(
 
   const textDivergence = 1 - overlap / union;
 
-  // Pass/fail alignment
-  const passPenalty = actual.passed ? 0 : 0.3;
-
-  return Math.min(1, textDivergence + passPenalty);
+  return textDivergence;
 }
 
 /**

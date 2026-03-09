@@ -36,6 +36,7 @@ const W_PASS = 0.4;
 const W_EFF = 0.3;
 const W_VIOL = 0.3;
 
+// Thresholds must match src/routing/tiered-autonomy.ts DEFAULT_TIERS
 function computeTier(score: number): string {
   if (score >= 0.85) return "Principal";
   if (score >= 0.6) return "Senior";
@@ -236,8 +237,7 @@ export function formatStats(stats: JuhBDIStats): string {
 
 // CLI entrypoint
 if (import.meta.main) {
-  const cwd = process.cwd();
-  const juhbdiDir = join(cwd, ".juhbdi");
+  const juhbdiDir = process.argv[2] || join(process.cwd(), ".juhbdi");
 
   gatherStats(juhbdiDir)
     .then((stats) => {

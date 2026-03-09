@@ -1,14 +1,22 @@
 import type { ExperienceTripletV2 } from "./types";
 
-const STOP_WORDS = new Set([
+export const STOP_WORDS = new Set([
   "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for",
   "of", "with", "by", "from", "is", "it", "as", "be", "was", "are",
   "this", "that", "has", "had", "not", "all", "can", "will", "its",
   "use", "used", "using", "into", "each", "also", "been", "have",
 ]);
 
-const MAX_KEYWORDS = 20;
-const MIN_WORD_LENGTH = 3;
+export const MAX_KEYWORDS = 20;
+export const MIN_WORD_LENGTH = 3;
+
+/** Tokenize text using standard delimiters and filter stop words. */
+export function tokenize(text: string): string[] {
+  return text
+    .toLowerCase()
+    .split(/[\s/\\._\-:,;!?()[\]{}'"]+/)
+    .filter((w) => w.length >= MIN_WORD_LENGTH && !STOP_WORDS.has(w));
+}
 
 export function extractKeywords(triplet: ExperienceTripletV2): string[] {
   const sources: string[] = [

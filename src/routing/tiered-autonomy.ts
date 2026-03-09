@@ -35,7 +35,7 @@ export const DEFAULT_TIERS: TierConfig[] = [
     max_trust_score: 0.35,
     allowed_actions: ["read_files", "run_tests"],
     requires_approval: ["write_files", "run_commands"],
-    prohibited_actions: ["delete_files", "push_code", "deploy", "modify_config", "install_packages"],
+    prohibited_actions: ["modify_tests", "delete_files", "push_code", "deploy", "modify_config", "install_packages"],
     description: "Supervised. Limited scope. All write actions reviewed.",
   },
   {

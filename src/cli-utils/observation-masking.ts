@@ -234,11 +234,11 @@ export function truncateTestOutput(
     result.push(...failBlock);
   }
 
-  // Ensure minimum 5 lines
+  // Ensure minimum 5 lines (deduplicate to avoid repeating already-captured lines)
   if (result.length < 5 && lines.length >= 5) {
-    // Add first few lines for context
+    const alreadyIn = new Set(result);
     const needed = 5 - result.length;
-    const prefix = lines.slice(0, needed);
+    const prefix = lines.slice(0, needed).filter((l) => !alreadyIn.has(l));
     result.unshift(...prefix);
   }
 

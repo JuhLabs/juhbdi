@@ -1,11 +1,5 @@
 // src/memory/experiential-trace.ts — Store and retrieve successful execution traces (CORPGEN pattern)
-
-const STOP_WORDS = new Set([
-  "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for",
-  "of", "with", "by", "from", "is", "it", "as", "be", "was", "are",
-  "this", "that", "has", "had", "not", "all", "can", "will", "its",
-  "use", "used", "using", "into", "each", "also", "been", "have",
-]);
+import { tokenize } from "./keywords";
 
 /** A single step in an execution trace. */
 export interface TraceStep {
@@ -42,30 +36,21 @@ export async function storeTrace(
 ): Promise<void> {
   if (!trace.test_passed) return; // Only store successes
 
-  let store: TraceStore;
-  try {
-    const file = Bun.file(tracePath);
-    const exists = await file.exists();
-    if (exists) {
-      store = await file.json();
-    } else {
-      store = { version: "1.0.0", traces: [] };
-    }
-  } catch {
-    store = { version: "1.0.0", traces: [] };
-  }
+  const store = await loadTraceStore(tracePath);
 
   store.traces.push(trace);
   await Bun.write(tracePath, JSON.stringify(store, null, 2));
 }
 
-/** Load all traces from the store file. */
+/** Load all traces from the store file. Returns empty store if missing/invalid. */
 export async function loadTraceStore(tracePath: string): Promise<TraceStore> {
   try {
     const file = Bun.file(tracePath);
     const exists = await file.exists();
     if (!exists) return { version: "1.0.0", traces: [] };
-    return await file.json();
+    const raw = await file.json();
+    if (!raw || !Array.isArray(raw.traces)) return { version: "1.0.0", traces: [] };
+    return raw as TraceStore;
   } catch {
     return { version: "1.0.0", traces: [] };
   }
@@ -79,21 +64,16 @@ export function retrieveTraces(
 ): ExecutionTrace[] {
   if (traces.length === 0) return [];
 
-  const queryWords = new Set(
-    query
-      .toLowerCase()
-      .split(/\s+/)
-      .filter((w) => w.length > 2 && !STOP_WORDS.has(w)),
-  );
+  const queryWords = new Set(tokenize(query));
   if (queryWords.size === 0) return [];
 
   const scored: Array<{ trace: ExecutionTrace; score: number }> = [];
 
   for (const trace of traces) {
-    const descWords = trace.task_description.toLowerCase().split(/\s+/);
+    const descWords = tokenize(trace.task_description);
     const descOverlap = descWords.filter((w) => queryWords.has(w)).length;
 
-    const approachWords = trace.approach.toLowerCase().split(/\s+/);
+    const approachWords = tokenize(trace.approach);
     const approachOverlap = approachWords.filter((w) => queryWords.has(w)).length;
 
     const tagOverlap = trace.domain_tags.filter((t) =>

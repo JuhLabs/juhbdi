@@ -1,4 +1,4 @@
-import { existsSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 
 export type VerifierType = "typecheck" | "lint" | "test" | "build" | "custom";
@@ -49,7 +49,7 @@ export function getDefaultChain(cwd: string): VerifierStep[] {
   const pkgPath = join(cwd, "package.json");
   if (existsSync(pkgPath)) {
     try {
-      const pkg = JSON.parse(require("fs").readFileSync(pkgPath, "utf-8"));
+      const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
       if (pkg.scripts?.lint) {
         steps.push({
           type: "lint",
@@ -75,7 +75,7 @@ export function getDefaultChain(cwd: string): VerifierStep[] {
   // Add build if build script exists in package.json
   if (existsSync(pkgPath)) {
     try {
-      const pkg = JSON.parse(require("fs").readFileSync(pkgPath, "utf-8"));
+      const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
       if (pkg.scripts?.build) {
         steps.push({
           type: "build",
@@ -114,19 +114,21 @@ export async function runVerifierChain(
     let warningCount: number | undefined;
 
     try {
-      const proc = Bun.spawn(step.command.split(" "), {
+      const proc = Bun.spawn(["sh", "-c", step.command], {
         cwd,
         stdout: "pipe",
         stderr: "pipe",
       });
 
-      // Set up timeout
+      // Set up timeout with cleanup to prevent timer leaks
+      let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
       const timeoutPromise = new Promise<"timeout">((resolve) => {
-        setTimeout(() => resolve("timeout"), step.timeout_ms);
+        timeoutHandle = setTimeout(() => resolve("timeout"), step.timeout_ms);
       });
 
       const exitPromise = proc.exited;
       const race = await Promise.race([exitPromise, timeoutPromise]);
+      clearTimeout(timeoutHandle);
 
       if (race === "timeout") {
         proc.kill();

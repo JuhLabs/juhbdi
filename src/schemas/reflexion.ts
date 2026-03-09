@@ -7,7 +7,7 @@ export const ReflexionEntrySchema = z.object({
   task_id: z.string().min(1),
   task_description: z.string().min(1),
   domain_tags: z.array(z.string()),
-  outcome: z.enum(["success", "failure", "partial"]),
+  outcome: z.enum(["success", "failure"]),
 
   // What happened
   approach_taken: z.string().min(1),

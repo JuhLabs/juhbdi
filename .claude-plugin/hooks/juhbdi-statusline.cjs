@@ -74,9 +74,10 @@ async function main() {
       if (records.length > 0) {
         const r = records[0];
         const passRate = r.tasks_attempted > 0 ? r.tasks_passed / r.tasks_attempted : 0.5;
-        const eff = Math.max(0, 1 - r.avg_strikes / 3);
-        const viol = Math.max(0, 1 - r.violation_count * 0.2);
+        const eff = Math.max(0, 1 - (r.avg_strikes || 0) / 3);
+        const viol = Math.max(0, 1 - (r.violation_count || 0) * 0.2);
         const score = Math.min(1, passRate * 0.4 + eff * 0.3 + viol * 0.3);
+        // Thresholds must match src/routing/tiered-autonomy.ts DEFAULT_TIERS
         const tier = score >= 0.85 ? "P" : score >= 0.6 ? "S" : score >= 0.35 ? "J" : "I";
         tierDisplay = ` ${tier}`;
       }

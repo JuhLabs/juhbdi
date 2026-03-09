@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { checkGovernance } from "./governance";
+import { checkGovernance, checkGovernanceWithTrust } from "./governance";
+import type { TrustRecord } from "../routing/trust";
 
 describe("checkGovernance", () => {
   test("allows normal file write", () => {
@@ -77,5 +78,57 @@ describe("checkGovernance", () => {
       intent_scope: ["g1"],
     });
     expect(result.allowed).toBe(true);
+  });
+});
+
+describe("checkGovernanceWithTrust", () => {
+  const makeRecord = (overrides: Partial<TrustRecord> = {}): TrustRecord => ({
+    agent_tier: "sonnet",
+    tasks_attempted: 10,
+    tasks_passed: 9,
+    avg_strikes: 0.5,
+    violation_count: 0,
+    last_10_outcomes: ["pass", "pass", "pass", "pass", "pass", "pass", "pass", "pass", "pass", "fail"],
+    ...overrides,
+  });
+
+  const baseCheck = {
+    action: "write_file" as const,
+    target: "src/foo.ts",
+    task_id: "t1",
+    intent_scope: ["g1"],
+  };
+
+  test("returns same result as checkGovernance when no trust record", () => {
+    const base = checkGovernance(baseCheck);
+    const enhanced = checkGovernanceWithTrust(baseCheck);
+    expect(enhanced).toEqual(base);
+  });
+
+  test("prohibited action at intern tier overrides base allowed", () => {
+    // Intern: trust ~0.2, deploy is prohibited
+    const internRecord = makeRecord({ tasks_attempted: 10, tasks_passed: 2, avg_strikes: 2, violation_count: 3 });
+    const result = checkGovernanceWithTrust(
+      { action: "delete_file", target: "src/old.ts", task_id: "t1", intent_scope: ["g1"] },
+      internRecord,
+    );
+    expect(result.allowed).toBe(false);
+    expect(result.violations.some((v: string) => v.includes("prohibited at intern"))).toBe(true);
+  });
+
+  test("requires_approval at tier sets flag", () => {
+    // Intern: write_files requires approval
+    const internRecord = makeRecord({ tasks_attempted: 10, tasks_passed: 2, avg_strikes: 2, violation_count: 3 });
+    const result = checkGovernanceWithTrust(baseCheck, internRecord);
+    expect(result.requires_approval).toBe(true);
+  });
+
+  test("allowed action at senior tier returns base result", () => {
+    // Senior: write_files is allowed
+    const seniorRecord = makeRecord({ tasks_attempted: 20, tasks_passed: 18, avg_strikes: 0.3, violation_count: 0 });
+    const base = checkGovernance(baseCheck);
+    const result = checkGovernanceWithTrust(baseCheck, seniorRecord);
+    expect(result.allowed).toBe(base.allowed);
+    expect(result.requires_approval).toBe(base.requires_approval);
   });
 });
