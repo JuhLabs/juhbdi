@@ -1426,6 +1426,25 @@ nav {
       </button>
     </div>
 
+    <!-- npm quick-start -->
+    <div style="max-width: 720px; margin: 0 auto 1.5rem;">
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="terminal-dot" style="background: var(--red);"></div>
+          <div class="terminal-dot" style="background: var(--yellow);"></div>
+          <div class="terminal-dot" style="background: var(--green);"></div>
+          <span style="color: var(--subtext); font-size: 0.7rem; margin-left: 0.75rem;">npm (all platforms)</span>
+        </div>
+        <div class="terminal-body">
+          <div style="position: relative;">
+            <span class="prompt">$</span> <span class="cmd" style="color: var(--green); font-size: 1.1em; font-weight: 600;">npx juhbdi</span>
+            <button class="install-copy-btn" onclick="navigator.clipboard.writeText('npx juhbdi').then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)})" style="position:absolute;right:0;top:50%;transform:translateY(-50%);background:var(--surface0);border:1px solid var(--surface1);color:var(--subtext);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:0.75rem;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--lavender)';this.style.color='var(--lavender)'" onmouseout="this.style.borderColor='var(--surface1)';this.style.color='var(--subtext)'">Copy</button>
+          </div>
+        </div>
+      </div>
+      <div style="text-align: center; color: var(--overlay0); font-size: 0.75rem; margin-top: 0.5rem;">or install with the platform-specific script below</div>
+    </div>
+
     <!-- macOS panel -->
     <div id="platform-macos" class="platform-panel active">
       <div class="terminal" style="max-width: 720px; margin: 0 auto;">
