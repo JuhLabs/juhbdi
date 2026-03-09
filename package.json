@@ -7,7 +7,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/julianhermstad/juhbdi.git"
+    "url": "git+https://github.com/julianhermstad/juhbdi.git"
   },
   "keywords": [
     "claude-code",
@@ -20,7 +20,7 @@
     "governance"
   ],
   "bin": {
-    "juhbdi": "./bin/juhbdi.mjs"
+    "juhbdi": "bin/juhbdi.js"
   },
   "files": [
     ".claude-plugin/",
