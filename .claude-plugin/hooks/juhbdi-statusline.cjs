@@ -4,6 +4,7 @@
 // Writes metrics to /tmp/juhbdi-ctx-{session_id}.json for the context monitor hook.
 
 const fs = require("fs");
+const path = require("path");
 
 // Claude Code reserves ~16.5% for autocompact buffer
 const AUTOCOMPACT_BUFFER = 16.5;
@@ -62,7 +63,27 @@ async function main() {
     // Non-fatal — statusline still works even if bridge file fails
   }
 
-  const statusLine = `JuhBDI ${bar} ${displayPct}%`;
+  // Read trust store to get current tier badge
+  let tierDisplay = "";
+  try {
+    const cwd = input.cwd || process.cwd();
+    const trustPath = path.join(cwd, ".juhbdi", "trust-store.json");
+    if (fs.existsSync(trustPath)) {
+      const store = JSON.parse(fs.readFileSync(trustPath, "utf-8"));
+      const records = Object.values(store.records || {});
+      if (records.length > 0) {
+        const r = records[0];
+        const passRate = r.tasks_attempted > 0 ? r.tasks_passed / r.tasks_attempted : 0.5;
+        const eff = Math.max(0, 1 - r.avg_strikes / 3);
+        const viol = Math.max(0, 1 - r.violation_count * 0.2);
+        const score = Math.min(1, passRate * 0.4 + eff * 0.3 + viol * 0.3);
+        const tier = score >= 0.85 ? "P" : score >= 0.6 ? "S" : score >= 0.35 ? "J" : "I";
+        tierDisplay = ` ${tier}`;
+      }
+    }
+  } catch { /* non-fatal */ }
+
+  const statusLine = `JuhBDI ${bar} ${displayPct}%${tierDisplay}`;
   console.log(JSON.stringify({ status_line: statusLine }));
 }
 
