@@ -34,6 +34,8 @@ Given a root cause analysis from the Diagnostician, propose a new implementation
 3. **Memory Bank Matches**: Similar past tasks that succeeded, with their approaches and utility scores
 4. **Task Specification**: What the task is trying to accomplish
 5. **Tradeoff Weights**: Project priorities (security, performance, speed, quality)
+6. **Reflexion Memory**: Past reflections on similar tasks — what worked, what failed, and lessons learned. Weight these heavily — they represent hard-won experience.
+7. **Execution Traces**: Step-by-step traces from successful similar tasks. Use as a starting template for your proposed approach.
 
 ## Strategy Protocol
 

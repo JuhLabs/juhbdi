@@ -53,6 +53,13 @@ export {
 } from "./handoff";
 
 export {
+  ReflexionEntrySchema,
+  ReflexionBankSchema,
+  type ReflexionEntry,
+  type ReflexionBank,
+} from "./reflexion";
+
+export {
   ModelTierSchema,
   ModelRouteSchema,
   RouteContextSchema,

@@ -85,6 +85,28 @@ Your implementation should serve the goal, not just satisfy the task description
 - If the provided command fails, fix your implementation and re-run the SAME command
 - NEVER replace the verification command with trivial commands like `true`, `echo pass`, `exit 0`, or `:`
 
+## Step-Level Verification
+
+After EACH significant code change (not just at the end), run the verification command immediately. This catches errors early when they're cheapest to fix.
+
+Pattern:
+1. Write/edit code for one logical unit
+2. Run verification command
+3. If it fails: fix immediately (the error is fresh in context)
+4. If it passes: proceed to next unit
+5. Report step-level results in your output
+
+Do NOT batch all changes and test only at the end. The research shows step-level verification catches 3x more errors.
+
+## Execution Trace
+
+As you work, maintain a mental trace of your steps. In your final report, include a `trace` field with ordered steps:
+- What action you took (read/write/edit/test/search)
+- What file or target
+- Brief summary of what and why
+
+This trace is stored for future task-executors working on similar tasks.
+
 ## Learned Principles
 
 If a "Learned Principles" section is included in your dispatch prompt, these are rules extracted from past execution experience. Follow them unless you have a strong, documented reason to deviate. If you do deviate, explain why in your report.

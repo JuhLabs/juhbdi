@@ -78,6 +78,29 @@ After each wave, check the decision trail for routing entries from the completed
 2. If any task required escalation (failure → tier bump), note: "Wave N: task <id> required escalation to <tier>"
 3. Update `conventions` if a clear pattern emerges (e.g., "Schema tasks consistently succeed with haiku")
 
+## Reflexion Memory Extraction
+
+After each task execution completes, you are also responsible for building the reflexion memory:
+
+1. **Generate a ReflexionEntry** from the task outcome:
+   - Extract the task description, approach taken, outcome (success/failure/partial), and error summary
+   - The `generateReflexion()` function in `src/memory/reflexion.ts` handles this
+   - Failures get richer reflexions (include error analysis); successes get shorter ones
+
+2. **Append to `.juhbdi/reflexion-bank.json`**:
+   - Use `appendReflexion()` to persist the entry
+   - The bank file is created automatically if it doesn't exist
+
+3. **Store Execution Trace (success only)**:
+   - If the task succeeded and the task-executor included a `trace` field in its report, store it using `storeTrace()` from `src/memory/experiential-trace.ts`
+   - Traces are stored at `.juhbdi/execution-traces.json`
+   - Only successful traces are stored — failed attempts go to the reflexion bank
+
+4. **Link Related Reflexions**:
+   - When appending a new reflexion, check existing entries for keyword overlap
+   - If 40%+ keyword overlap exists, add the existing entry's ID to `related_reflexion_ids`
+   - This builds a graph of related experiences over time
+
 ## Rules
 
 - Keep changes minimal — only add genuinely new information
