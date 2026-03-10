@@ -25,3 +25,23 @@ Query and filter the JuhBDI decision trail for governance auditing and EU AI Act
 3. The output is already formatted. Present it directly to the user.
 
 4. If no trail entries exist, inform the user that no decisions have been recorded yet.
+
+### Export Options
+
+If the user passes `--export json` or `--export csv`:
+
+- **`--export json`**: Write the filtered trail entries to `.juhbdi/audit-export.json` as a JSON array. Report: "Exported N entries to `.juhbdi/audit-export.json`"
+- **`--export csv`**: Write the filtered trail entries to `.juhbdi/audit-export.csv` with columns: `timestamp, event_type, description, task_id, wave_id, outcome, reasoning`. Report: "Exported N entries to `.juhbdi/audit-export.csv`"
+
+### Summary Statistics
+
+After displaying trail entries (or at the top of the output), show a summary statistics line:
+
+```
+Audit Summary: N total entries | X decisions | Y conflicts | Z overrides | W recoveries | V commands
+```
+
+If `--compliance` is used, also show:
+```
+Compliance: N/M fields populated (X%)
+```

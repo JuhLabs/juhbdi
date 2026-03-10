@@ -10,6 +10,14 @@ Initialize a JuhBDI governed project by understanding the project, creating `.ju
 
 If `.juhbdi/intent-spec.json` already exists, tell the user: "This project is already initialized. Run `/juhbdi:status` to see current state, or `/juhbdi:plan` to plan new work."
 
+### Monorepo Detection
+
+Before creating a new `.juhbdi/`, check if one already exists in parent directories (up to 3 levels):
+- Check `../.juhbdi/`, `../../.juhbdi/`, `../../../.juhbdi/`
+- If found, warn the user: "Found existing JuhBDI project at `<path>`. This appears to be a monorepo. Options: (a) Initialize a sub-project here with its own governance, or (b) Use the parent project's governance. Which do you prefer?"
+- If user chooses (b), stop and suggest using the parent `.juhbdi/` directory
+- If user chooses (a), proceed with initialization but add `parent_juhbdi: "<path>"` to `.juhbdi/config.json`
+
 ## Step 2: Understand the Project
 
 Before creating config files, understand what we're working with.

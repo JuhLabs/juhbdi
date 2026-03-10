@@ -66,3 +66,22 @@ Tell the user:
 - Number of principles extracted (new vs updated)
 - List each principle with its confidence score
 - Suggest: "Run `/juhbdi:execute` to apply these principles in future tasks"
+
+### Principle Usage Analysis
+
+After listing extracted principles, analyze the full principle bank for usage patterns:
+
+1. **Most Used Principles** (top 3 by `applied_count` or confidence): Show which principles are guiding the most decisions
+2. **Least Used Principles** (bottom 3, or those with confidence < 0.3): Flag these for potential cleanup
+3. **Unused Principles**: Any principle that has never been applied since creation (confidence still at initial value, no `applied_count`)
+
+Display:
+```
+### Principle Health
+Most applied:   "Prefer composition over inheritance" (confidence: 0.92, applied 14x)
+                "Test edge cases first" (confidence: 0.88, applied 11x)
+Least applied:  "Use factory pattern for models" (confidence: 0.31, applied 1x)
+Never applied:  "Avoid global state" (confidence: 0.50, applied 0x) -- consider removing
+```
+
+If there are principles with confidence below 0.2, suggest: "N principles have very low confidence and may be obsolete. Consider reviewing and removing them manually from `.juhbdi/principle-bank.json`."

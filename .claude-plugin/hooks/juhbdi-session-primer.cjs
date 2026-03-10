@@ -2,10 +2,39 @@
 //
 // SessionStart hook — primes context with relevant memory on every session.
 // Uses execFileSync (not execSync) to avoid shell injection risks.
+// Enhanced in M12: validates timestamps, fallback bun path, enriched restoration banner.
 
 const { execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
+
+function logError(message) {
+  try {
+    const ts = new Date().toISOString();
+    fs.appendFileSync("/tmp/juhbdi-errors.log", `[${ts}] session-primer: ${message}\n`);
+  } catch {
+    // Non-fatal
+  }
+}
+
+function resolveBunPath() {
+  const homeBun = path.join(process.env.HOME || "", ".bun", "bin", "bun");
+  if (fs.existsSync(homeBun)) return homeBun;
+
+  // Fallback: try system bun
+  try {
+    execFileSync("which", ["bun"], { encoding: "utf-8", timeout: 2000, stdio: ["pipe", "pipe", "pipe"] });
+    return "bun";
+  } catch {
+    return null;
+  }
+}
+
+function isValidTimestamp(ts) {
+  if (!ts || typeof ts !== "string") return false;
+  const parsed = Date.parse(ts);
+  return !isNaN(parsed) && parsed > 0;
+}
 
 async function main() {
   const input = JSON.parse(await new Promise((resolve) => {
@@ -19,18 +48,25 @@ async function main() {
 
   // Check for auto-handoff from previous session compaction
   let handoffContext = null;
+  let handoffIntelligence = null;
   try {
     const latestPath = path.join(cwd, ".juhbdi", "handoffs", "latest.json");
     if (fs.existsSync(latestPath)) {
       const latest = JSON.parse(fs.readFileSync(latestPath, "utf-8"));
-      // Only load if handoff is recent (within last 2 hours)
-      const handoffAge = Date.now() - new Date(latest.timestamp).getTime();
-      if (handoffAge < 2 * 60 * 60 * 1000 && latest.prompt_file) {
-        try {
-          handoffContext = fs.readFileSync(latest.prompt_file, "utf-8");
-          // Clear the latest pointer so it doesn't reload next time (rename to avoid race with precompact)
-          fs.renameSync(latestPath, latestPath + ".consumed");
-        } catch { /* ignore */ }
+
+      // Validate timestamp before using
+      if (isValidTimestamp(latest.timestamp)) {
+        const handoffAge = Date.now() - new Date(latest.timestamp).getTime();
+        if (handoffAge < 2 * 60 * 60 * 1000 && latest.prompt_file) {
+          try {
+            handoffContext = fs.readFileSync(latest.prompt_file, "utf-8");
+            handoffIntelligence = latest.intelligence_state || null;
+            // Clear the latest pointer so it doesn't reload next time
+            fs.renameSync(latestPath, latestPath + ".consumed");
+          } catch { /* ignore */ }
+        }
+      } else {
+        logError(`Invalid timestamp in latest.json: ${latest.timestamp}`);
       }
     }
   } catch { /* ignore */ }
@@ -47,8 +83,37 @@ async function main() {
     }
   } catch { /* ignore */ }
 
+  // Build enriched restoration banner if handoff was loaded
+  let restorationBanner = "";
+  if (handoffContext) {
+    const parts = ["[JUHBDI SESSION RESTORED] Previous session was compacted. State recovered:"];
+    if (handoffIntelligence) {
+      if (handoffIntelligence.reflexion_count > 0) {
+        parts.push(`  - ${handoffIntelligence.reflexion_count} reflexions loaded`);
+      }
+      if (handoffIntelligence.trace_count > 0) {
+        parts.push(`  - ${handoffIntelligence.trace_count} experiential traces`);
+      }
+      if (handoffIntelligence.principle_count > 0) {
+        parts.push(`  - ${handoffIntelligence.principle_count} principles`);
+      }
+      if (handoffIntelligence.memory_triplets > 0) {
+        parts.push(`  - ${handoffIntelligence.memory_triplets} memory triplets`);
+      }
+    }
+    if (pendingCount > 0) {
+      parts.push(`  - ${pendingCount} pending tasks in roadmap`);
+    }
+    restorationBanner = parts.join("\n") + "\n\n";
+  }
+
+  const bunPath = resolveBunPath();
+
   try {
-    const bunPath = path.join(process.env.HOME || "", ".bun", "bin", "bun");
+    if (!bunPath) {
+      throw new Error("bun not found at ~/.bun/bin/bun or on system PATH");
+    }
+
     const scriptPath = path.join(pluginRoot, "src", "quick", "session-primer.ts");
 
     const args = ["run", scriptPath];
@@ -77,7 +142,7 @@ async function main() {
 
     // Prepend handoff context if available
     const handoffBlock = handoffContext
-      ? `[JUHBDI SESSION RESTORED] Previous session was compacted. Handoff loaded:\n${handoffContext}\n\n`
+      ? `${restorationBanner}Handoff details:\n${handoffContext}\n\n`
       : "";
 
     if (ctx.governance_active && ctx.relevant_experiences.length > 0) {
@@ -94,13 +159,23 @@ async function main() {
       }));
     } else if (handoffContext) {
       console.log(JSON.stringify({
-        user_message: `${handoffBlock}Run /juhbdi:resume to restore full context.`
+        user_message: `${restorationBanner}Handoff details:\n${handoffContext}\n\nRun /juhbdi:resume to restore full context.`
       }));
     } else {
       console.log(JSON.stringify({}));
     }
-  } catch {
-    console.log(JSON.stringify({}));
+  } catch (err) {
+    // Log script timeout or failure
+    logError(`Bun script failed: ${err.message}`);
+
+    // Bun script failed, but still output handoff context if available
+    if (handoffContext) {
+      console.log(JSON.stringify({
+        user_message: `${restorationBanner}Handoff details:\n${handoffContext}\n\nRun /juhbdi:resume to restore full context.`
+      }));
+    } else {
+      console.log(JSON.stringify({}));
+    }
   }
 }
 

@@ -119,6 +119,21 @@ You are now the **Wave Planning Agent**. Break the refined request into atomic m
 3. **Build order**: setup → implementation → integration → verification
 4. **Parallel when possible**: Independent tasks in the same wave get `parallel: true`
 
+### Time Estimation (35-Minute Guard)
+
+For each task, estimate its time using the Time Guard (research: Zylos 2026 — success decreases after 35 minutes, doubling duration quadruples failure rate):
+- Count the files the task will create/modify
+- Assess complexity (0-1): 0.2 for boilerplate, 0.5 for standard, 0.8+ for complex logic
+- Factor in test writing (+40%) and refactoring (+30%)
+- If estimated > 35 minutes: auto-decompose into subtasks and add a note
+
+Show time estimates in the plan output:
+```
+- t1: [description] (~N min)
+- t2: [description] (~N min, WARNING: approaching 35-min limit)
+- t3: [description] (~N min, AUTO-SPLIT into t3a, t3b)
+```
+
 ### Task Requirements
 
 Each task MUST have:
@@ -128,6 +143,7 @@ Each task MUST have:
 - `status`: "pending"
 - `verification`: `{ type: "test"|"lint"|"manual", command: "..." }`
 - `retry_count`: 0
+- `estimated_minutes`: estimated time from Time Guard (number)
 
 ### Output Format
 

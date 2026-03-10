@@ -8,8 +8,19 @@ Resume a previously paused JuhBDI session by reading `.juhbdi/handoff.json`.
 
 ## Step 1: Read Handoff
 
-Read `.juhbdi/handoff.json`. If it doesn't exist, tell the user:
+### Default: Resume from Latest
+
+Read `.juhbdi/handoff.json`. If it doesn't exist, check `.juhbdi/handoffs/` for timestamped handoff files (e.g., `handoff-2026-03-10T12-00-00.json`).
+
+If no handoff files found anywhere, tell the user:
 "No handoff file found. Nothing to resume. Use `/juhbdi:status` to check project state."
+
+### Option: Resume from Specific Handoff
+
+If the user passes a handoff filename or path as an argument (e.g., `/juhbdi:resume handoff-2026-03-09.json`):
+1. Look for the file in `.juhbdi/handoffs/<filename>` or at the given path
+2. If found, use it instead of the default `.juhbdi/handoff.json`
+3. If not found, list available handoff files in `.juhbdi/handoffs/` and ask user to pick one
 
 Validate the handoff:
 ```bash

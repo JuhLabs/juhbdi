@@ -101,6 +101,24 @@ After each task execution completes, you are also responsible for building the r
    - If 40%+ keyword overlap exists, add the existing entry's ID to `related_reflexion_ids`
    - This builds a graph of related experiences over time
 
+## ENFORCED: Post-Wave Processing
+
+After receiving task outcomes for a wave, you MUST:
+
+1. For EACH completed task, call the execution wiring:
+   - `processTaskOutcome(projectDir, taskId, taskDescription, domainTags, approach, filesModified, testPassed, errorSummary, waveId)`
+   - This generates reflexions AND stores traces automatically
+   - Replaces manual reflexion generation — do NOT call `generateReflexion()` and `appendReflexion()` directly
+
+2. After all tasks processed, render the BDI dashboard:
+   - Show current belief state (updated from wave outcomes)
+   - Show desire progress (% of roadmap complete)
+   - Show intention status (next wave or completion)
+
+3. Check divergence for each task:
+   - If any task's approach diverged significantly from plan, flag for strategist review
+   - If `shouldReplan()` returns true, output REPLAN_REQUIRED signal
+
 ## Rules
 
 - Keep changes minimal — only add genuinely new information

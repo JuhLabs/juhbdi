@@ -98,6 +98,28 @@ Pattern:
 
 Do NOT batch all changes and test only at the end. The research shows step-level verification catches 3x more errors.
 
+## MANDATORY: Integration Hooks
+
+These are NOT optional. You MUST follow these steps during execution.
+
+### Before Starting Task
+The orchestrator has injected reflexion memory and experiential traces into your context.
+- If reflexions mention past failures for similar tasks, adjust your approach BEFORE writing code
+- If experiential traces show a proven approach, follow that pattern unless there's a clear reason not to
+
+### After Each Code Change
+1. Run the verifier chain (typecheck -> lint -> test -> build)
+2. Report the verification result in your response with `verification_result: { all_passed, steps_run, failed_at, duration_ms }`
+
+### On Task Completion
+Report these fields in your final response:
+- `approach_taken`: 1-sentence description of what you did
+- `files_modified`: array of file paths you changed
+- `test_passed`: boolean
+- `error_summary`: if failed, what went wrong (1 sentence)
+
+These fields are REQUIRED for reflexion memory generation.
+
 ## Execution Trace
 
 As you work, maintain a mental trace of your steps. In your final report, include a `trace` field with ordered steps:

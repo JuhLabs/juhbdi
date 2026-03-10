@@ -1,7 +1,7 @@
 ---
 name: pause
 description: Pause the current JuhBDI session and create a handoff file for resumption
-allowed-tools: ["Bash", "Read", "Write"]
+allowed-tools: ["Bash", "Read", "Write", "AskUserQuestion"]
 ---
 
 Pause the current JuhBDI session by capturing full state to `.juhbdi/handoff.json`.
@@ -22,6 +22,13 @@ From the roadmap, determine:
 - `current_task`: the task in progress (or next pending)
 - `tasks_completed`: all tasks with status "passed"
 - `tasks_remaining`: all tasks with status != "passed"
+
+### Partial Wave Progress
+
+If the current wave has some tasks completed and some still pending, capture partial progress:
+- `wave_progress`: object with `{ wave_id, total_tasks, completed_task_ids, pending_task_ids, in_progress_task_id }`
+- This allows `/juhbdi:resume` to skip already-completed tasks within the wave instead of re-running the entire wave
+- Include in the handoff JSON under `partial_wave_progress`
 
 From the bridge file (if available):
 - `context_remaining_pct`: remaining context percentage

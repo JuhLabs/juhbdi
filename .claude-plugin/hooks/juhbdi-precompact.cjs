@@ -1,7 +1,8 @@
 // .claude-plugin/hooks/juhbdi-precompact.cjs
 //
 // PreCompact hook — fires before context compaction (auto or manual).
-// Saves memory snapshot, generates handoff file, and preserves continuity.
+// Saves ALL intelligence state, generates handoff file, and preserves continuity.
+// Uses atomic file writes (write to .tmp, then rename) to prevent partial reads.
 //
 // Toggle: Users can set "auto_save: true/false" in ~/.claude/juhbdi-settings.json
 // Default: enabled (auto-saves on every compaction)
@@ -27,6 +28,33 @@ function getHandoffDir(cwd) {
     fs.mkdirSync(dir, { recursive: true });
   } catch { /* ignore */ }
   return dir;
+}
+
+function atomicWrite(filePath, content) {
+  const tmpPath = filePath + ".tmp";
+  try {
+    fs.writeFileSync(tmpPath, content);
+    fs.renameSync(tmpPath, filePath);
+    return true;
+  } catch {
+    // Fallback to direct write
+    try {
+      fs.writeFileSync(filePath, content);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
+
+function safeReadJSON(filePath) {
+  try {
+    if (!fs.existsSync(filePath)) return null;
+    const raw = fs.readFileSync(filePath, "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
 }
 
 function getContextMetrics(sessionId) {
@@ -122,17 +150,25 @@ async function main() {
   const metrics = getContextMetrics(sessionId);
   const gitState = getGitState(cwd);
   const pendingTasks = getPendingTasks(cwd);
-  const recentTrail = getRecentTrailEntries(cwd, 5);
+  const recentTrail = getRecentTrailEntries(cwd, 50); // Increased from 5 to 50
 
-  // Count reflexions for handoff context
-  let reflexionCount = 0;
-  try {
-    const reflexionPath = path.join(cwd, ".juhbdi", "reflexion-bank.json");
-    if (fs.existsSync(reflexionPath)) {
-      const bank = JSON.parse(fs.readFileSync(reflexionPath, "utf-8"));
-      reflexionCount = (bank.entries || []).length;
-    }
-  } catch { /* ignore */ }
+  const juhbdiDir = path.join(cwd, ".juhbdi");
+
+  // Gather ALL intelligence state
+  const reflexionBank = safeReadJSON(path.join(juhbdiDir, "reflexion-bank.json"));
+  const trustStore = safeReadJSON(path.join(juhbdiDir, "trust-store.json"));
+  const traces = safeReadJSON(path.join(juhbdiDir, "experiential-traces.json"));
+  const principles = safeReadJSON(path.join(juhbdiDir, "principle-bank.json"));
+  const memoryBank = safeReadJSON(path.join(juhbdiDir, "memory-bank.json"));
+  const bdiState = safeReadJSON(path.join(juhbdiDir, "bdi-state.json"));
+
+  // Build intelligence_state summary
+  const intelligenceState = {
+    reflexion_count: reflexionBank ? (reflexionBank.entries || []).length : 0,
+    trace_count: traces ? (traces.traces || []).length : 0,
+    principle_count: principles ? (principles.principles || []).length : 0,
+    memory_triplets: memoryBank ? (memoryBank.triplets || []).length : 0,
+  };
 
   // Build handoff snapshot
   const snapshot = {
@@ -151,15 +187,22 @@ async function main() {
       description: e.description,
       timestamp: e.timestamp,
     })),
-    reflexion_count: reflexionCount,
+    intelligence_state: intelligenceState,
+    // Full state copies for restoration
+    saved_state: {
+      reflexion_bank: reflexionBank,
+      trust_store: trustStore,
+      experiential_traces: traces,
+      principle_bank: principles,
+      memory_bank: memoryBank,
+      bdi_state: bdiState,
+    },
   };
 
-  // Write handoff file
+  // Write handoff file using atomic write
   const handoffDir = getHandoffDir(cwd);
   const handoffPath = path.join(handoffDir, `precompact-${tsSlug}.json`);
-  try {
-    fs.writeFileSync(handoffPath, JSON.stringify(snapshot, null, 2));
-  } catch { /* non-fatal */ }
+  atomicWrite(handoffPath, JSON.stringify(snapshot, null, 2));
 
   // Write a human-readable handoff prompt
   const promptPath = path.join(handoffDir, `continue-${tsSlug}.md`);
@@ -182,7 +225,10 @@ ${gitState.status ? "```\n" + gitState.status + "\n```" : ""}
 ${taskList}
 
 ## Intelligence State
-Reflexions stored: ${reflexionCount}
+Reflexions stored: ${intelligenceState.reflexion_count}
+Experiential traces: ${intelligenceState.trace_count}
+Principles: ${intelligenceState.principle_count}
+Memory triplets: ${intelligenceState.memory_triplets}
 
 ## Recent Decisions
 ${recentTrail.slice(-3).map((e) => `- ${e.event_type}: ${e.description}`).join("\n") || "None recorded."}
@@ -196,20 +242,17 @@ ${changeCount > 0 ? `${changeCount} uncommitted changes — review before contin
 \`\`\`
 `;
 
-  try {
-    fs.writeFileSync(promptPath, promptContent);
-  } catch { /* non-fatal */ }
+  atomicWrite(promptPath, promptContent);
 
-  // Also save a "latest" pointer for the session-primer to find
+  // Also save a "latest" pointer for the session-primer to find (atomic write)
   const latestPath = path.join(handoffDir, "latest.json");
-  try {
-    fs.writeFileSync(latestPath, JSON.stringify({
-      handoff_file: handoffPath,
-      prompt_file: promptPath,
-      timestamp: ts,
-      session_id: sessionId,
-    }, null, 2));
-  } catch { /* non-fatal */ }
+  atomicWrite(latestPath, JSON.stringify({
+    handoff_file: handoffPath,
+    prompt_file: promptPath,
+    timestamp: ts,
+    session_id: sessionId,
+    intelligence_state: intelligenceState,
+  }, null, 2));
 
   // Build the context injection message
   const message = [
@@ -218,11 +261,13 @@ ${changeCount > 0 ? `${changeCount} uncommitted changes — review before contin
     `Handoff: .juhbdi/handoffs/continue-${tsSlug}.md`,
     ``,
     `IMPORTANT: Your context was just compacted. Key state preserved:`,
-    `• Branch: ${gitState.branch} | ${changeCount} uncommitted changes`,
+    `- Branch: ${gitState.branch} | ${changeCount} uncommitted changes`,
     pendingTasks.length > 0
-      ? `• ${pendingTasks.length} pending task(s): ${pendingTasks.slice(0, 3).map((t) => t.description).join(", ")}`
-      : `• No pending JuhBDI tasks`,
-    `• Handoff saved for session continuity`,
+      ? `- ${pendingTasks.length} pending task(s): ${pendingTasks.slice(0, 3).map((t) => t.description).join(", ")}`
+      : `- No pending JuhBDI tasks`,
+    `- Intelligence: ${intelligenceState.reflexion_count} reflexions, ${intelligenceState.trace_count} traces, ${intelligenceState.principle_count} principles`,
+    `- Full state saved (reflexion bank, trust store, traces, principles, memory bank)`,
+    `- Handoff saved for session continuity`,
     ``,
     `If starting a new session, run: /juhbdi:resume`,
   ].join("\n");

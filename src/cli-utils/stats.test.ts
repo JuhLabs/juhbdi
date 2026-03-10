@@ -50,7 +50,7 @@ describe("gatherStats", () => {
       JSON.stringify({ event_type: "override", description: "user override", timestamp: "2026-03-09T10:02:00Z" }),
       JSON.stringify({ event_type: "conflict", description: "governance conflict", timestamp: "2026-03-09T10:03:00Z" }),
     ];
-    writeFileSync(join(TEST_DIR, "decision-trail.jsonl"), trailEntries.join("\n"));
+    writeFileSync(join(TEST_DIR, "decision-trail.log"), trailEntries.join("\n"));
     const stats = await gatherStats(TEST_DIR);
     expect(stats.total_decisions).toBe(4);
     expect(stats.overrides).toBe(1);

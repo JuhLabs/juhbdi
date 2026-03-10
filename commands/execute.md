@@ -327,6 +327,49 @@ For each file the agent wrote:
 - If `requires_approval: true`: use AskUserQuestion to confirm before proceeding
 - If `allowed: true` and not requiring approval: proceed normally
 
+#### 2d-PRE-WIRING: Pre-Task Context Injection (MANDATORY)
+
+Before dispatching each task-executor:
+
+1. **Prepare task context**: Call `prepareTaskContext(projectDir, taskDescription, domainTags)` to retrieve relevant reflexions and experiential traces. Inject the returned `reflexionContext` and `traceContext` into the task-executor dispatch prompt.
+
+#### 2d-INTEGRATION: Post-Task Wiring (MANDATORY)
+
+After each task-executor completes (and after governance check passes):
+
+1. **Process outcome**: Call `processTaskOutcome(projectDir, taskId, taskDescription, domainTags, approach, filesModified, testPassed, errorSummary, waveId, traceData)` with the task-executor's results.
+   - Generates reflexion entry (success or failure) and appends to `.juhbdi/reflexion-bank.json`
+   - Stores experiential trace (success only) to `.juhbdi/execution-traces.json`
+   - Auto-links related reflexions by keyword overlap
+
+3. **Run verifier chain**: Call `verifyTask(projectDir)`
+   - Runs typecheck -> lint -> test -> build
+   - Returns structured verification result
+   - If required step fails, mark task as FAILED
+
+4. **Enrich trail entry**: Call `buildArticle12Fields()` with task context + tier info
+   - Populates EU AI Act compliance fields on the trail entry
+   - Add `verificationResult` from step 3 to the trail entry
+   - Every trail entry now carries full audit data
+
+5. **Check divergence**: Call `checkDivergence()` with expected vs actual step results
+   - If replan needed, pause wave and dispatch strategist with replan context
+   - Inject reflexion memory into strategist context
+
+6. **Mask observations**: All tool outputs processed through `processObservation()`
+   - Preserves errors and warnings
+   - Truncates verbose info output
+   - Saves ~15-25% context per task
+
+#### 2d-INTEGRATION-WAVE: Between-Wave Dashboard
+
+After each wave completes, before starting next wave:
+
+1. **Render BDI dashboard**: Call `buildBDIState()` then `renderDashboard()` to show current beliefs, desires, and intentions
+2. **Show verification summary**: Passed/failed tasks with verifier chain results
+3. **Show reflexion count**: "N new reflexions stored this wave"
+4. **Show context remaining**: Current % with color-coded warning level
+
 #### 2e. Handle Results
 
 **If tests passed:**

@@ -67,7 +67,7 @@ export async function gatherStats(juhbdiDir: string): Promise<JuhBDIStats> {
   };
 
   // Read decision trail
-  const trailPath = join(juhbdiDir, "decision-trail.jsonl");
+  const trailPath = join(juhbdiDir, "decision-trail.log");
   if (existsSync(trailPath)) {
     try {
       const content = readFileSync(trailPath, "utf-8");

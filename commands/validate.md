@@ -17,6 +17,14 @@ Validate the JuhBDI project's schema files to ensure they conform to the require
 
 3. Display results for each file:
    - PASS or FAIL status
-   - If FAIL: list the specific validation errors
+   - If FAIL: list the specific validation errors with fix suggestions
 
-4. Summarize: "All files valid." or "Validation failed — N file(s) have errors."
+4. **Fix Suggestions**: For each error type, provide an actionable fix:
+   - Missing required field: "Add `<field_name>: <default_value>` to `<file>`"
+   - Invalid type (string expected, got number): "Change `<field>` from `<actual>` to `\"<actual>\"` (wrap in quotes)"
+   - Invalid enum value: "Valid values for `<field>` are: `<valid_values>`. Change `<actual>` to one of these."
+   - Extra unknown field: "Remove `<field>` from `<file>` — not in schema"
+   - Array expected: "Wrap `<field>` value in brackets: `[<value>]`"
+   - File not found: "Run `/juhbdi:init` to create missing configuration files"
+
+5. Summarize: "All files valid." or "Validation failed — N file(s) have errors. See fix suggestions above."

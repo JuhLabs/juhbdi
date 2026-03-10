@@ -31,3 +31,13 @@ Options can be combined. All filters use AND logic.
 2. The output is already formatted for terminal display. Present it directly to the user.
 
 3. If there's an error (e.g., no .juhbdi/ directory), tell the user to run `/juhbdi:init` first.
+
+### Summary Statistics Line
+
+After displaying the trail entries, show a summary statistics line at the bottom by counting entries by event_type:
+
+```
+Trail Summary: N decisions, X conflicts, Y overrides, Z recoveries
+```
+
+This gives users an at-a-glance count without needing to manually tally entries.

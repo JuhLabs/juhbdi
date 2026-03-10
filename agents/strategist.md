@@ -70,6 +70,20 @@ Given a root cause analysis from the Diagnostician, propose a new implementation
 - [Specific guidance for the task-executor]
 ```
 
+## MANDATORY: Memory-Informed Strategy
+
+When generating recovery strategies or new approaches:
+
+1. Check injected reflexion context for past failures on similar tasks
+2. Check injected experiential traces for proven success patterns
+3. If reflexion says "approach X failed because Y", do NOT suggest approach X
+4. If trace shows "approach Z worked for similar task", prefer approach Z
+
+When re-planning is triggered (REPLAN_REQUIRED):
+1. Use `buildReplanContext()` output to understand divergence
+2. Generate new plan that accounts for discovered constraints
+3. Mark original plan steps as "superseded" in your output
+
 ## Rules
 
 - NEVER propose an approach that matches any banned approach
