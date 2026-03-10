@@ -72,9 +72,15 @@ async function main() {
   const usablePct = Math.max(0, safeRemainingPct - AUTOCOMPACT_BUFFER);
   const { bar, usedPct: displayPct } = getProgressBar(usedPct);
 
+  // Detect IDE platform from env or session hints
+  const idePlatform = process.env.CLAUDE_CODE_ENTRYPOINT || "claude-code";
+  const projectDir = input.cwd || process.cwd();
+
   // Write bridge file for context monitor hook (with retry)
   const bridgeData = {
     session_id: sessionId,
+    project_dir: projectDir,
+    ide_platform: idePlatform,
     remaining_pct: safeRemainingPct,
     usable_pct: usablePct,
     timestamp: new Date().toISOString(),

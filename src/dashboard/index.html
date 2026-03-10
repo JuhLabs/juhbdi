@@ -1167,7 +1167,7 @@ body {
 }
 
 /* ================================================================
-   PANEL 4: CONTEXT HEALTH
+   PANEL 4: SESSIONS & CONTEXT
    ================================================================ */
 .context-center {
   display: flex;
@@ -1201,6 +1201,320 @@ body {
 @keyframes pulseWarn {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.6; }
+}
+
+/* Session count badge in card header */
+.session-count-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  background: rgba(116, 199, 236, 0.1);
+  color: var(--sapphire);
+  border: 1px solid rgba(116, 199, 236, 0.15);
+}
+
+/* Project group header */
+.session-project-group {
+  margin-bottom: 10px;
+}
+
+.session-project-group:last-child {
+  margin-bottom: 0;
+}
+
+.session-project-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0 8px;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 600;
+  color: var(--subtext0);
+  letter-spacing: 0.03em;
+}
+
+.session-project-header svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* Session scroll container */
+.sessions-scroll {
+  max-height: 360px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface1) transparent;
+}
+
+.sessions-scroll::-webkit-scrollbar { width: 4px; }
+.sessions-scroll::-webkit-scrollbar-track { background: transparent; }
+.sessions-scroll::-webkit-scrollbar-thumb { background: var(--surface1); border-radius: 2px; }
+
+.sessions-hidden-note {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--overlay0);
+  text-align: center;
+  padding: 8px 0 2px;
+  letter-spacing: 0.02em;
+}
+
+/* Session card */
+.session-card {
+  position: relative;
+  background: rgba(49, 50, 68, 0.2);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 6px;
+  border: 1px solid rgba(69, 71, 90, 0.2);
+  border-left: 3px solid var(--surface1);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  animation: fadeInUp 0.3s ease both;
+}
+
+.session-card:last-child {
+  margin-bottom: 0;
+}
+
+.session-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.3);
+}
+
+.session-card.session-stale {
+  opacity: 0.5;
+}
+
+/* IDE border accents */
+.session-card.ide-claude-code   { border-left-color: var(--lavender); }
+.session-card.ide-cursor        { border-left-color: var(--blue); }
+.session-card.ide-windsurf      { border-left-color: var(--teal); }
+.session-card.ide-kiro          { border-left-color: var(--green); }
+.session-card.ide-copilot       { border-left-color: var(--mauve); }
+.session-card.ide-cline         { border-left-color: var(--peach); }
+.session-card.ide-roo-code      { border-left-color: var(--flamingo); }
+.session-card.ide-kilo-code     { border-left-color: var(--yellow); }
+.session-card.ide-default       { border-left-color: var(--overlay1); }
+
+.session-card.ide-claude-code:hover  { border-left-color: var(--lavender); box-shadow: 0 6px 20px -6px rgba(180, 190, 254, 0.15); }
+.session-card.ide-cursor:hover       { border-left-color: var(--blue); box-shadow: 0 6px 20px -6px rgba(137, 180, 250, 0.15); }
+.session-card.ide-windsurf:hover     { border-left-color: var(--teal); box-shadow: 0 6px 20px -6px rgba(148, 226, 213, 0.15); }
+.session-card.ide-kiro:hover         { border-left-color: var(--green); box-shadow: 0 6px 20px -6px rgba(166, 227, 161, 0.15); }
+.session-card.ide-copilot:hover      { border-left-color: var(--mauve); box-shadow: 0 6px 20px -6px rgba(203, 166, 247, 0.15); }
+
+/* Session card top row */
+.session-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+/* IDE badge pill */
+.ide-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.ide-badge-claude-code  { background: rgba(180, 190, 254, 0.14); color: var(--lavender); }
+.ide-badge-cursor       { background: rgba(137, 180, 250, 0.14); color: var(--blue); }
+.ide-badge-windsurf     { background: rgba(148, 226, 213, 0.14); color: var(--teal); }
+.ide-badge-kiro         { background: rgba(166, 227, 161, 0.14); color: var(--green); }
+.ide-badge-copilot      { background: rgba(203, 166, 247, 0.14); color: var(--mauve); }
+.ide-badge-cline        { background: rgba(250, 179, 135, 0.14); color: var(--peach); }
+.ide-badge-roo-code     { background: rgba(242, 205, 205, 0.14); color: var(--flamingo); }
+.ide-badge-kilo-code    { background: rgba(249, 226, 175, 0.14); color: var(--yellow); }
+.ide-badge-default      { background: rgba(88, 91, 112, 0.14); color: var(--overlay1); }
+
+/* Level badge inline */
+.session-level-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.session-level-NORMAL    { background: rgba(166, 227, 161, 0.12); color: var(--green); }
+.session-level-WARNING   { background: rgba(249, 226, 175, 0.12); color: var(--yellow); }
+.session-level-URGENT    { background: rgba(250, 179, 135, 0.12); color: var(--peach); }
+.session-level-CRITICAL  { background: rgba(243, 139, 168, 0.14); color: var(--red); }
+.session-level-EMERGENCY { background: rgba(243, 139, 168, 0.18); color: var(--red); animation: emergencyFlash 1s ease-in-out infinite; }
+
+/* Session progress bar (mini) */
+.session-progress-track {
+  width: 100%;
+  height: 4px;
+  background: var(--surface0);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.session-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  width: 0%;
+}
+
+.session-progress-fill.sp-green  { background: linear-gradient(90deg, var(--green), var(--teal)); box-shadow: 0 0 6px rgba(166, 227, 161, 0.2); }
+.session-progress-fill.sp-yellow { background: linear-gradient(90deg, var(--yellow), var(--peach)); box-shadow: 0 0 6px rgba(249, 226, 175, 0.2); }
+.session-progress-fill.sp-orange { background: linear-gradient(90deg, var(--peach), var(--red)); box-shadow: 0 0 6px rgba(250, 179, 135, 0.2); }
+.session-progress-fill.sp-red    { background: linear-gradient(90deg, var(--red), #eb6f92); box-shadow: 0 0 6px rgba(243, 139, 168, 0.3); }
+
+/* Session card bottom row */
+.session-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.session-pct {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 1.3rem;
+  line-height: 1;
+  color: var(--text);
+}
+
+.session-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.session-project-path {
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  color: var(--overlay1);
+  letter-spacing: 0.02em;
+}
+
+.session-freshness {
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  color: var(--overlay0);
+  letter-spacing: 0.02em;
+}
+
+.session-freshness.stale-label {
+  color: var(--red);
+  font-weight: 600;
+}
+
+.session-id {
+  font-family: var(--font-mono);
+  font-size: 0.48rem;
+  color: var(--overlay0);
+  letter-spacing: 0.02em;
+  opacity: 0.7;
+}
+
+/* Header session indicator */
+.session-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 14px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  background: rgba(49, 50, 68, 0.3);
+  border: 1px solid rgba(49, 50, 68, 0.5);
+  transition: all 0.4s ease;
+}
+
+.session-indicator-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  transition: all 0.4s ease;
+}
+
+.session-indicator-dot.si-green  { background: var(--green); box-shadow: 0 0 6px rgba(166, 227, 161, 0.5); }
+.session-indicator-dot.si-yellow { background: var(--yellow); box-shadow: 0 0 6px rgba(249, 226, 175, 0.5); }
+.session-indicator-dot.si-red    { background: var(--red); box-shadow: 0 0 6px rgba(243, 139, 168, 0.5); }
+.session-indicator-dot.si-off    { background: var(--overlay0); }
+
+.session-indicator-label {
+  color: var(--subtext0);
+  transition: color 0.4s ease;
+}
+
+/* Radar / pulse icon for empty sessions state */
+.session-radar-icon {
+  width: 64px;
+  height: 64px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.radar-center {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sapphire);
+  box-shadow: 0 0 10px rgba(116, 199, 236, 0.4);
+  z-index: 2;
+}
+
+.radar-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid rgba(116, 199, 236, 0.4);
+  opacity: 0;
+  animation: radarExpand 3s ease-out infinite;
+}
+
+.radar-ring:nth-child(2) { animation-delay: 0s; }
+.radar-ring:nth-child(3) { animation-delay: 0.75s; }
+.radar-ring:nth-child(4) { animation-delay: 1.5s; }
+.radar-ring:nth-child(5) { animation-delay: 2.25s; }
+
+@keyframes radarExpand {
+  0% { width: 8px; height: 8px; opacity: 0.8; border-color: rgba(116, 199, 236, 0.6); }
+  100% { width: 60px; height: 60px; opacity: 0; border-color: rgba(116, 199, 236, 0); }
+}
+
+.session-empty-title {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--subtext0);
+  letter-spacing: 0.04em;
+}
+
+.session-empty-desc {
+  font-size: 0.74rem;
+  color: var(--overlay1);
+  text-align: center;
+  max-width: 260px;
+  line-height: 1.6;
 }
 
 /* ================================================================
@@ -1569,6 +1883,10 @@ body {
     <span class="header-subtitle">Governance Dashboard</span>
   </div>
   <div class="header-right">
+    <div id="sessionIndicator" class="session-indicator">
+      <div id="sessionIndicatorDot" class="session-indicator-dot si-off"></div>
+      <span id="sessionIndicatorLabel" class="session-indicator-label">No sessions</span>
+    </div>
     <div id="connIndicator" class="connection-indicator">
       <div class="connection-dot"></div>
       <span class="connection-label">Offline</span>
@@ -1607,10 +1925,11 @@ body {
     <div id="costBody"></div>
   </section>
 
-  <!-- PANEL 4: Context Health -->
+  <!-- PANEL 4: Sessions & Context -->
   <section class="card" id="panelContext">
     <div class="card-header">
-      <span class="card-title">Context Health</span>
+      <span class="card-title">Sessions &amp; Context</span>
+      <span id="sessionCountBadge" class="session-count-badge" style="display:none;"></span>
     </div>
     <div id="contextBody"></div>
   </section>
@@ -2141,42 +2460,309 @@ function renderCost(cost) {
   }
 }
 
-/* --- CONTEXT HEALTH --- */
-function renderContext(context) {
-  var body = $('contextBody');
-  clearNode(body);
+/* --- SESSIONS & CONTEXT --- */
+var cachedSessions = [];
+var sessionFreshnessInterval = null;
 
-  var pct = (context && context.remaining_pct != null) ? context.remaining_pct : 100;
-  var level = (context && context.level) ? context.level : 'NORMAL';
+function getIdeSlug(platform) {
+  if (!platform) return 'default';
+  var p = platform.toLowerCase().replace(/[\s_]+/g, '-');
+  var knownSlugs = ['claude-code', 'cursor', 'windsurf', 'kiro', 'copilot', 'cline', 'roo-code', 'kilo-code'];
+  for (var i = 0; i < knownSlugs.length; i++) {
+    if (p.indexOf(knownSlugs[i]) !== -1) return knownSlugs[i];
+  }
+  if (p.indexOf('github') !== -1) return 'copilot';
+  return 'default';
+}
 
-  var colors, glowColor;
-  if (pct > 45) {
-    colors = ['#a6e3a1', '#94e2d5'];
-    glowColor = 'rgba(166, 227, 161, 0.2)';
-  } else if (pct > 35) {
-    colors = ['#f9e2af', '#fab387'];
-    glowColor = 'rgba(249, 226, 175, 0.2)';
-  } else if (pct > 28) {
-    colors = ['#fab387', '#f38ba8'];
-    glowColor = 'rgba(250, 179, 135, 0.25)';
-  } else {
-    colors = ['#f38ba8', '#eb6f92'];
-    glowColor = 'rgba(243, 139, 168, 0.3)';
+function getIdeDisplayName(platform) {
+  if (!platform) return 'Unknown';
+  var slug = getIdeSlug(platform);
+  var names = {
+    'claude-code': 'Claude Code',
+    'cursor': 'Cursor',
+    'windsurf': 'Windsurf',
+    'kiro': 'Kiro',
+    'copilot': 'Copilot',
+    'cline': 'Cline',
+    'roo-code': 'Roo Code',
+    'kilo-code': 'Kilo Code',
+    'default': platform
+  };
+  return names[slug] || platform;
+}
+
+function getProgressColorClass(level) {
+  if (!level) return 'sp-green';
+  var l = level.toUpperCase();
+  if (l === 'NORMAL') return 'sp-green';
+  if (l === 'WARNING') return 'sp-yellow';
+  if (l === 'URGENT') return 'sp-orange';
+  return 'sp-red';
+}
+
+function truncateProjectPath(dir) {
+  if (!dir) return '';
+  var parts = dir.replace(/\\/g, '/').split('/').filter(Boolean);
+  if (parts.length <= 2) return parts.join('/');
+  return parts.slice(-2).join('/');
+}
+
+function formatTimeAgo(isoStr) {
+  if (!isoStr) return '';
+  try {
+    var diff = Math.floor((Date.now() - new Date(isoStr).getTime()) / 1000);
+    if (diff < 0) diff = 0;
+    if (diff < 60) return diff + 's ago';
+    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+    return Math.floor(diff / 86400) + 'd ago';
+  } catch (e) { return ''; }
+}
+
+function getWorstLevel(sessions) {
+  var order = ['NORMAL', 'WARNING', 'URGENT', 'CRITICAL', 'EMERGENCY'];
+  var worst = 0;
+  for (var i = 0; i < sessions.length; i++) {
+    var lvl = (sessions[i].level || 'NORMAL').toUpperCase();
+    var idx = order.indexOf(lvl);
+    if (idx > worst) worst = idx;
+  }
+  return order[worst];
+}
+
+function updateHeaderSessionIndicator(allSessions) {
+  var dotEl = $('sessionIndicatorDot');
+  var labelEl = $('sessionIndicatorLabel');
+  if (!dotEl || !labelEl) return;
+
+  if (!allSessions || allSessions.length === 0) {
+    dotEl.className = 'session-indicator-dot si-off';
+    labelEl.textContent = 'No sessions';
+    return;
   }
 
-  var center = el('div', { className: 'context-center' });
-  var gauge = buildGauge(pct, colors, 120, glowColor);
-  gauge.labEl.textContent = 'REMAINING';
+  var activeSess = allSessions.filter(function(s) { return !s.stale; });
+  var worst = getWorstLevel(activeSess.length > 0 ? activeSess : allSessions);
+  var dotClass = 'si-green';
+  if (worst === 'WARNING') dotClass = 'si-yellow';
+  else if (worst === 'URGENT' || worst === 'CRITICAL' || worst === 'EMERGENCY') dotClass = 'si-red';
+  if (activeSess.length === 0) dotClass = 'si-off';
 
-  if (level !== 'NORMAL') gauge.container.classList.add('pulse-warning');
-
-  center.appendChild(gauge.container);
-
-  var levelClass = 'level-' + level.toLowerCase();
-  center.appendChild(el('div', { className: 'context-level ' + levelClass, textContent: level }));
-
-  body.appendChild(center);
+  dotEl.className = 'session-indicator-dot ' + dotClass;
+  var count = activeSess.length;
+  labelEl.textContent = count > 0
+    ? count + ' active session' + (count > 1 ? 's' : '')
+    : allSessions.length + ' stale';
 }
+
+function buildSessionCard(session) {
+  var ideSlug = getIdeSlug(session.ide_platform);
+
+  var card = el('div', { className: 'session-card ide-' + ideSlug });
+  if (session.stale) card.classList.add('session-stale');
+
+  // Top row: IDE badge + level badge
+  var top = el('div', { className: 'session-card-top' });
+  var ideBadge = el('span', {
+    className: 'ide-badge ide-badge-' + ideSlug,
+    textContent: getIdeDisplayName(session.ide_platform)
+  });
+  top.appendChild(ideBadge);
+
+  var level = (session.level || 'NORMAL').toUpperCase();
+  var levelBadge = el('span', {
+    className: 'session-level-badge session-level-' + level,
+    textContent: level
+  });
+  top.appendChild(levelBadge);
+  card.appendChild(top);
+
+  // Mini progress bar
+  var pct = session.remaining_pct != null ? session.remaining_pct : 100;
+  var trackDiv = el('div', { className: 'session-progress-track' });
+  var fillDiv = el('div', { className: 'session-progress-fill ' + getProgressColorClass(session.level) });
+  trackDiv.appendChild(fillDiv);
+  card.appendChild(trackDiv);
+
+  // Animate progress bar
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() { fillDiv.style.width = Math.max(0, Math.min(100, pct)) + '%'; });
+  });
+
+  // Bottom row: percentage + meta
+  var bottom = el('div', { className: 'session-card-bottom' });
+  var pctEl = el('span', { className: 'session-pct', textContent: Math.round(pct) + '%' });
+  bottom.appendChild(pctEl);
+
+  var meta = el('div', { className: 'session-meta' });
+
+  // Project path (truncated)
+  var projPath = truncateProjectPath(session.project_dir);
+  if (projPath) {
+    meta.appendChild(el('span', { className: 'session-project-path', textContent: projPath }));
+  }
+
+  // Freshness
+  var freshnessEl;
+  if (session.stale) {
+    freshnessEl = el('span', { className: 'session-freshness stale-label', textContent: 'stale' });
+  } else {
+    freshnessEl = el('span', {
+      className: 'session-freshness',
+      textContent: formatTimeAgo(session.timestamp)
+    });
+    freshnessEl.setAttribute('data-ts', session.timestamp || '');
+  }
+  meta.appendChild(freshnessEl);
+
+  // Session ID (first 8 chars)
+  var sid = session.session_id || '';
+  if (sid) {
+    meta.appendChild(el('span', { className: 'session-id', textContent: sid.substring(0, 8) }));
+  }
+
+  bottom.appendChild(meta);
+  card.appendChild(bottom);
+
+  return card;
+}
+
+function buildFolderSvg() {
+  var svg = svgEl('svg', { viewBox: '0 0 16 16', fill: 'none', width: '14', height: '14' });
+  var path = svgEl('path', {
+    d: 'M2 3a1 1 0 011-1h3.586a1 1 0 01.707.293L8.414 3.414A1 1 0 009.12 3.707H13a1 1 0 011 1V12a1 1 0 01-1 1H3a1 1 0 01-1-1V3z',
+    stroke: 'currentColor',
+    'stroke-width': '1.2',
+    fill: 'none'
+  });
+  svg.appendChild(path);
+  return svg;
+}
+
+function renderSessions(sessionsData) {
+  var body = $('contextBody');
+  var badge = $('sessionCountBadge');
+  clearNode(body);
+
+  // Flatten all sessions from the grouped data
+  var allSessions = [];
+  var groups = sessionsData || [];
+  for (var g = 0; g < groups.length; g++) {
+    var sessions = groups[g].sessions || [];
+    for (var s = 0; s < sessions.length; s++) {
+      allSessions.push(sessions[s]);
+    }
+  }
+
+  // Separate active vs stale
+  var activeSessions = allSessions.filter(function(s) { return !s.stale; });
+  var staleSessions = allSessions.filter(function(s) { return s.stale; });
+  var MAX_STALE_SHOWN = 3;
+  var visibleStale = staleSessions.slice(0, MAX_STALE_SHOWN);
+  var hiddenStaleCount = staleSessions.length - visibleStale.length;
+
+  // Store for freshness updates (only visible ones)
+  cachedSessions = activeSessions.concat(visibleStale);
+
+  // Update header indicator
+  updateHeaderSessionIndicator(allSessions);
+
+  // Update header badge — count active only
+  if (badge) {
+    if (activeSessions.length > 0) {
+      badge.textContent = activeSessions.length + ' active';
+      badge.style.display = '';
+    } else if (staleSessions.length > 0) {
+      badge.textContent = staleSessions.length + ' stale';
+      badge.style.display = '';
+      badge.style.borderColor = 'rgba(108, 112, 134, 0.3)';
+      badge.style.color = 'var(--overlay1)';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  // Empty state
+  if (allSessions.length === 0) {
+    var emptyDiv = el('div', { className: 'empty-state' });
+
+    var radarIcon = el('div', { className: 'session-radar-icon' });
+    radarIcon.appendChild(el('div', { className: 'radar-center' }));
+    radarIcon.appendChild(el('div', { className: 'radar-ring' }));
+    radarIcon.appendChild(el('div', { className: 'radar-ring' }));
+    radarIcon.appendChild(el('div', { className: 'radar-ring' }));
+    radarIcon.appendChild(el('div', { className: 'radar-ring' }));
+
+    emptyDiv.appendChild(radarIcon);
+    emptyDiv.appendChild(el('div', { className: 'session-empty-title', textContent: 'No active sessions' }));
+    emptyDiv.appendChild(el('div', { className: 'session-empty-desc', textContent: 'Sessions appear when JuhBDI runs in any IDE' }));
+    body.appendChild(emptyDiv);
+    return;
+  }
+
+  // Create scrollable container
+  var scrollContainer = el('div', { className: 'sessions-scroll' });
+
+  // Render by project groups
+  if (groups.length === 1) {
+    // Single project — show active first, then limited stale
+    for (var i = 0; i < activeSessions.length; i++) {
+      scrollContainer.appendChild(buildSessionCard(activeSessions[i]));
+    }
+    for (var j = 0; j < visibleStale.length; j++) {
+      scrollContainer.appendChild(buildSessionCard(visibleStale[j]));
+    }
+  } else {
+    // Multiple projects — group with headers
+    for (var gi = 0; gi < groups.length; gi++) {
+      var group = groups[gi];
+      var groupSessions = group.sessions || [];
+      if (groupSessions.length === 0) continue;
+
+      var groupActive = groupSessions.filter(function(s) { return !s.stale; });
+      var groupStale = groupSessions.filter(function(s) { return s.stale; });
+      var groupVisible = groupActive.concat(groupStale.slice(0, MAX_STALE_SHOWN));
+
+      if (groupVisible.length === 0) continue;
+
+      var groupDiv = el('div', { className: 'session-project-group' });
+      var header = el('div', { className: 'session-project-header' });
+      header.appendChild(buildFolderSvg());
+      header.appendChild(document.createTextNode(truncateProjectPath(group.project_dir)));
+      groupDiv.appendChild(header);
+
+      for (var si = 0; si < groupVisible.length; si++) {
+        groupDiv.appendChild(buildSessionCard(groupVisible[si]));
+      }
+
+      scrollContainer.appendChild(groupDiv);
+    }
+  }
+
+  body.appendChild(scrollContainer);
+
+  // Show hidden stale count
+  if (hiddenStaleCount > 0) {
+    body.appendChild(el('div', {
+      className: 'sessions-hidden-note',
+      textContent: '+ ' + hiddenStaleCount + ' older session' + (hiddenStaleCount > 1 ? 's' : '') + ' not shown'
+    }));
+  }
+}
+
+// Auto-update freshness timestamps every second
+function startFreshnessTimer() {
+  if (sessionFreshnessInterval) return;
+  sessionFreshnessInterval = setInterval(function() {
+    var els = document.querySelectorAll('.session-freshness[data-ts]');
+    for (var i = 0; i < els.length; i++) {
+      var ts = els[i].getAttribute('data-ts');
+      if (ts) els[i].textContent = formatTimeAgo(ts);
+    }
+  }, 1000);
+}
+startFreshnessTimer();
 
 /* --- DECISION TRAIL --- */
 function renderTrail(trail) {
@@ -2310,7 +2896,29 @@ function updateDashboard(data) {
     renderTrust(data.memory, { state: (data.state && data.state.state) || data.state, trail: data.trail || [] });
   }
   if (data.cost !== undefined) renderCost(data.cost);
-  if (data.context !== undefined) renderContext(data.context);
+  if (data.sessions !== undefined) {
+    renderSessions(data.sessions);
+  } else if (data.context !== undefined) {
+    // Legacy fallback: wrap single context into sessions format
+    var ctx = data.context;
+    if (ctx && ctx.remaining_pct != null) {
+      renderSessions([{
+        project_dir: ctx.project_dir || '',
+        sessions: [{
+          session_id: ctx.session_id || 'legacy',
+          project_dir: ctx.project_dir || '',
+          ide_platform: ctx.ide_platform || 'claude-code',
+          remaining_pct: ctx.remaining_pct,
+          usable_pct: ctx.usable_pct != null ? ctx.usable_pct : ctx.remaining_pct,
+          level: ctx.level || 'NORMAL',
+          timestamp: ctx.timestamp || new Date().toISOString(),
+          stale: false
+        }]
+      }]);
+    } else {
+      renderSessions([]);
+    }
+  }
   if (data.trail !== undefined) renderTrail(data.trail);
   if (data.memory !== undefined) {
     renderMemory(data.memory);
@@ -2350,7 +2958,7 @@ document.addEventListener('DOMContentLoaded', function() {
   renderExecution(null);
   renderTrust(null, null);
   renderCost(null);
-  renderContext(null);
+  renderSessions([]);
   renderTrail(null);
   renderMemory(null);
 
@@ -2359,14 +2967,19 @@ document.addEventListener('DOMContentLoaded', function() {
     fetch('/api/trail').then(function(r) { return r.json(); }).catch(function() { return []; }),
     fetch('/api/cost').then(function(r) { return r.json(); }).catch(function() { return null; }),
     fetch('/api/memory').then(function(r) { return r.json(); }).catch(function() { return null; }),
+    fetch('/api/sessions').then(function(r) { return r.json(); }).catch(function() { return []; }),
     fetch('/api/context').then(function(r) { return r.json(); }).catch(function() { return null; }),
   ]).then(function(results) {
+    var sessionsData = results[4];
+    var contextData = results[5];
+
     updateDashboard({
       state: results[0],
       trail: results[1],
       cost: results[2],
       memory: results[3],
-      context: results[4],
+      sessions: (sessionsData && sessionsData.length > 0) ? sessionsData : undefined,
+      context: (sessionsData && sessionsData.length > 0) ? undefined : contextData,
     });
   });
 

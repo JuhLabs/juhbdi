@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test";
-import { getProjectState, getCostData, getMemoryStats } from "./api";
+import { getProjectState, getCostData, getMemoryStats, getActiveSessions } from "./api";
 
 describe("Dashboard Server API", () => {
   test("getProjectState returns structured data", () => {
@@ -20,5 +20,10 @@ describe("Dashboard Server API", () => {
     const mem = getMemoryStats("/tmp/nonexistent-juhbdi");
     expect(typeof mem.reflexion_count).toBe("number");
     expect(typeof mem.trust_score).toBe("number");
+  });
+
+  test("getActiveSessions returns array", () => {
+    const sessions = getActiveSessions();
+    expect(Array.isArray(sessions)).toBe(true);
   });
 });

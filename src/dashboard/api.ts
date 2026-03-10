@@ -86,3 +86,97 @@ export function getContextHealth(sessionId?: string) {
     return { remaining_pct: Math.round(pct), level };
   } catch { return { remaining_pct: 100, level: "NORMAL" }; }
 }
+
+function contextLevel(pct: number): string {
+  if (pct <= 22) return "EMERGENCY";
+  if (pct <= 28) return "CRITICAL";
+  if (pct <= 35) return "URGENT";
+  if (pct <= 45) return "WARNING";
+  return "NORMAL";
+}
+
+export interface SessionInfo {
+  session_id: string;
+  project_dir: string;
+  ide_platform: string;
+  remaining_pct: number;
+  usable_pct: number;
+  level: string;
+  timestamp: string;
+  stale: boolean;
+}
+
+export interface ProjectGroup {
+  project_dir: string;
+  sessions: SessionInfo[];
+}
+
+const SESSION_STALE_MS = 120_000; // 2 minutes without update = stale
+const SESSION_EXPIRE_MS = 24 * 60 * 60_000; // drop sessions >24h old
+
+export function getActiveSessions(): ProjectGroup[] {
+  const bridgeFiles: string[] = [];
+  try {
+    const tmpEntries = fs.readdirSync("/tmp");
+    for (const entry of tmpEntries) {
+      if (entry.startsWith("juhbdi-ctx-") && entry.endsWith(".json") && !entry.endsWith(".tmp")) {
+        bridgeFiles.push(path.join("/tmp", entry));
+      }
+    }
+  } catch { return []; }
+
+  const sessions: SessionInfo[] = [];
+  const now = Date.now();
+
+  for (const filePath of bridgeFiles) {
+    try {
+      const raw = fs.readFileSync(filePath, "utf-8");
+      const bridge = JSON.parse(raw);
+      if (!bridge.session_id) continue;
+
+      const ts = bridge.timestamp ? new Date(bridge.timestamp).getTime() : 0;
+      if ((now - ts) > SESSION_EXPIRE_MS) continue; // drop sessions >24h old
+      const stale = (now - ts) > SESSION_STALE_MS;
+      const pct = typeof bridge.remaining_pct === "number" ? bridge.remaining_pct : 100;
+
+      sessions.push({
+        session_id: bridge.session_id,
+        project_dir: bridge.project_dir || "unknown",
+        ide_platform: bridge.ide_platform || "unknown",
+        remaining_pct: Math.round(pct),
+        usable_pct: Math.round(bridge.usable_pct ?? pct),
+        level: contextLevel(pct),
+        timestamp: bridge.timestamp || new Date().toISOString(),
+        stale,
+      });
+    } catch { /* skip malformed bridge files */ }
+  }
+
+  // Group by project_dir
+  const grouped = new Map<string, SessionInfo[]>();
+  for (const s of sessions) {
+    const key = s.project_dir;
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key)!.push(s);
+  }
+
+  // Sort: active before stale, then by remaining_pct ascending (most urgent first)
+  const result: ProjectGroup[] = [];
+  for (const [project_dir, projSessions] of grouped) {
+    projSessions.sort((a, b) => {
+      if (a.stale !== b.stale) return a.stale ? 1 : -1;
+      return a.remaining_pct - b.remaining_pct;
+    });
+    result.push({ project_dir, sessions: projSessions });
+  }
+
+  // Sort projects: those with active sessions first
+  result.sort((a, b) => {
+    const aActive = a.sessions.some(s => !s.stale);
+    const bActive = b.sessions.some(s => !s.stale);
+    if (aActive !== bActive) return aActive ? -1 : 1;
+    return a.project_dir.localeCompare(b.project_dir);
+  });
+
+  return result;
+}

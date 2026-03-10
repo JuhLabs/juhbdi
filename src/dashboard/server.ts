@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { getProjectState, getTrailEntries, getCostData, getMemoryStats, getContextHealth } from "./api";
+import { getProjectState, getTrailEntries, getCostData, getMemoryStats, getContextHealth, getActiveSessions } from "./api";
 
 const PORT = parseInt(process.env.JUHBDI_DASHBOARD_PORT || "3141", 10);
 const cwd = process.cwd();
@@ -8,13 +8,24 @@ const juhbdiDir = path.join(cwd, ".juhbdi");
 
 const clients = new Set<ReadableStreamDefaultController>();
 
+function resolveProjectDir(url: URL): string {
+  const pd = url.searchParams.get("project_dir");
+  if (pd) {
+    const resolved = path.join(pd, ".juhbdi");
+    if (fs.existsSync(resolved)) return resolved;
+  }
+  return juhbdiDir;
+}
+
 function broadcastUpdate() {
+  const sessions = getActiveSessions();
   const data = JSON.stringify({
     state: getProjectState(juhbdiDir),
     trail: getTrailEntries(juhbdiDir, 50),
     cost: getCostData(juhbdiDir),
     memory: getMemoryStats(juhbdiDir),
     context: getContextHealth(),
+    sessions,
   });
   for (const controller of clients) {
     try { controller.enqueue(`data: ${data}\n\n`); }
@@ -22,6 +33,7 @@ function broadcastUpdate() {
   }
 }
 
+// Watch .juhbdi/ for project state changes
 let watchTimeout: ReturnType<typeof setTimeout> | null = null;
 if (fs.existsSync(juhbdiDir)) {
   fs.watch(juhbdiDir, { recursive: true }, () => {
@@ -32,6 +44,11 @@ if (fs.existsSync(juhbdiDir)) {
     }, 1000);
   });
 }
+
+// Poll /tmp/ for bridge file changes (session context updates)
+setInterval(() => {
+  broadcastUpdate();
+}, 5000);
 
 const htmlPath = path.join(import.meta.dir, "index.html");
 const html = fs.existsSync(htmlPath) ? fs.readFileSync(htmlPath, "utf-8") : "<h1>Dashboard HTML not found</h1>";
@@ -49,22 +66,34 @@ Bun.serve({
       case "/":
         return new Response(html, { headers: { "Content-Type": "text/html" } });
 
-      case "/api/state":
-        return new Response(JSON.stringify(getProjectState(juhbdiDir)), { headers });
+      case "/api/state": {
+        const dir = resolveProjectDir(url);
+        return new Response(JSON.stringify(getProjectState(dir)), { headers });
+      }
 
-      case "/api/trail":
+      case "/api/trail": {
+        const dir = resolveProjectDir(url);
         const limit = parseInt(url.searchParams.get("limit") || "100", 10);
-        return new Response(JSON.stringify(getTrailEntries(juhbdiDir, limit)), { headers });
+        return new Response(JSON.stringify(getTrailEntries(dir, limit)), { headers });
+      }
 
-      case "/api/cost":
-        return new Response(JSON.stringify(getCostData(juhbdiDir)), { headers });
+      case "/api/cost": {
+        const dir = resolveProjectDir(url);
+        return new Response(JSON.stringify(getCostData(dir)), { headers });
+      }
 
-      case "/api/memory":
-        return new Response(JSON.stringify(getMemoryStats(juhbdiDir)), { headers });
+      case "/api/memory": {
+        const dir = resolveProjectDir(url);
+        return new Response(JSON.stringify(getMemoryStats(dir)), { headers });
+      }
 
-      case "/api/context":
+      case "/api/context": {
         const sid = url.searchParams.get("session_id") || undefined;
         return new Response(JSON.stringify(getContextHealth(sid)), { headers });
+      }
+
+      case "/api/sessions":
+        return new Response(JSON.stringify(getActiveSessions()), { headers });
 
       case "/api/events": {
         const stream = new ReadableStream({
