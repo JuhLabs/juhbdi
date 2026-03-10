@@ -89,7 +89,55 @@ Use AskUserQuestion to ask:
 - **Standard** — progress updates, key decisions logged
 - **Full** — detailed trail, cost tracking, reflexion learning"
 
-## Step 3: Create Configuration
+## Step 3: Preview Before Creating
+
+**Before creating any files**, show the user a preview of the planned configuration and ask for approval:
+
+Based on all answers (Q1-Q6) and the scan results, prepare the configuration values:
+
+**Tradeoff weights** (from Q3):
+- Quality first: `{ quality: 0.5, speed: 0.2, security: 0.3 }`
+- Speed first: `{ quality: 0.2, speed: 0.6, security: 0.2 }`
+- Security first: `{ quality: 0.3, speed: 0.1, security: 0.6 }`
+- Balanced: `{ quality: 0.4, speed: 0.3, security: 0.3 }`
+
+**Goals**: Create 1-3 initial goals based on the project purpose (e.g., "g1: Core functionality", "g2: Test coverage", "g3: Documentation")
+
+Use AskUserQuestion to show the preview:
+```
+## Preview — JuhBDI Configuration
+
+**Project:** [description from Q1]
+**Audience:** [from Q2]
+**Priority:** [from Q3]
+**Work style:** [from Q5]
+**Reporting:** [from Q6]
+
+**Goals:**
+1. [goal 1]
+2. [goal 2]
+3. [goal 3]
+
+**Constraints:**
+- [from Q4 + inferred, e.g., "All code must be TypeScript"]
+
+**Detected stack:** [language] + [framework] + [test runner]
+
+**Files to create:**
+- .juhbdi/intent-spec.json — project goals & governance rules
+- .juhbdi/roadmap-intent.json — execution roadmap (empty)
+- .juhbdi/state.json — project beliefs & context
+- .juhbdi/config.json — JuhBDI configuration
+- .juhbdi/user-preferences.json — your work style preferences
+- .juhbdi/decision-trail.log — audit trail
+
+Does this look right? (yes / edit — tell me what to change)
+```
+
+If the user says "edit", update the relevant values and re-preview only the changed parts.
+If the user says "yes", proceed to Step 4.
+
+## Step 4: Create Configuration
 
 Run the init utility:
 ```bash
@@ -98,23 +146,19 @@ Run the init utility:
 
 Parse the JSON output.
 
-## Step 4: Tailor the Intent Spec
+## Step 5: Tailor the Intent Spec
 
-After init creates the default files, update `.juhbdi/intent-spec.json` with what you learned:
+After init creates the default files, update `.juhbdi/intent-spec.json` with the approved values:
 
-1. **Project description**: Set to the user's description from Q1
-2. **Audience**: Set based on Q2 (end-users/developers/internal)
-3. **Goals**: Create 1-3 initial goals based on the project purpose (e.g., "g1: Core functionality", "g2: Test coverage", "g3: Documentation")
-4. **Tradeoff weights**: Set based on Q3:
-   - Quality first: `{ quality: 0.5, speed: 0.2, security: 0.3 }`
-   - Speed first: `{ quality: 0.2, speed: 0.6, security: 0.2 }`
-   - Security first: `{ quality: 0.3, speed: 0.1, security: 0.6 }`
-   - Balanced: `{ quality: 0.4, speed: 0.3, security: 0.3 }`
-5. **Constraints**: Add user-specified constraints from Q4, plus inferred ones (e.g., if TypeScript project, add "All code must be TypeScript")
+1. **Project description**: from Q1
+2. **Audience**: from Q2
+3. **Goals**: as shown in preview
+4. **Tradeoff weights**: as determined from Q3
+5. **Constraints**: from Q4 + inferred (e.g., if TypeScript project, add "All code must be TypeScript")
 
 Write the updated intent-spec.json.
 
-## Step 5: Save User Preferences
+## Step 6: Save User Preferences
 
 Write `.juhbdi/user-preferences.json` with the work style and reporting preferences:
 
@@ -133,46 +177,16 @@ The execute command should read this file to determine:
 - `hands-on`: ask before each wave
 - `balanced`: ask at wave boundaries for multi-wave plans, auto for single-wave
 
-## Step 6: Update State
+## Step 7: Update State
 
 Update `.juhbdi/state.json` with discovered codebase info:
 - `conventions`: detected patterns (test runner, linter, etc.)
 - `architecture`: detected structure (monorepo, src layout, etc.)
 - `tech_stack`: language, framework, key dependencies
 
-## Step 7: Preview Before Creating
-
-**Before reporting success**, show the user a preview of what was configured and ask for final approval:
-
-Use AskUserQuestion:
-```
-## Preview — JuhBDI Configuration
-
-**Project:** [description]
-**Audience:** [end-users/developers/internal]
-**Priority:** [quality/speed/security/balanced]
-**Work style:** [hands-off/hands-on/balanced]
-**Reporting:** [minimal/standard/full]
-
-**Goals:**
-1. [goal 1]
-2. [goal 2]
-3. [goal 3]
-
-**Constraints:**
-- [constraint 1]
-- [constraint 2]
-
-**Detected stack:** [language] + [framework] + [test runner]
-
-Does this look right? (yes / edit — tell me what to change)
-```
-
-If the user says "edit", update the relevant config and re-preview only the changed parts.
-
 ## Step 8: Report
 
-Once approved, tell the user what was set up:
+Tell the user what was set up:
 
 ```
 ## JuhBDI Initialized ✓

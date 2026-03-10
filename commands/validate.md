@@ -38,8 +38,3 @@ After displaying validation results, suggest relevant next actions:
 - If `.juhbdi/` is missing entirely: `"No JuhBDI project found. Run /juhbdi:init to set one up."`
 
 Use AskUserQuestion to offer the auto-fix option when errors are found. If the user says yes, apply the fix suggestions from step 4 automatically, then re-run validation to confirm.
-
-Update the frontmatter to include AskUserQuestion in allowed-tools:
-
----
-**Note:** The `allowed-tools` in frontmatter must include `AskUserQuestion` for the auto-fix prompt to work.

@@ -104,7 +104,7 @@ function saveStateFiles(cwd, sessionId, remainingPct) {
 
   // Copy last 50 trail entries
   try {
-    const trailPath = path.join(juhbdiDir, "decision-trail.jsonl");
+    const trailPath = path.join(juhbdiDir, "decision-trail.log");
     if (fs.existsSync(trailPath)) {
       const lines = fs.readFileSync(trailPath, "utf-8").trim().split("\n").filter(Boolean);
       const last50 = lines.slice(-50).join("\n") + "\n";
@@ -271,7 +271,8 @@ Branch: ${branch}. ${pendingTasks.length} pending tasks.
 \`\`\`
 `;
 
-  atomicWrite(promptPath, promptContent);
+  const promptWritten = atomicWrite(promptPath, promptContent);
+  if (!promptWritten) return; // Don't write latest.json pointing to a missing prompt file
 
   // Write latest.json in the same format precompact uses
   const latestPath = path.join(handoffDir, "latest.json");

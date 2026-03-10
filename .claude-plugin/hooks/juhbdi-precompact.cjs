@@ -108,7 +108,7 @@ function getPendingTasks(cwd) {
 
 function getRecentTrailEntries(cwd, count) {
   try {
-    const trailPath = path.join(cwd, ".juhbdi", "decision-trail.jsonl");
+    const trailPath = path.join(cwd, ".juhbdi", "decision-trail.log");
     if (!fs.existsSync(trailPath)) return [];
     const lines = fs.readFileSync(trailPath, "utf-8").trim().split("\n").filter(Boolean);
     return lines.slice(-count).map((l) => {
