@@ -1,11 +1,5 @@
 {
   "hooks": {
-    "Notification": [
-      {
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/hooks/juhbdi-statusline.cjs"
-      }
-    ],
     "PreCompact": [
       {
         "type": "command",

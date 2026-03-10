@@ -115,10 +115,12 @@ Bun.serve({
         });
       }
 
-      case "/assets/dashboardicons.png": {
-        const iconPath = path.join(import.meta.dir, "assets", "dashboardicons.png");
-        if (fs.existsSync(iconPath)) {
-          return new Response(Bun.file(iconPath), {
+      case "/assets/dashboardicons.png":
+      case "/assets/juhbdilogo.png": {
+        const assetName = url.pathname.split("/").pop()!;
+        const assetPath = path.join(import.meta.dir, "assets", assetName);
+        if (fs.existsSync(assetPath)) {
+          return new Response(Bun.file(assetPath), {
             headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=86400" },
           });
         }

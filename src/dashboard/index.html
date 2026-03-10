@@ -315,23 +315,161 @@ body {
 }
 
 /* ================================================================
-   DASHBOARD GRID
+   DASHBOARD GRID — Robot-centric command layout
    ================================================================ */
 .dashboard {
   position: relative;
   z-index: 2;
-  display: grid;
-  grid-template-columns: 1.8fr 1fr;
-  grid-template-rows: auto auto auto;
-  gap: 18px;
   padding: 22px 28px 52px;
   max-width: 1540px;
   margin: 0 auto;
 }
 
+/* Top 4 panels: 2x2 grid with robot overlaid in center */
+.command-hub {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 100px auto;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+/* Place panels explicitly in rows 1 and 3, leaving row 2 for robot */
+.command-hub > .card:nth-child(1),
+.command-hub > .card:nth-child(2) { /* transmision-layer + robot are children 1,2 */ }
+#panelExec    { grid-row: 1; grid-column: 1; }
+#panelTrust   { grid-row: 1; grid-column: 2; }
+#panelCost    { grid-row: 3; grid-column: 1; }
+#panelContext  { grid-row: 3; grid-column: 2; }
+
+/* Bottom row: Trail + Memory side by side */
+.bottom-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 18px;
+}
+
 @media (max-width: 1100px) {
-  .dashboard { grid-template-columns: 1fr; }
-  .dashboard .card { grid-column: 1 !important; }
+  .command-hub { grid-template-columns: 1fr; }
+  .bottom-row { grid-template-columns: 1fr; }
+  .command-hub .card { grid-column: 1 !important; }
+  .robot-nexus { display: none; }
+  .transmission-layer { display: none; }
+}
+
+/* ── Robot Nexus — dedicated row between the 4 panels ────── */
+.robot-nexus {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  z-index: 10;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  align-self: center;
+  pointer-events: none;
+  position: relative;
+}
+
+.robot-nexus img {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--crust) 55%, transparent 75%);
+  padding: 6px;
+  filter: drop-shadow(0 0 20px rgba(180, 190, 254, 0.5))
+          drop-shadow(0 0 50px rgba(203, 166, 247, 0.25));
+  animation: robotFloat 4s ease-in-out infinite;
+  position: relative;
+  z-index: 2;
+}
+
+/* Outer ring */
+.robot-nexus::before {
+  content: '';
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(180, 190, 254, 0.2);
+  animation: robotAura 3s ease-in-out infinite alternate;
+  box-shadow: 0 0 30px rgba(180, 190, 254, 0.06), inset 0 0 30px rgba(180, 190, 254, 0.04);
+}
+
+/* Inner glow disc */
+.robot-nexus::after {
+  content: '';
+  position: absolute;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(17, 17, 27, 0.95) 40%, rgba(24, 24, 37, 0.8) 65%, transparent 80%);
+  z-index: 1;
+}
+
+@keyframes robotFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes robotAura {
+  0% { opacity: 0.6; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1.15); }
+}
+
+/* ── Transmission Lines (SVG overlay) ────────────────────── */
+.transmission-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.transmission-layer svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.tx-line {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  opacity: 0.6;
+  stroke-dasharray: 8 4;
+  filter: url(#txGlow);
+}
+
+.tx-line-exec    { stroke: var(--lavender); }
+.tx-line-trust   { stroke: var(--mauve); }
+.tx-line-cost    { stroke: var(--green); }
+.tx-line-context { stroke: var(--sapphire); }
+
+/* Glowing dot traveling along the line */
+.tx-dot {
+  r: 5;
+  filter: url(#txGlow);
+  opacity: 0.9;
+}
+
+.tx-dot-exec    { fill: var(--lavender); }
+.tx-dot-trust   { fill: var(--mauve); }
+.tx-dot-cost    { fill: var(--green); }
+.tx-dot-context { fill: var(--sapphire); }
+
+/* Each dot animates along its path at different speeds */
+.tx-dot-exec    { animation: txPulse 3.2s ease-in-out infinite; }
+.tx-dot-trust   { animation: txPulse 4.0s ease-in-out infinite 0.8s; }
+.tx-dot-cost    { animation: txPulse 3.6s ease-in-out infinite 0.4s; }
+.tx-dot-context { animation: txPulse 4.4s ease-in-out infinite 1.2s; }
+
+@keyframes txPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
 }
 
 /* ================================================================
@@ -389,35 +527,37 @@ body {
 }
 
 /* Per-panel accent colors + hover effects */
-.card:nth-child(1) { grid-column: 1; grid-row: 1; animation-delay: 0.05s; }
-.card:nth-child(1)::before { background: linear-gradient(90deg, var(--accent-exec), var(--blue), transparent 80%); }
-.card:nth-child(1)::after { background: radial-gradient(ellipse at top left, rgba(180, 190, 254, 0.04), transparent 60%); }
-.card:nth-child(1):hover { border-color: rgba(180, 190, 254, 0.25); box-shadow: 0 12px 40px -10px rgba(180, 190, 254, 0.12), inset 0 1px 0 rgba(180, 190, 254, 0.06); }
+/* Command hub: 4 panels */
+#panelExec  { animation-delay: 0.05s; }
+#panelExec::before  { background: linear-gradient(90deg, var(--accent-exec), var(--blue), transparent 80%); }
+#panelExec::after   { background: radial-gradient(ellipse at top left, rgba(180, 190, 254, 0.04), transparent 60%); }
+#panelExec:hover    { border-color: rgba(180, 190, 254, 0.25); box-shadow: 0 12px 40px -10px rgba(180, 190, 254, 0.12), inset 0 1px 0 rgba(180, 190, 254, 0.06); }
 
-.card:nth-child(2) { grid-column: 2; grid-row: 1; animation-delay: 0.10s; }
-.card:nth-child(2)::before { background: linear-gradient(90deg, var(--accent-trust), var(--pink), transparent 80%); }
-.card:nth-child(2)::after { background: radial-gradient(ellipse at top left, rgba(203, 166, 247, 0.04), transparent 60%); }
-.card:nth-child(2):hover { border-color: rgba(203, 166, 247, 0.25); box-shadow: 0 12px 40px -10px rgba(203, 166, 247, 0.12), inset 0 1px 0 rgba(203, 166, 247, 0.06); }
+#panelTrust { animation-delay: 0.10s; }
+#panelTrust::before { background: linear-gradient(90deg, var(--accent-trust), var(--pink), transparent 80%); }
+#panelTrust::after  { background: radial-gradient(ellipse at top left, rgba(203, 166, 247, 0.04), transparent 60%); }
+#panelTrust:hover   { border-color: rgba(203, 166, 247, 0.25); box-shadow: 0 12px 40px -10px rgba(203, 166, 247, 0.12), inset 0 1px 0 rgba(203, 166, 247, 0.06); }
 
-.card:nth-child(3) { grid-column: 1; grid-row: 2; animation-delay: 0.15s; }
-.card:nth-child(3)::before { background: linear-gradient(90deg, var(--accent-cost), var(--teal), transparent 80%); }
-.card:nth-child(3)::after { background: radial-gradient(ellipse at top left, rgba(166, 227, 161, 0.04), transparent 60%); }
-.card:nth-child(3):hover { border-color: rgba(166, 227, 161, 0.25); box-shadow: 0 12px 40px -10px rgba(166, 227, 161, 0.12), inset 0 1px 0 rgba(166, 227, 161, 0.06); }
+#panelCost  { animation-delay: 0.15s; }
+#panelCost::before  { background: linear-gradient(90deg, var(--accent-cost), var(--teal), transparent 80%); }
+#panelCost::after   { background: radial-gradient(ellipse at top left, rgba(166, 227, 161, 0.04), transparent 60%); }
+#panelCost:hover    { border-color: rgba(166, 227, 161, 0.25); box-shadow: 0 12px 40px -10px rgba(166, 227, 161, 0.12), inset 0 1px 0 rgba(166, 227, 161, 0.06); }
 
-.card:nth-child(4) { grid-column: 2; grid-row: 2; animation-delay: 0.20s; }
-.card:nth-child(4)::before { background: linear-gradient(90deg, var(--accent-context), var(--blue), transparent 80%); }
-.card:nth-child(4)::after { background: radial-gradient(ellipse at top left, rgba(116, 199, 236, 0.04), transparent 60%); }
-.card:nth-child(4):hover { border-color: rgba(116, 199, 236, 0.25); box-shadow: 0 12px 40px -10px rgba(116, 199, 236, 0.12), inset 0 1px 0 rgba(116, 199, 236, 0.06); }
+#panelContext { animation-delay: 0.20s; }
+#panelContext::before { background: linear-gradient(90deg, var(--accent-context), var(--blue), transparent 80%); }
+#panelContext::after  { background: radial-gradient(ellipse at top left, rgba(116, 199, 236, 0.04), transparent 60%); }
+#panelContext:hover   { border-color: rgba(116, 199, 236, 0.25); box-shadow: 0 12px 40px -10px rgba(116, 199, 236, 0.12), inset 0 1px 0 rgba(116, 199, 236, 0.06); }
 
-.card:nth-child(5) { grid-column: 1; grid-row: 3; animation-delay: 0.25s; }
-.card:nth-child(5)::before { background: linear-gradient(90deg, var(--accent-trail), var(--green), transparent 80%); }
-.card:nth-child(5)::after { background: radial-gradient(ellipse at top left, rgba(148, 226, 213, 0.04), transparent 60%); }
-.card:nth-child(5):hover { border-color: rgba(148, 226, 213, 0.25); box-shadow: 0 12px 40px -10px rgba(148, 226, 213, 0.12), inset 0 1px 0 rgba(148, 226, 213, 0.06); }
+/* Bottom row: Trail + Memory */
+#panelTrail { animation-delay: 0.25s; }
+#panelTrail::before { background: linear-gradient(90deg, var(--accent-trail), var(--green), transparent 80%); }
+#panelTrail::after  { background: radial-gradient(ellipse at top left, rgba(148, 226, 213, 0.04), transparent 60%); }
+#panelTrail:hover   { border-color: rgba(148, 226, 213, 0.25); box-shadow: 0 12px 40px -10px rgba(148, 226, 213, 0.12), inset 0 1px 0 rgba(148, 226, 213, 0.06); }
 
-.card:nth-child(6) { grid-column: 2; grid-row: 3; animation-delay: 0.30s; }
-.card:nth-child(6)::before { background: linear-gradient(90deg, var(--accent-memory), var(--mauve), transparent 80%); }
-.card:nth-child(6)::after { background: radial-gradient(ellipse at top left, rgba(245, 194, 231, 0.04), transparent 60%); }
-.card:nth-child(6):hover { border-color: rgba(245, 194, 231, 0.25); box-shadow: 0 12px 40px -10px rgba(245, 194, 231, 0.12), inset 0 1px 0 rgba(245, 194, 231, 0.06); }
+#panelMemory { animation-delay: 0.30s; }
+#panelMemory::before { background: linear-gradient(90deg, var(--accent-memory), var(--mauve), transparent 80%); }
+#panelMemory::after  { background: radial-gradient(ellipse at top left, rgba(245, 194, 231, 0.04), transparent 60%); }
+#panelMemory:hover   { border-color: rgba(245, 194, 231, 0.25); box-shadow: 0 12px 40px -10px rgba(245, 194, 231, 0.12), inset 0 1px 0 rgba(245, 194, 231, 0.06); }
 
 @keyframes cardEnter {
   to { opacity: 1; transform: translateY(0); }
@@ -1929,84 +2069,117 @@ body {
 </header>
 
 <!-- ============================================================
-     DASHBOARD GRID
+     DASHBOARD GRID — Robot Command Hub
      ============================================================ -->
 <main class="dashboard">
 
-  <!-- PANEL 1: Execution Status -->
-  <section class="card" id="panelExec">
-    <div class="card-header">
-      <div class="card-header-left">
-        <div class="panel-icon panel-icon-exec"></div>
-        <span class="card-title">Execution Status</span>
-      </div>
-      <div id="execBadges"></div>
-    </div>
-    <div id="execBody"></div>
-  </section>
+  <!-- ── Top: 4 panels with robot nexus in center ─────────── -->
+  <div class="command-hub">
 
-  <!-- PANEL 2: Trust & Governance -->
-  <section class="card" id="panelTrust">
-    <div class="card-header">
-      <div class="card-header-left">
-        <div class="panel-icon panel-icon-trust"></div>
-        <span class="card-title">Trust &amp; Governance</span>
-      </div>
+    <!-- SVG Transmission Lines -->
+    <div class="transmission-layer" id="txLayer">
+      <svg id="txSvg" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <defs>
+          <filter id="txGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <!-- Lines drawn by JS after layout -->
+        <g id="txLines"></g>
+      </svg>
     </div>
-    <div id="trustBody"></div>
-  </section>
 
-  <!-- PANEL 3: Cost Intelligence -->
-  <section class="card" id="panelCost">
-    <div class="card-header">
-      <div class="card-header-left">
-        <div class="panel-icon panel-icon-cost"></div>
-        <span class="card-title">Cost Intelligence</span>
-      </div>
+    <!-- Robot Nexus (centered) -->
+    <div class="robot-nexus">
+      <img src="/assets/juhbdilogo.png" alt="JuhBDI" />
     </div>
-    <div id="costBody"></div>
-  </section>
 
-  <!-- PANEL 4: Sessions & Context -->
-  <section class="card" id="panelContext">
-    <div class="card-header">
-      <div class="card-header-left">
-        <div class="panel-icon panel-icon-sessions"></div>
-        <span class="card-title">Sessions &amp; Context</span>
+    <!-- PANEL 1: Execution Status (top-left) -->
+    <section class="card" id="panelExec">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="panel-icon panel-icon-exec"></div>
+          <span class="card-title">Execution Status</span>
+        </div>
+        <div id="execBadges"></div>
       </div>
-      <span id="sessionCountBadge" class="session-count-badge" style="display:none;"></span>
-    </div>
-    <div id="contextBody"></div>
-  </section>
+      <div id="execBody"></div>
+    </section>
 
-  <!-- PANEL 5: Decision Trail -->
-  <section class="card card-trail" id="panelTrail">
-    <div class="card-header">
-      <div class="card-header-left">
-        <div class="panel-icon panel-icon-trail"></div>
-        <span class="card-title">Decision Trail</span>
-      </div>
-      <div class="trail-header-right">
-        <span id="trailCount" class="trail-count"></span>
-        <div class="live-indicator">
-          <div class="live-dot"></div>
-          <span class="live-text">Live</span>
+    <!-- PANEL 2: Trust & Governance (top-right) -->
+    <section class="card" id="panelTrust">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="panel-icon panel-icon-trust"></div>
+          <span class="card-title">Trust &amp; Governance</span>
         </div>
       </div>
-    </div>
-    <div id="trailBody" class="trail-scroll"></div>
-  </section>
+      <div id="trustBody"></div>
+    </section>
 
-  <!-- PANEL 6: Intelligence Memory -->
-  <section class="card" id="panelMemory">
-    <div class="card-header">
-      <div class="card-header-left">
-        <div class="panel-icon panel-icon-memory"></div>
-        <span class="card-title">Intelligence Memory</span>
+    <!-- PANEL 3: Cost Intelligence (bottom-left) -->
+    <section class="card" id="panelCost">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="panel-icon panel-icon-cost"></div>
+          <span class="card-title">Cost Intelligence</span>
+        </div>
       </div>
-    </div>
-    <div id="memoryBody"></div>
-  </section>
+      <div id="costBody"></div>
+    </section>
+
+    <!-- PANEL 4: Sessions & Context (bottom-right) -->
+    <section class="card" id="panelContext">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="panel-icon panel-icon-sessions"></div>
+          <span class="card-title">Sessions &amp; Context</span>
+        </div>
+        <span id="sessionCountBadge" class="session-count-badge" style="display:none;"></span>
+      </div>
+      <div id="contextBody"></div>
+    </section>
+
+  </div><!-- /command-hub -->
+
+  <!-- ── Bottom: Trail + Memory ───────────────────────────── -->
+  <div class="bottom-row">
+
+    <!-- PANEL 5: Decision Trail -->
+    <section class="card card-trail" id="panelTrail">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="panel-icon panel-icon-trail"></div>
+          <span class="card-title">Decision Trail</span>
+        </div>
+        <div class="trail-header-right">
+          <span id="trailCount" class="trail-count"></span>
+          <div class="live-indicator">
+            <div class="live-dot"></div>
+            <span class="live-text">Live</span>
+          </div>
+        </div>
+      </div>
+      <div id="trailBody" class="trail-scroll"></div>
+    </section>
+
+    <!-- PANEL 6: Intelligence Memory -->
+    <section class="card" id="panelMemory">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="panel-icon panel-icon-memory"></div>
+          <span class="card-title">Intelligence Memory</span>
+        </div>
+      </div>
+      <div id="memoryBody"></div>
+    </section>
+
+  </div><!-- /bottom-row -->
 
 </main>
 
@@ -3089,7 +3262,99 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   connect();
+
+  // ── Transmission Lines ─────────────────────────────────────
+  setTimeout(function() { drawTransmissionLines(); }, 300);
+  window.addEventListener('resize', function() {
+    clearTimeout(window._txDebounce);
+    window._txDebounce = setTimeout(function() { drawTransmissionLines(); }, 100);
+  });
 });
+
+function drawTransmissionLines() {
+  var hub = document.querySelector('.command-hub');
+  var nexus = document.querySelector('.robot-nexus');
+  var svg = document.getElementById('txSvg');
+  var linesG = document.getElementById('txLines');
+  if (!hub || !nexus || !svg || !linesG) return;
+
+  var hubRect = hub.getBoundingClientRect();
+  var nexusRect = nexus.getBoundingClientRect();
+  svg.setAttribute('viewBox', '0 0 ' + hubRect.width + ' ' + hubRect.height);
+
+  // Robot center in hub-relative coordinates
+  var cx = (nexusRect.left + nexusRect.width / 2) - hubRect.left;
+  var cy = (nexusRect.top + nexusRect.height / 2) - hubRect.top;
+
+  var panels = [
+    { id: 'panelExec',    cls: 'exec',    dur: '2.8s' },
+    { id: 'panelTrust',   cls: 'trust',   dur: '3.4s' },
+    { id: 'panelCost',    cls: 'cost',    dur: '3.0s' },
+    { id: 'panelContext',  cls: 'context', dur: '3.6s' },
+  ];
+
+  // Clear existing
+  while (linesG.firstChild) linesG.removeChild(linesG.firstChild);
+
+  var svgNS = 'http://www.w3.org/2000/svg';
+  panels.forEach(function(p, idx) {
+    var el = document.getElementById(p.id);
+    if (!el) return;
+    var r = el.getBoundingClientRect();
+
+    // Panel bounds in hub-relative coords
+    var pLeft = r.left - hubRect.left;
+    var pRight = pLeft + r.width;
+    var pTop = r.top - hubRect.top;
+    var pBottom = pTop + r.height;
+    var pCx = (pLeft + pRight) / 2;
+    var pCy = (pTop + pBottom) / 2;
+
+    // Connect from inner corner of panel (corner closest to robot center)
+    var ex = cx < pCx ? pLeft + 30 : pRight - 30;
+    var ey = cy < pCy ? pTop + 20 : pBottom - 20;
+
+    // Start point: offset from robot center toward panel
+    var dx = ex - cx, dy = ey - cy;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 1) return;
+    var nx = dx / dist, ny = dy / dist;
+    var sx = cx + nx * 50;
+    var sy = cy + ny * 50;
+
+    // Curve control point — offset perpendicular to the line for a graceful arc
+    var mx = (sx + ex) / 2, my = (sy + ey) / 2;
+    var curveMag = dist * 0.15;
+    var cpx = mx + ny * curveMag, cpy = my - nx * curveMag;
+
+    var pathD = 'M ' + sx + ' ' + sy + ' Q ' + cpx + ' ' + cpy + ' ' + ex + ' ' + ey;
+    var pathId = 'txPath_' + p.cls;
+
+    // Draw the line path
+    var path = document.createElementNS(svgNS, 'path');
+    path.id = pathId;
+    path.setAttribute('class', 'tx-line tx-line-' + p.cls);
+    path.setAttribute('d', pathD);
+    linesG.appendChild(path);
+
+    // Animated dot traveling along the path
+    var circle = document.createElementNS(svgNS, 'circle');
+    circle.setAttribute('class', 'tx-dot tx-dot-' + p.cls);
+    circle.setAttribute('r', '4');
+    var motion = document.createElementNS(svgNS, 'animateMotion');
+    motion.setAttribute('dur', p.dur);
+    motion.setAttribute('repeatCount', 'indefinite');
+    motion.setAttribute('keyPoints', '0;1;0');
+    motion.setAttribute('keyTimes', '0;0.5;1');
+    motion.setAttribute('calcMode', 'spline');
+    motion.setAttribute('keySplines', '0.4 0 0.6 1;0.4 0 0.6 1');
+    var mpath = document.createElementNS(svgNS, 'mpath');
+    mpath.setAttribute('href', '#' + pathId);
+    motion.appendChild(mpath);
+    circle.appendChild(motion);
+    linesG.appendChild(circle);
+  });
+}
 </script>
 </body>
 </html>

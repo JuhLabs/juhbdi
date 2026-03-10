@@ -1,9 +1,8 @@
 #!/usr/bin/env node
-// JuhBDI Statusline v1.6.0 — Catppuccin Mocha with context heat shift
+// JuhBDI Statusline v1.6.1 — Catppuccin Mocha with context heat shift
 //
-// Notification hook + global statusline command (unified file).
-//   --raw  → multi-line ANSI output (global statusline command)
-//   default → JSON { status_line } (plugin Notification hook)
+// Used by settings.json statusLine command. Reads session JSON from stdin,
+// outputs single-line ANSI text. Also writes bridge files for context monitor.
 //
 // Mood system: entire UI heats up as context drains
 //   CALM     (< 55% used)  — full Catppuccin beauty
@@ -133,6 +132,44 @@ function buildGradientBar(usedPct, mood, segments = 20) {
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────
+// Strip ANSI escape codes to get visible character count
+function visibleLength(str) {
+  const stripped = str.replace(/\x1b\[[0-9;]*m/g, "");
+  let len = 0;
+  for (const ch of stripped) {
+    const cp = ch.codePointAt(0);
+    // Only emoji (>= U+1F000) are double-width; box drawing/symbols are single-width
+    if (cp >= 0x1F000) len += 2;
+    else len += 1;
+  }
+  return len;
+}
+
+// Detect actual terminal width by walking up process tree to find a TTY
+function getTerminalWidth() {
+  if (process.stdout.columns) return process.stdout.columns;
+  try {
+    const ps = execFileSync("ps", ["-o", "pid=,ppid=,tty=", "-A"], {
+      encoding: "utf8", timeout: 500, stdio: ["pipe", "pipe", "ignore"],
+    }).trim().split("\n").map(l => l.trim().split(/\s+/));
+    let pid = String(process.pid);
+    for (let i = 0; i < 10; i++) {
+      const row = ps.find(l => l[0] === pid);
+      if (!row) break;
+      const tty = row[2];
+      if (tty && tty !== "??" && tty !== "?" && /^ttys?\d+$/.test(tty)) {
+        const { execSync } = require("child_process");
+        const w = parseInt(execSync("stty size < /dev/" + tty, {
+          encoding: "utf8", timeout: 500, shell: "/bin/sh", stdio: ["pipe", "pipe", "ignore"],
+        }).trim().split(" ")[1], 10);
+        if (w > 0) return w;
+      }
+      pid = row[1];
+    }
+  } catch {}
+  return null;
+}
+
 const AUTOCOMPACT_BUFFER = 16.5;
 
 function formatCost(usd) { return "$" + usd.toFixed(2); }
@@ -191,42 +228,6 @@ function writeBridgeFile(sessionId, remainingPct, projectDir) {
   }
 }
 
-// ── Weather (cached, only in raw mode) ──────────────────────────────
-const WEATHER_CACHE = "/tmp/juhbdi_weather_cache.json";
-const WEATHER_TTL = 600000; // 10 minutes
-
-function getCachedWeather() {
-  try {
-    const raw = JSON.parse(fs.readFileSync(WEATHER_CACHE, "utf-8"));
-    if (Date.now() - raw.ts < WEATHER_TTL) return raw;
-  } catch {}
-  return null;
-}
-
-async function fetchWeather() {
-  const cached = getCachedWeather();
-  if (cached) return { text: cached.text, city: cached.city };
-  try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 2000);
-    const resp = await fetch("https://wttr.in/?format=%c+%t", { signal: ctrl.signal });
-    clearTimeout(timer);
-    const text = (await resp.text()).trim().replace(/\s+/g, " ");
-    let city = "";
-    try {
-      const ctrl2 = new AbortController();
-      const timer2 = setTimeout(() => ctrl2.abort(), 2000);
-      const resp2 = await fetch("https://wttr.in/?format=%l", { signal: ctrl2.signal });
-      clearTimeout(timer2);
-      city = (await resp2.text()).trim().split(",")[0].trim();
-    } catch {}
-    fs.writeFileSync(WEATHER_CACHE, JSON.stringify({ ts: Date.now(), text, city }));
-    return { text, city };
-  } catch {
-    return null;
-  }
-}
-
 // ── Main ────────────────────────────────────────────────────────────
 async function main() {
   const input = JSON.parse(await new Promise((resolve) => {
@@ -235,7 +236,6 @@ async function main() {
     process.stdin.on("end", () => resolve(data));
   }));
 
-  const isRaw = process.argv.includes("--raw") || process.env.JUHBDI_RAW === "1";
   const model = input.model?.display_name || "Claude";
   const sessionId = input.session_id || "unknown";
   const ctxWin = input.context_window || {};
@@ -295,32 +295,18 @@ async function main() {
     pctDisplay += " " + BOLD + col("red") + m.label + RST;
   }
 
-  let line2 = bar + " " + pctDisplay;
-
-  // Weather (only in raw/multi-line mode to avoid hook latency)
-  if (isRaw) {
-    const weather = await fetchWeather();
-    if (weather) {
-      const cityLabel = weather.city || "Local";
-      line2 += "  " + col(m.sep) + "\u2502" + RST + " " + col(m.weather) + "\uD83C\uDFD9\uFE0F  " + cityLabel + ":" + RST + " " + col("text") + weather.text + RST;
-    }
-  }
-
   // ═══ Output ═══
-  if (isRaw) {
-    console.log(line1);
-    console.log(line2);
+  // Right-aligned single-line for status bar
+  const content = line1 + "  " + bar + " " + pctDisplay;
+  const cols = getTerminalWidth();
+  if (cols) {
+    const pad = Math.max(0, cols - visibleLength(content) - 6); // -6 for CC built-in margin
+    console.log(" ".repeat(pad) + content);
   } else {
-    // Hook mode: single-line compact status
-    console.log(JSON.stringify({ status_line: line1 + "  " + bar + " " + col(m.pct) + usedPct + "%" + RST + m.emoji }));
+    console.log(content);
   }
 }
 
 main().catch(() => {
-  const isRaw = process.argv.includes("--raw") || process.env.JUHBDI_RAW === "1";
-  if (isRaw) {
-    console.log(col("lavender") + "\u25C8 JuhBDI" + RST);
-  } else {
-    console.log(JSON.stringify({ status_line: "" }));
-  }
+  console.log(col("lavender") + "\u25C8 JuhBDI" + RST);
 });
