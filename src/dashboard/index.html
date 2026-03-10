@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JuhBDI — Governance Dashboard</title>
+<title>JuhBDI — Command Center</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -52,6 +52,10 @@
   --accent-context: var(--sapphire);
   --accent-trail: var(--teal);
   --accent-memory: var(--pink);
+  --accent-codehealth: var(--peach);
+
+  --sidebar-width: 56px;
+  --metrics-height: 52px;
 }
 
 /* ================================================================
@@ -75,7 +79,7 @@ body {
 }
 
 /* ================================================================
-   ANIMATED BACKGROUND — Gradient orbs + drifting grid + noise
+   ANIMATED BACKGROUND
    ================================================================ */
 .bg-layer {
   position: fixed;
@@ -85,7 +89,6 @@ body {
   overflow: hidden;
 }
 
-/* SVG noise filter for grain texture */
 .bg-noise {
   position: absolute;
   inset: 0;
@@ -141,13 +144,11 @@ body {
   50% { transform: translate(-30px, 60px) scale(0.92); }
   75% { transform: translate(50px, 30px) scale(1.04); }
 }
-
 @keyframes orbFloat2 {
   0%, 100% { transform: translate(0, 0) scale(1); }
   33% { transform: translate(-70px, 40px) scale(1.06); }
   66% { transform: translate(40px, -60px) scale(0.94); }
 }
-
 @keyframes orbFloat3 {
   0%, 100% { transform: translate(0, 0) scale(1); }
   20% { transform: translate(50px, -40px) scale(1.1); }
@@ -156,7 +157,6 @@ body {
   80% { transform: translate(-60px, -20px) scale(0.98); }
 }
 
-/* Drifting grid overlay */
 .bg-grid {
   position: absolute;
   inset: -50%;
@@ -175,25 +175,153 @@ body {
 }
 
 /* ================================================================
-   HEADER — Command center top bar
+   SIDEBAR
    ================================================================ */
-.header {
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(17, 17, 27, 0.92);
+  backdrop-filter: blur(24px) saturate(1.3);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3);
+  border-right: 1px solid rgba(69, 71, 90, 0.25);
+  padding: 10px 0 14px;
+  gap: 2px;
+}
+
+.sidebar-logo {
+  width: 34px;
+  height: 34px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: radial-gradient(circle, var(--surface0) 0%, var(--crust) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 0 8px rgba(180, 190, 254, 0.2));
+}
+
+.sidebar-logo img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.sidebar-divider {
+  width: 28px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--surface1), transparent);
+  margin: 6px 0;
+}
+
+.nav-item {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--overlay1);
+  transition: all 0.2s ease;
+  border: none;
+  background: none;
+  padding: 0;
+}
+
+.nav-item:hover {
+  color: var(--text);
+  background: rgba(49, 50, 68, 0.4);
+}
+
+.nav-item.active {
+  color: var(--lavender);
+  background: rgba(180, 190, 254, 0.1);
+}
+
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  width: 3px;
+  height: 20px;
+  border-radius: 0 3px 3px 0;
+  background: var(--lavender);
+}
+
+.nav-item svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Tooltip */
+.nav-item .tooltip {
+  position: absolute;
+  left: 52px;
+  background: var(--surface0);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all 0.15s ease;
+  border: 1px solid rgba(69, 71, 90, 0.4);
+  z-index: 300;
+}
+
+.nav-item:hover .tooltip {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+}
+
+/* ================================================================
+   METRICS BAR
+   ================================================================ */
+.metrics-bar {
   position: sticky;
   top: 0;
   z-index: 100;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 32px;
-  height: 58px;
+  height: var(--metrics-height);
+  padding: 0 24px;
   background: rgba(17, 17, 27, 0.88);
   backdrop-filter: blur(32px) saturate(1.4);
   -webkit-backdrop-filter: blur(32px) saturate(1.4);
   border-bottom: 1px solid rgba(180, 190, 254, 0.06);
+  gap: 0;
 }
 
-/* Animated rainbow gradient line at top */
-.header::before {
+.metrics-bar::before {
   content: '';
   position: absolute;
   top: 0;
@@ -213,51 +341,60 @@ body {
   100% { background-position: 200% 0%; }
 }
 
-.header-left {
+.metric {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
-.header-brand {
+.metric:hover {
+  background: rgba(49, 50, 68, 0.4);
+  border-color: rgba(69, 71, 90, 0.3);
+}
+
+.metric-icon {
+  font-size: 0.85rem;
+}
+
+.metric-value {
   font-family: var(--font-mono);
-  font-weight: 800;
-  font-size: 1.3rem;
-  background: linear-gradient(135deg, var(--lavender) 0%, var(--mauve) 50%, var(--pink) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: none;
-  filter: drop-shadow(0 0 12px rgba(180, 190, 254, 0.3));
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
 }
 
-.header-divider {
-  width: 1px;
-  height: 22px;
-  background: linear-gradient(180deg, transparent, var(--surface1), transparent);
-}
-
-.header-subtitle {
-  font-family: var(--font-display);
+.metric-label {
+  font-size: 0.62rem;
   font-weight: 500;
-  font-size: 0.78rem;
   color: var(--subtext0);
-  letter-spacing: 0.08em;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.header-right {
+.metric-sub {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--overlay1);
+}
+
+.metrics-right {
+  margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .connection-indicator {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 5px 14px;
-  border-radius: 20px;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 16px;
   background: rgba(49, 50, 68, 0.4);
   border: 1px solid rgba(49, 50, 68, 0.6);
   transition: all 0.4s ease;
@@ -266,12 +403,11 @@ body {
 .connection-indicator.connected {
   border-color: rgba(166, 227, 161, 0.25);
   background: rgba(166, 227, 161, 0.06);
-  box-shadow: 0 0 12px rgba(166, 227, 161, 0.08);
 }
 
 .connection-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--overlay0);
   transition: all 0.4s ease;
@@ -290,12 +426,11 @@ body {
 
 .connection-label {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   font-weight: 600;
   color: var(--overlay0);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  transition: color 0.4s ease;
+  letter-spacing: 0.06em;
 }
 
 .connection-indicator.connected .connection-label {
@@ -304,176 +439,47 @@ body {
 
 .header-time {
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   font-weight: 500;
   color: var(--subtext0);
-  letter-spacing: 0.04em;
-  padding: 4px 10px;
+  padding: 3px 8px;
   background: rgba(49, 50, 68, 0.25);
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid rgba(49, 50, 68, 0.3);
 }
 
 /* ================================================================
-   DASHBOARD GRID — Robot-centric command layout
+   MAIN AREA
    ================================================================ */
-.dashboard {
+.main-area {
+  margin-left: var(--sidebar-width);
+  min-height: 100vh;
   position: relative;
   z-index: 2;
+}
+
+.workspace {
   padding: 22px 28px 52px;
-  max-width: 1540px;
+  max-width: 1480px;
   margin: 0 auto;
 }
 
-/* Top 4 panels: 2x2 grid with robot overlaid in center */
-.command-hub {
-  position: relative;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto 100px auto;
-  gap: 18px;
-  margin-bottom: 18px;
-}
-/* Place panels explicitly in rows 1 and 3, leaving row 2 for robot */
-.command-hub > .card:nth-child(1),
-.command-hub > .card:nth-child(2) { /* transmision-layer + robot are children 1,2 */ }
-#panelExec    { grid-row: 1; grid-column: 1; }
-#panelTrust   { grid-row: 1; grid-column: 2; }
-#panelCost    { grid-row: 3; grid-column: 1; }
-#panelContext  { grid-row: 3; grid-column: 2; }
-
-/* Bottom row: Trail + Memory side by side */
-.bottom-row {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: 18px;
+/* ================================================================
+   VIEW CONTAINERS
+   ================================================================ */
+.view {
+  display: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
 }
 
-@media (max-width: 1100px) {
-  .command-hub { grid-template-columns: 1fr; }
-  .bottom-row { grid-template-columns: 1fr; }
-  .command-hub .card { grid-column: 1 !important; }
-  .robot-nexus { display: none; }
-  .transmission-layer { display: none; }
-}
-
-/* ── Robot Nexus — dedicated row between the 4 panels ────── */
-.robot-nexus {
-  grid-row: 2;
-  grid-column: 1 / -1;
-  z-index: 10;
-  width: 120px;
-  height: 120px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  justify-self: center;
-  align-self: center;
-  pointer-events: none;
-  position: relative;
-}
-
-.robot-nexus img {
-  width: 90px;
-  height: 90px;
-  object-fit: contain;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--crust) 55%, transparent 75%);
-  padding: 6px;
-  filter: drop-shadow(0 0 20px rgba(180, 190, 254, 0.5))
-          drop-shadow(0 0 50px rgba(203, 166, 247, 0.25));
-  animation: robotFloat 4s ease-in-out infinite;
-  position: relative;
-  z-index: 2;
-}
-
-/* Outer ring */
-.robot-nexus::before {
-  content: '';
-  position: absolute;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(180, 190, 254, 0.2);
-  animation: robotAura 3s ease-in-out infinite alternate;
-  box-shadow: 0 0 30px rgba(180, 190, 254, 0.06), inset 0 0 30px rgba(180, 190, 254, 0.04);
-}
-
-/* Inner glow disc */
-.robot-nexus::after {
-  content: '';
-  position: absolute;
-  width: 110px;
-  height: 110px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(17, 17, 27, 0.95) 40%, rgba(24, 24, 37, 0.8) 65%, transparent 80%);
-  z-index: 1;
-}
-
-@keyframes robotFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-
-@keyframes robotAura {
-  0% { opacity: 0.6; transform: scale(1); }
-  100% { opacity: 1; transform: scale(1.15); }
-}
-
-/* ── Transmission Lines (SVG overlay) ────────────────────── */
-.transmission-layer {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  pointer-events: none;
-  overflow: visible;
-}
-
-.transmission-layer svg {
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
-.tx-line {
-  fill: none;
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  opacity: 0.6;
-  stroke-dasharray: 8 4;
-  filter: url(#txGlow);
-}
-
-.tx-line-exec    { stroke: var(--lavender); }
-.tx-line-trust   { stroke: var(--mauve); }
-.tx-line-cost    { stroke: var(--green); }
-.tx-line-context { stroke: var(--sapphire); }
-
-/* Glowing dot traveling along the line */
-.tx-dot {
-  r: 5;
-  filter: url(#txGlow);
-  opacity: 0.9;
-}
-
-.tx-dot-exec    { fill: var(--lavender); }
-.tx-dot-trust   { fill: var(--mauve); }
-.tx-dot-cost    { fill: var(--green); }
-.tx-dot-context { fill: var(--sapphire); }
-
-/* Each dot animates along its path at different speeds */
-.tx-dot-exec    { animation: txPulse 3.2s ease-in-out infinite; }
-.tx-dot-trust   { animation: txPulse 4.0s ease-in-out infinite 0.8s; }
-.tx-dot-cost    { animation: txPulse 3.6s ease-in-out infinite 0.4s; }
-.tx-dot-context { animation: txPulse 4.4s ease-in-out infinite 1.2s; }
-
-@keyframes txPulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; }
+.view.active {
+  display: block;
+  opacity: 1;
 }
 
 /* ================================================================
-   CARD BASE — Frosted glass with animated gradient hover border
+   CARDS — Glass-morphism
    ================================================================ */
 .card {
   position: relative;
@@ -481,136 +487,36 @@ body {
   backdrop-filter: blur(24px) saturate(1.2);
   -webkit-backdrop-filter: blur(24px) saturate(1.2);
   border: 1px solid rgba(69, 71, 90, 0.35);
-  border-radius: 18px;
-  padding: 24px 26px;
-  opacity: 0;
-  transform: translateY(20px);
-  animation: cardEnter 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  border-radius: 16px;
+  padding: 22px 24px;
   transition: border-color 0.35s ease, box-shadow 0.35s ease, transform 0.3s ease;
   overflow: hidden;
 }
 
-/* Inner glow */
-.card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 18px;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.35s ease;
-}
-
 .card:hover {
-  transform: translateY(-3px);
-}
-
-.card:hover::after {
-  opacity: 1;
-}
-
-/* Colored top accent bar — gradient, wider */
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  opacity: 0.7;
-  transition: opacity 0.35s ease, height 0.35s ease;
-}
-
-.card:hover::before {
-  opacity: 1;
-  height: 3px;
-}
-
-/* Per-panel accent colors + hover effects */
-/* Command hub: 4 panels */
-#panelExec  { animation-delay: 0.05s; }
-#panelExec::before  { background: linear-gradient(90deg, var(--accent-exec), var(--blue), transparent 80%); }
-#panelExec::after   { background: radial-gradient(ellipse at top left, rgba(180, 190, 254, 0.04), transparent 60%); }
-#panelExec:hover    { border-color: rgba(180, 190, 254, 0.25); box-shadow: 0 12px 40px -10px rgba(180, 190, 254, 0.12), inset 0 1px 0 rgba(180, 190, 254, 0.06); }
-
-#panelTrust { animation-delay: 0.10s; }
-#panelTrust::before { background: linear-gradient(90deg, var(--accent-trust), var(--pink), transparent 80%); }
-#panelTrust::after  { background: radial-gradient(ellipse at top left, rgba(203, 166, 247, 0.04), transparent 60%); }
-#panelTrust:hover   { border-color: rgba(203, 166, 247, 0.25); box-shadow: 0 12px 40px -10px rgba(203, 166, 247, 0.12), inset 0 1px 0 rgba(203, 166, 247, 0.06); }
-
-#panelCost  { animation-delay: 0.15s; }
-#panelCost::before  { background: linear-gradient(90deg, var(--accent-cost), var(--teal), transparent 80%); }
-#panelCost::after   { background: radial-gradient(ellipse at top left, rgba(166, 227, 161, 0.04), transparent 60%); }
-#panelCost:hover    { border-color: rgba(166, 227, 161, 0.25); box-shadow: 0 12px 40px -10px rgba(166, 227, 161, 0.12), inset 0 1px 0 rgba(166, 227, 161, 0.06); }
-
-#panelContext { animation-delay: 0.20s; }
-#panelContext::before { background: linear-gradient(90deg, var(--accent-context), var(--blue), transparent 80%); }
-#panelContext::after  { background: radial-gradient(ellipse at top left, rgba(116, 199, 236, 0.04), transparent 60%); }
-#panelContext:hover   { border-color: rgba(116, 199, 236, 0.25); box-shadow: 0 12px 40px -10px rgba(116, 199, 236, 0.12), inset 0 1px 0 rgba(116, 199, 236, 0.06); }
-
-/* Bottom row: Trail + Memory */
-#panelTrail { animation-delay: 0.25s; }
-#panelTrail::before { background: linear-gradient(90deg, var(--accent-trail), var(--green), transparent 80%); }
-#panelTrail::after  { background: radial-gradient(ellipse at top left, rgba(148, 226, 213, 0.04), transparent 60%); }
-#panelTrail:hover   { border-color: rgba(148, 226, 213, 0.25); box-shadow: 0 12px 40px -10px rgba(148, 226, 213, 0.12), inset 0 1px 0 rgba(148, 226, 213, 0.06); }
-
-#panelMemory { animation-delay: 0.30s; }
-#panelMemory::before { background: linear-gradient(90deg, var(--accent-memory), var(--mauve), transparent 80%); }
-#panelMemory::after  { background: radial-gradient(ellipse at top left, rgba(245, 194, 231, 0.04), transparent 60%); }
-#panelMemory:hover   { border-color: rgba(245, 194, 231, 0.25); box-shadow: 0 12px 40px -10px rgba(245, 194, 231, 0.12), inset 0 1px 0 rgba(245, 194, 231, 0.06); }
-
-@keyframes cardEnter {
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 18px;
-}
-
-.card-header-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  border-color: rgba(180, 190, 254, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(180, 190, 254, 0.06);
+  transform: translateY(-1px);
 }
 
 .card-title {
-  font-family: var(--font-display);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
   font-weight: 600;
-  font-size: 1.1rem;
-  color: var(--subtext1);
-  letter-spacing: 0.10em;
   text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--subtext0);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-/* ── Panel Icon Spritesheet ────────────────────────────────── */
-/* 1536x1024 image, 3x2 grid = 512x512 per icon               */
-.panel-icon {
-  width: 110px;
-  height: 110px;
-  background-image: url('/assets/dashboardicons.png');
-  background-size: 300% 200%; /* 3 cols x 2 rows */
-  background-repeat: no-repeat;
-  flex-shrink: 0;
-  image-rendering: auto;
-  filter: drop-shadow(0 0 8px rgba(180, 190, 254, 0.3));
-  transition: filter 0.4s ease, transform 0.4s ease;
+.card-title .accent-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
 }
-.card:hover .panel-icon {
-  filter: drop-shadow(0 0 14px rgba(180, 190, 254, 0.5));
-  transform: scale(1.12);
-}
-
-/* Row 1: Rocket, Crystal $, Windows */
-.panel-icon-exec     { background-position: 0% 0%; }
-.panel-icon-cost     { background-position: 50% 0%; }
-.panel-icon-sessions { background-position: 100% 0%; }
-/* Row 2: Shield, Brain, Path */
-.panel-icon-trust    { background-position: 0% 100%; }
-.panel-icon-memory   { background-position: 50% 100%; }
-.panel-icon-trail    { background-position: 100% 100%; }
 
 /* ================================================================
    BADGES & PILLS
@@ -618,1425 +524,760 @@ body {
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 3px 10px;
-  border-radius: 6px;
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-}
-
-.badge-wave {
-  background: rgba(180, 190, 254, 0.12);
-  color: var(--lavender);
-  border: 1px solid rgba(180, 190, 254, 0.18);
-}
-
-.badge-phase {
-  background: rgba(137, 180, 250, 0.12);
-  color: var(--blue);
-  border: 1px solid rgba(137, 180, 250, 0.18);
-  margin-left: 6px;
-}
-
-.badge-project {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 14px;
-  border-radius: 10px;
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: 600;
-  background: linear-gradient(135deg, rgba(180, 190, 254, 0.1), rgba(137, 180, 250, 0.06));
-  color: var(--lavender);
-  border: 1px solid rgba(180, 190, 254, 0.15);
-  letter-spacing: 0.02em;
-}
-
-.badge-project-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--lavender);
-  box-shadow: 0 0 6px rgba(180, 190, 254, 0.5);
-}
-
-.tier-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 5px 16px;
-  border-radius: 20px;
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  border: 1px solid transparent;
-}
-
-.tier-intern     { background: rgba(108, 112, 134, 0.15); color: var(--overlay1); border-color: rgba(108, 112, 134, 0.2); }
-.tier-junior     { background: rgba(137, 180, 250, 0.12); color: var(--blue); border-color: rgba(137, 180, 250, 0.18); }
-.tier-senior     { background: rgba(166, 227, 161, 0.12); color: var(--green); border-color: rgba(166, 227, 161, 0.18); }
-.tier-principal  { background: rgba(203, 166, 247, 0.12); color: var(--mauve); border-color: rgba(203, 166, 247, 0.18); }
-.tier-new        { background: rgba(166, 173, 200, 0.08); color: var(--subtext0); border-color: rgba(166, 173, 200, 0.12); }
-
-/* ================================================================
-   TYPE BADGES (trail)
-   ================================================================ */
-.type-badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 4px;
   font-family: var(--font-mono);
   font-size: 0.58rem;
   font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  white-space: nowrap;
 }
 
-.type-command      { background: rgba(116, 199, 236, 0.14); color: var(--sapphire); }
-.type-decision     { background: rgba(180, 190, 254, 0.14); color: var(--lavender); }
-.type-routing      { background: rgba(137, 180, 250, 0.14); color: var(--blue); }
-.type-execution    { background: rgba(166, 227, 161, 0.14); color: var(--green); }
-.type-error        { background: rgba(243, 139, 168, 0.14); color: var(--red); }
-.type-governance   { background: rgba(203, 166, 247, 0.14); color: var(--mauve); }
-.type-verification { background: rgba(148, 226, 213, 0.14); color: var(--teal); }
-.type-recovery     { background: rgba(249, 226, 175, 0.14); color: var(--yellow); }
-.type-default      { background: rgba(88, 91, 112, 0.14); color: var(--overlay1); }
+.badge-success { background: rgba(166, 227, 161, 0.12); color: var(--green); border: 1px solid rgba(166, 227, 161, 0.2); }
+.badge-warning { background: rgba(249, 226, 175, 0.12); color: var(--yellow); border: 1px solid rgba(249, 226, 175, 0.2); }
+.badge-error   { background: rgba(243, 139, 168, 0.12); color: var(--red); border: 1px solid rgba(243, 139, 168, 0.2); }
+.badge-info    { background: rgba(137, 180, 250, 0.12); color: var(--blue); border: 1px solid rgba(137, 180, 250, 0.2); }
+.badge-neutral { background: rgba(108, 112, 134, 0.15); color: var(--overlay1); border: 1px solid rgba(108, 112, 134, 0.2); }
+
+/* Type badges for trail */
+.type-routing    { background: rgba(166, 227, 161, 0.1); color: var(--green); border: 1px solid rgba(166, 227, 161, 0.15); }
+.type-execution  { background: rgba(180, 190, 254, 0.1); color: var(--lavender); border: 1px solid rgba(180, 190, 254, 0.15); }
+.type-decision   { background: rgba(137, 180, 250, 0.1); color: var(--blue); border: 1px solid rgba(137, 180, 250, 0.15); }
+.type-governance { background: rgba(203, 166, 247, 0.1); color: var(--mauve); border: 1px solid rgba(203, 166, 247, 0.15); }
+.type-verification { background: rgba(148, 226, 213, 0.1); color: var(--teal); border: 1px solid rgba(148, 226, 213, 0.15); }
+.type-error      { background: rgba(243, 139, 168, 0.1); color: var(--red); border: 1px solid rgba(243, 139, 168, 0.15); }
 
 /* ================================================================
-   PROGRESS BAR
+   PROGRESS BARS
    ================================================================ */
-.progress-track {
+.progress-bar {
   width: 100%;
-  height: 7px;
-  background: var(--surface0);
+  height: 6px;
+  background: rgba(49, 50, 68, 0.5);
   border-radius: 4px;
   overflow: hidden;
-  position: relative;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--lavender), var(--blue));
   border-radius: 4px;
-  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-  position: relative;
-  box-shadow: 0 0 10px rgba(180, 190, 254, 0.3);
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.progress-fill::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%);
-  animation: shimmer 2.5s ease-in-out infinite;
-}
-
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-.progress-label {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--subtext0);
-  margin-top: 8px;
-}
+.progress-green  .progress-fill { background: linear-gradient(90deg, var(--green), var(--teal)); }
+.progress-blue   .progress-fill { background: linear-gradient(90deg, var(--blue), var(--lavender)); }
+.progress-yellow .progress-fill { background: linear-gradient(90deg, var(--yellow), var(--peach)); }
+.progress-red    .progress-fill { background: linear-gradient(90deg, var(--red), var(--peach)); }
+.progress-mauve  .progress-fill { background: linear-gradient(90deg, var(--mauve), var(--pink)); }
 
 /* ================================================================
-   EMPTY STATE — CSS-only animated icons
+   EMPTY STATES
    ================================================================ */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 36px 16px;
+  padding: 40px 20px;
   text-align: center;
-  gap: 14px;
 }
 
-.empty-text {
+.empty-state-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 14px;
+  color: var(--overlay0);
+}
+
+.empty-state-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--subtext1);
+  margin-bottom: 6px;
+}
+
+.empty-state-text {
+  font-size: 0.78rem;
   color: var(--overlay1);
-  font-size: 0.82rem;
-  line-height: 1.6;
-  font-weight: 400;
+  line-height: 1.5;
   max-width: 300px;
 }
 
-.empty-text code {
+/* ================================================================
+   SVG CHART CONTAINERS
+   ================================================================ */
+.chart-container {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.chart-container svg {
+  display: block;
+  width: 100%;
+}
+
+/* ================================================================
+   TRAIL SEARCH/FILTER
+   ================================================================ */
+.trail-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.trail-search {
+  flex: 1;
+  min-width: 180px;
   font-family: var(--font-mono);
   font-size: 0.72rem;
-  background: rgba(180, 190, 254, 0.08);
+  padding: 7px 12px;
+  background: rgba(49, 50, 68, 0.4);
+  border: 1px solid rgba(69, 71, 90, 0.4);
+  border-radius: 8px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.trail-search:focus {
+  border-color: var(--lavender);
+}
+
+.trail-search::placeholder {
+  color: var(--overlay0);
+}
+
+.filter-btn {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 5px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(69, 71, 90, 0.4);
+  background: rgba(49, 50, 68, 0.3);
+  color: var(--overlay1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+  background: rgba(49, 50, 68, 0.6);
+  color: var(--text);
+}
+
+.filter-btn.active {
+  background: rgba(180, 190, 254, 0.12);
   color: var(--lavender);
-  padding: 2px 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(180, 190, 254, 0.1);
+  border-color: rgba(180, 190, 254, 0.25);
 }
 
-/* CSS-only animated icons for empty states */
-
-/* Spinning gear icon */
-.empty-icon-gear {
-  width: 52px;
-  height: 52px;
-  position: relative;
-  animation: gearSpin 8s linear infinite;
-}
-
-.empty-icon-gear::before {
-  content: '';
-  position: absolute;
-  inset: 8px;
-  border-radius: 50%;
-  border: 3px solid rgba(180, 190, 254, 0.2);
-}
-
-.empty-icon-gear::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 3px dashed rgba(180, 190, 254, 0.12);
-}
-
-@keyframes gearSpin {
-  to { transform: rotate(360deg); }
-}
-
-/* Pulsing concentric rings for memory */
-.empty-icon-rings {
-  width: 56px;
-  height: 56px;
-  position: relative;
+/* ================================================================
+   TASK STATUS BARS
+   ================================================================ */
+.task-bar {
   display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(49, 50, 68, 0.3);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.task-bar:hover {
+  background: rgba(49, 50, 68, 0.2);
+}
+
+.task-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.task-status-dot.done { background: var(--green); }
+.task-status-dot.active { background: var(--lavender); animation: dotPulse 2s ease-in-out infinite; }
+.task-status-dot.pending { background: var(--overlay0); border: 1px dashed var(--surface2); }
+
+.task-name {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-detail {
+  display: none;
+  padding: 8px 18px 12px;
+  font-size: 0.72rem;
+  color: var(--subtext0);
+  line-height: 1.5;
+  border-bottom: 1px solid rgba(49, 50, 68, 0.3);
+}
+
+.task-detail.expanded { display: block; }
+
+/* ================================================================
+   CODE HEALTH
+   ================================================================ */
+.health-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+
+.health-table th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--subtext0);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(69, 71, 90, 0.3);
+  font-size: 0.6rem;
+}
+
+.health-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(49, 50, 68, 0.2);
+  color: var(--text);
+}
+
+.complexity-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(49, 50, 68, 0.5);
+  overflow: hidden;
+  min-width: 60px;
+}
+
+.complexity-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.complexity-fill.low { background: var(--green); }
+.complexity-fill.medium { background: var(--yellow); }
+.complexity-fill.high { background: var(--red); }
+
+.stat-box {
+  background: rgba(49, 50, 68, 0.3);
+  border: 1px solid rgba(69, 71, 90, 0.3);
+  border-radius: 10px;
+  padding: 14px 18px;
+  text-align: center;
+}
+
+.stat-box-value {
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.stat-box-label {
+  font-size: 0.62rem;
+  color: var(--overlay1);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
+/* ================================================================
+   EXPANDABLE LIST ITEMS
+   ================================================================ */
+.expand-section {
+  margin-bottom: 16px;
+}
+
+.expand-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(49, 50, 68, 0.25);
+  border: 1px solid rgba(69, 71, 90, 0.2);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.expand-header:hover {
+  background: rgba(49, 50, 68, 0.4);
+}
+
+.expand-header-title {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--subtext1);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.expand-header-count {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--overlay1);
+}
+
+.expand-header-arrow {
+  color: var(--overlay1);
+  transition: transform 0.2s ease;
+  font-size: 0.7rem;
+}
+
+.expand-section.open .expand-header-arrow {
+  transform: rotate(90deg);
+}
+
+.expand-body {
+  display: none;
+  padding: 8px 0 0;
+}
+
+.expand-section.open .expand-body {
+  display: block;
+}
+
+.expand-item {
+  padding: 8px 14px;
+  border-left: 2px solid rgba(69, 71, 90, 0.3);
+  margin-left: 8px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 0 6px 6px 0;
+}
+
+.expand-item:hover {
+  background: rgba(49, 50, 68, 0.2);
+  border-left-color: var(--lavender);
+}
+
+.expand-item-title {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.expand-item-detail {
+  display: none;
+  margin-top: 6px;
+  font-size: 0.68rem;
+  color: var(--subtext0);
+  line-height: 1.4;
+}
+
+.expand-item.open .expand-item-detail {
+  display: block;
+}
+
+/* ================================================================
+   SHORTCUT OVERLAY
+   ================================================================ */
+.shortcut-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(17, 17, 27, 0.8);
+  backdrop-filter: blur(8px);
   align-items: center;
   justify-content: center;
 }
 
-.ring {
-  position: absolute;
-  border-radius: 50%;
-  border: 1.5px solid;
-  animation: ringPulse 3s ease-in-out infinite;
-}
-
-.ring:nth-child(1) {
-  width: 14px; height: 14px;
-  border-color: rgba(245, 194, 231, 0.5);
-  animation-delay: 0s;
-}
-
-.ring:nth-child(2) {
-  width: 26px; height: 26px;
-  border-color: rgba(245, 194, 231, 0.35);
-  animation-delay: 0.3s;
-}
-
-.ring:nth-child(3) {
-  width: 38px; height: 38px;
-  border-color: rgba(245, 194, 231, 0.22);
-  animation-delay: 0.6s;
-}
-
-.ring:nth-child(4) {
-  width: 50px; height: 50px;
-  border-color: rgba(245, 194, 231, 0.12);
-  animation-delay: 0.9s;
-}
-
-@keyframes ringPulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.12); opacity: 0.4; }
-}
-
-/* Animated chart bars for cost empty state */
-.empty-icon-bars {
+.shortcut-overlay.active {
   display: flex;
-  align-items: flex-end;
-  gap: 3px;
-  height: 40px;
-  padding: 0 6px;
 }
 
-.bar-anim {
-  width: 6px;
-  border-radius: 3px 3px 0 0;
-  animation: barGrow 2s ease-in-out infinite;
+.shortcut-modal {
+  background: var(--mantle);
+  border: 1px solid rgba(69, 71, 90, 0.4);
+  border-radius: 16px;
+  padding: 28px 36px;
+  max-width: 420px;
+  width: 90%;
 }
 
-.bar-anim:nth-child(1) { background: rgba(166, 227, 161, 0.3); animation-delay: 0s; height: 16px; }
-.bar-anim:nth-child(2) { background: rgba(166, 227, 161, 0.4); animation-delay: 0.15s; height: 24px; }
-.bar-anim:nth-child(3) { background: rgba(148, 226, 213, 0.5); animation-delay: 0.3s; height: 32px; }
-.bar-anim:nth-child(4) { background: rgba(148, 226, 213, 0.4); animation-delay: 0.45s; height: 20px; }
-.bar-anim:nth-child(5) { background: rgba(166, 227, 161, 0.3); animation-delay: 0.6s; height: 28px; }
-
-@keyframes barGrow {
-  0%, 100% { transform: scaleY(1); }
-  50% { transform: scaleY(0.5); }
-}
-
-/* ================================================================
-   PANEL 1: EXECUTION STATUS — Roadmap view
-   ================================================================ */
-.exec-wave-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-
-.exec-roadmap {
-  margin-top: 6px;
-}
-
-.exec-stats-row {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 18px;
-}
-
-.exec-stat {
-  flex: 1;
-  text-align: center;
-  padding: 14px 8px;
-  background: rgba(49, 50, 68, 0.25);
-  border-radius: 12px;
-  border: 1px solid rgba(69, 71, 90, 0.2);
-  transition: border-color 0.25s ease, background 0.25s ease;
-}
-
-.exec-stat:hover {
-  border-color: rgba(180, 190, 254, 0.2);
-  background: rgba(49, 50, 68, 0.4);
-}
-
-.exec-stat-num {
-  font-family: var(--font-mono);
-  font-weight: 800;
-  font-size: 2rem;
-  line-height: 1;
-  background: linear-gradient(135deg, var(--lavender), var(--blue));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.exec-stat-label {
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
-  color: var(--overlay1);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-top: 6px;
-}
-
-.wave-grid {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-
-.wave-block {
-  flex: 1;
-  position: relative;
-  padding: 10px 8px;
-  background: rgba(49, 50, 68, 0.2);
-  border-radius: 10px;
-  border: 1px solid rgba(69, 71, 90, 0.15);
-  text-align: center;
-  transition: all 0.3s ease;
-  cursor: default;
-  overflow: hidden;
-}
-
-.wave-block::before {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--surface1);
-  transition: background 0.3s ease;
-}
-
-.wave-block:hover {
-  background: rgba(49, 50, 68, 0.4);
-  border-color: rgba(180, 190, 254, 0.2);
-}
-
-.wave-block.wave-complete::before { background: var(--green); box-shadow: 0 0 8px rgba(166, 227, 161, 0.3); }
-.wave-block.wave-active::before { background: var(--lavender); box-shadow: 0 0 8px rgba(180, 190, 254, 0.3); animation: wavePulse 2s ease-in-out infinite; }
-.wave-block.wave-active { border-color: rgba(180, 190, 254, 0.25); background: rgba(180, 190, 254, 0.04); }
-.wave-block.wave-pending::before { background: var(--surface1); }
-
-@keyframes wavePulse {
-  0%, 100% { box-shadow: 0 0 6px rgba(180, 190, 254, 0.2); }
-  50% { box-shadow: 0 0 14px rgba(180, 190, 254, 0.5); }
-}
-
-.wave-block-id {
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
-  font-weight: 600;
-  color: var(--overlay1);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-.wave-block-count {
-  font-family: var(--font-mono);
+.shortcut-modal h2 {
+  font-family: var(--font-display);
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--text);
-  margin-top: 2px;
-  line-height: 1;
-}
-
-.wave-block-label {
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  color: var(--overlay0);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-top: 3px;
-}
-
-.wave-block.wave-complete .wave-block-count { color: var(--green); }
-.wave-block.wave-active .wave-block-count { color: var(--lavender); }
-
-.exec-project-name {
-  font-family: var(--font-mono);
-  font-size: 0.64rem;
-  color: var(--overlay1);
-  margin-top: 10px;
-  padding: 8px 12px;
-  background: rgba(49, 50, 68, 0.15);
-  border-radius: 8px;
-  border-left: 2px solid rgba(180, 190, 254, 0.2);
-}
-
-.exec-project-name strong {
-  color: var(--subtext1);
-  font-weight: 500;
-}
-
-.exec-last-result {
-  margin-top: 14px;
-  padding: 12px 16px;
-  background: rgba(49, 50, 68, 0.3);
-  border-radius: 12px;
-  border-left: 3px solid var(--lavender);
-  box-shadow: inset 0 0 20px rgba(180, 190, 254, 0.02);
-}
-
-.exec-last-result .label {
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  color: var(--subtext0);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 4px;
-}
-
-.exec-last-result .value {
-  font-size: 0.8rem;
-  color: var(--text);
-}
-
-/* ================================================================
-   PANEL 2: TRUST & GOVERNANCE
-   ================================================================ */
-.trust-top {
-  display: flex;
-  align-items: flex-start;
-  gap: 20px;
-  margin-bottom: 14px;
-}
-
-.gauge-container {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.gauge-container svg {
-  filter: drop-shadow(0 0 10px var(--gauge-glow, transparent));
-  transition: filter 0.4s ease;
-}
-
-.gauge-track {
-  fill: none;
-  stroke: rgba(49, 50, 68, 0.8);
-  stroke-width: 6;
-}
-
-.gauge-fill {
-  fill: none;
-  stroke-width: 6;
-  stroke-linecap: round;
-  transform: rotate(-90deg);
-  transform-origin: center;
-  transition: stroke-dashoffset 1.2s cubic-bezier(0.22, 1, 0.36, 1), stroke 0.4s ease;
-}
-
-.gauge-value {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.gauge-number {
-  font-family: var(--font-mono);
-  font-weight: 800;
-  font-size: 1.8rem;
-  line-height: 1;
-  color: var(--text);
-}
-
-.gauge-label-sm {
-  font-family: var(--font-mono);
-  font-size: 0.52rem;
-  color: var(--overlay1);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  margin-top: 3px;
-}
-
-.trust-meta {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding-top: 4px;
-}
-
-.compliance-bar { margin-top: 2px; }
-
-.compliance-label {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  color: var(--overlay1);
-  margin-bottom: 6px;
-  display: flex;
-  justify-content: space-between;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-}
-
-.compliance-track {
-  width: 100%;
-  height: 5px;
-  background: rgba(49, 50, 68, 0.6);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.compliance-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--teal), var(--green));
-  border-radius: 3px;
-  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-  box-shadow: 0 0 8px rgba(148, 226, 213, 0.2);
-}
-
-.gov-decisions {
-  margin-top: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.gov-decision-item {
-  padding: 9px 14px;
-  background: rgba(49, 50, 68, 0.2);
-  border-radius: 10px;
-  border-left: 2px solid var(--mauve);
-  font-size: 0.75rem;
-  color: var(--subtext0);
-  line-height: 1.4;
-  transition: background 0.25s ease, border-color 0.25s ease;
-}
-
-.gov-decision-item:hover {
-  background: rgba(49, 50, 68, 0.4);
-  border-color: var(--pink);
-}
-
-.gov-decision-item .decision-time {
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  color: var(--overlay0);
-  letter-spacing: 0.02em;
-}
-
-/* ================================================================
-   PANEL 3: COST INTELLIGENCE
-   ================================================================ */
-.cost-hero {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin-bottom: 4px;
-}
-
-.cost-big-number {
-  font-family: var(--font-mono);
-  font-weight: 800;
-  font-size: 2.8rem;
-  line-height: 1;
-  background: linear-gradient(135deg, var(--green), var(--teal));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 0 16px rgba(166, 227, 161, 0.2));
-}
-
-.cost-big-label {
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  color: var(--overlay1);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   margin-bottom: 18px;
 }
 
-.cost-comparison {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 18px;
-}
-
-.cost-bar-group { flex: 1; }
-
-.cost-bar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 6px;
-}
-
-.cost-bar-name {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  color: var(--overlay1);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.cost-bar-value {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.cost-bar-track {
-  width: 100%;
-  height: 6px;
-  background: rgba(49, 50, 68, 0.5);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.cost-bar-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.cost-bar-fill.actual { background: linear-gradient(90deg, var(--green), var(--teal)); box-shadow: 0 0 8px rgba(166, 227, 161, 0.2); }
-.cost-bar-fill.opus   { background: linear-gradient(90deg, var(--mauve), var(--pink)); box-shadow: 0 0 8px rgba(203, 166, 247, 0.2); }
-
-.model-dist { margin-top: 4px; }
-
-.model-dist-label {
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  color: var(--overlay1);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 8px;
-}
-
-.model-stacked-bar {
-  width: 100%;
-  height: 10px;
-  background: rgba(49, 50, 68, 0.4);
-  border-radius: 5px;
-  overflow: hidden;
-  display: flex;
-}
-
-.model-stacked-bar .segment {
-  height: 100%;
-  transition: width 0.6s ease;
-}
-
-.segment-haiku   { background: linear-gradient(90deg, var(--teal), #7dd6c6); }
-.segment-sonnet  { background: linear-gradient(90deg, var(--blue), #a0c8fc); }
-.segment-opus    { background: linear-gradient(90deg, var(--mauve), #d6b8fa); }
-.segment-unknown { background: linear-gradient(90deg, var(--surface1), var(--surface2)); }
-
-.model-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  margin-top: 10px;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  color: var(--overlay1);
-}
-
-.legend-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 3px;
-  flex-shrink: 0;
-}
-
-/* Routing stat metric */
-.cost-routing-stat {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-  padding: 10px 14px;
-  background: rgba(49, 50, 68, 0.2);
-  border-radius: 10px;
-  border: 1px solid rgba(69, 71, 90, 0.15);
-}
-
-.cost-routing-num {
-  font-family: var(--font-mono);
-  font-weight: 800;
-  font-size: 1.8rem;
-  line-height: 1;
-  background: linear-gradient(135deg, var(--green), var(--teal));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.cost-routing-label {
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  color: var(--overlay1);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  line-height: 1.4;
-}
-
-/* ================================================================
-   PANEL 4: SESSIONS & CONTEXT
-   ================================================================ */
-.context-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  padding: 10px 0;
-}
-
-.context-level {
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: 0.82rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.level-normal   { color: var(--green); text-shadow: 0 0 16px rgba(166, 227, 161, 0.3); }
-.level-warning  { color: var(--yellow); text-shadow: 0 0 16px rgba(249, 226, 175, 0.3); }
-.level-urgent   { color: var(--peach); text-shadow: 0 0 16px rgba(250, 179, 135, 0.3); }
-.level-critical { color: var(--red); text-shadow: 0 0 16px rgba(243, 139, 168, 0.4); }
-.level-emergency { color: var(--red); text-shadow: 0 0 24px rgba(243, 139, 168, 0.6); animation: emergencyFlash 1s ease-in-out infinite; }
-
-@keyframes emergencyFlash {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.pulse-warning { animation: pulseWarn 1.5s ease-in-out infinite; }
-
-@keyframes pulseWarn {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
-}
-
-/* Session count badge in card header */
-.session-count-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  border-radius: 12px;
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  background: rgba(116, 199, 236, 0.1);
-  color: var(--sapphire);
-  border: 1px solid rgba(116, 199, 236, 0.15);
-}
-
-/* Project group header */
-.session-project-group {
-  margin-bottom: 10px;
-}
-
-.session-project-group:last-child {
-  margin-bottom: 0;
-}
-
-.session-project-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 0 8px;
-  font-family: var(--font-mono);
-  font-size: 0.64rem;
-  font-weight: 600;
-  color: var(--subtext0);
-  letter-spacing: 0.03em;
-}
-
-.session-project-header svg {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-}
-
-/* Session scroll container */
-.sessions-scroll {
-  max-height: 360px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--surface1) transparent;
-}
-
-.sessions-scroll::-webkit-scrollbar { width: 4px; }
-.sessions-scroll::-webkit-scrollbar-track { background: transparent; }
-.sessions-scroll::-webkit-scrollbar-thumb { background: var(--surface1); border-radius: 2px; }
-
-.sessions-hidden-note {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  color: var(--overlay0);
-  text-align: center;
-  padding: 8px 0 2px;
-  letter-spacing: 0.02em;
-}
-
-/* Session card */
-.session-card {
-  position: relative;
-  background: rgba(49, 50, 68, 0.2);
-  border-radius: 12px;
-  padding: 12px 14px;
-  margin-bottom: 6px;
-  border: 1px solid rgba(69, 71, 90, 0.2);
-  border-left: 3px solid var(--surface1);
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-  animation: fadeInUp 0.3s ease both;
-}
-
-.session-card:last-child {
-  margin-bottom: 0;
-}
-
-.session-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.3);
-}
-
-.session-card.session-stale {
-  opacity: 0.5;
-}
-
-/* IDE border accents */
-.session-card.ide-claude-code   { border-left-color: var(--lavender); }
-.session-card.ide-cursor        { border-left-color: var(--blue); }
-.session-card.ide-windsurf      { border-left-color: var(--teal); }
-.session-card.ide-kiro          { border-left-color: var(--green); }
-.session-card.ide-copilot       { border-left-color: var(--mauve); }
-.session-card.ide-cline         { border-left-color: var(--peach); }
-.session-card.ide-roo-code      { border-left-color: var(--flamingo); }
-.session-card.ide-kilo-code     { border-left-color: var(--yellow); }
-.session-card.ide-default       { border-left-color: var(--overlay1); }
-
-.session-card.ide-claude-code:hover  { border-left-color: var(--lavender); box-shadow: 0 6px 20px -6px rgba(180, 190, 254, 0.15); }
-.session-card.ide-cursor:hover       { border-left-color: var(--blue); box-shadow: 0 6px 20px -6px rgba(137, 180, 250, 0.15); }
-.session-card.ide-windsurf:hover     { border-left-color: var(--teal); box-shadow: 0 6px 20px -6px rgba(148, 226, 213, 0.15); }
-.session-card.ide-kiro:hover         { border-left-color: var(--green); box-shadow: 0 6px 20px -6px rgba(166, 227, 161, 0.15); }
-.session-card.ide-copilot:hover      { border-left-color: var(--mauve); box-shadow: 0 6px 20px -6px rgba(203, 166, 247, 0.15); }
-
-/* Session card top row */
-.session-card-top {
+.shortcut-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  padding: 6px 0;
 }
 
-/* IDE badge pill */
-.ide-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: capitalize;
-  white-space: nowrap;
-}
-
-.ide-badge-claude-code  { background: rgba(180, 190, 254, 0.14); color: var(--lavender); }
-.ide-badge-cursor       { background: rgba(137, 180, 250, 0.14); color: var(--blue); }
-.ide-badge-windsurf     { background: rgba(148, 226, 213, 0.14); color: var(--teal); }
-.ide-badge-kiro         { background: rgba(166, 227, 161, 0.14); color: var(--green); }
-.ide-badge-copilot      { background: rgba(203, 166, 247, 0.14); color: var(--mauve); }
-.ide-badge-cline        { background: rgba(250, 179, 135, 0.14); color: var(--peach); }
-.ide-badge-roo-code     { background: rgba(242, 205, 205, 0.14); color: var(--flamingo); }
-.ide-badge-kilo-code    { background: rgba(249, 226, 175, 0.14); color: var(--yellow); }
-.ide-badge-default      { background: rgba(88, 91, 112, 0.14); color: var(--overlay1); }
-
-/* Level badge inline */
-.session-level-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 7px;
-  border-radius: 6px;
-  font-family: var(--font-mono);
-  font-size: 0.52rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.session-level-NORMAL    { background: rgba(166, 227, 161, 0.12); color: var(--green); }
-.session-level-WARNING   { background: rgba(249, 226, 175, 0.12); color: var(--yellow); }
-.session-level-URGENT    { background: rgba(250, 179, 135, 0.12); color: var(--peach); }
-.session-level-CRITICAL  { background: rgba(243, 139, 168, 0.14); color: var(--red); }
-.session-level-EMERGENCY { background: rgba(243, 139, 168, 0.18); color: var(--red); animation: emergencyFlash 1s ease-in-out infinite; }
-
-/* Session progress bar (mini) */
-.session-progress-track {
-  width: 100%;
-  height: 4px;
-  background: var(--surface0);
-  border-radius: 2px;
-  overflow: hidden;
-  margin-bottom: 8px;
-}
-
-.session-progress-fill {
-  height: 100%;
-  border-radius: 2px;
-  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-  width: 0%;
-}
-
-.session-progress-fill.sp-green  { background: linear-gradient(90deg, var(--green), var(--teal)); box-shadow: 0 0 6px rgba(166, 227, 161, 0.2); }
-.session-progress-fill.sp-yellow { background: linear-gradient(90deg, var(--yellow), var(--peach)); box-shadow: 0 0 6px rgba(249, 226, 175, 0.2); }
-.session-progress-fill.sp-orange { background: linear-gradient(90deg, var(--peach), var(--red)); box-shadow: 0 0 6px rgba(250, 179, 135, 0.2); }
-.session-progress-fill.sp-red    { background: linear-gradient(90deg, var(--red), #eb6f92); box-shadow: 0 0 6px rgba(243, 139, 168, 0.3); }
-
-/* Session card bottom row */
-.session-card-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.session-pct {
-  font-family: var(--font-mono);
-  font-weight: 800;
-  font-size: 1.3rem;
-  line-height: 1;
-  color: var(--text);
-}
-
-.session-meta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-}
-
-.session-project-path {
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
-  color: var(--overlay1);
-  letter-spacing: 0.02em;
-}
-
-.session-freshness {
-  font-family: var(--font-mono);
-  font-size: 0.52rem;
-  color: var(--overlay0);
-  letter-spacing: 0.02em;
-}
-
-.session-freshness.stale-label {
-  color: var(--red);
-  font-weight: 600;
-}
-
-.session-id {
-  font-family: var(--font-mono);
-  font-size: 0.48rem;
-  color: var(--overlay0);
-  letter-spacing: 0.02em;
-  opacity: 0.7;
-}
-
-/* Header session indicator */
-.session-indicator {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  border-radius: 14px;
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  background: rgba(49, 50, 68, 0.3);
-  border: 1px solid rgba(49, 50, 68, 0.5);
-  transition: all 0.4s ease;
-}
-
-.session-indicator-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  transition: all 0.4s ease;
-}
-
-.session-indicator-dot.si-green  { background: var(--green); box-shadow: 0 0 6px rgba(166, 227, 161, 0.5); }
-.session-indicator-dot.si-yellow { background: var(--yellow); box-shadow: 0 0 6px rgba(249, 226, 175, 0.5); }
-.session-indicator-dot.si-red    { background: var(--red); box-shadow: 0 0 6px rgba(243, 139, 168, 0.5); }
-.session-indicator-dot.si-off    { background: var(--overlay0); }
-
-.session-indicator-label {
-  color: var(--subtext0);
-  transition: color 0.4s ease;
-}
-
-/* Radar / pulse icon for empty sessions state */
-.session-radar-icon {
-  width: 64px;
-  height: 64px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.radar-center {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--sapphire);
-  box-shadow: 0 0 10px rgba(116, 199, 236, 0.4);
-  z-index: 2;
-}
-
-.radar-ring {
-  position: absolute;
-  border-radius: 50%;
-  border: 1.5px solid rgba(116, 199, 236, 0.4);
-  opacity: 0;
-  animation: radarExpand 3s ease-out infinite;
-}
-
-.radar-ring:nth-child(2) { animation-delay: 0s; }
-.radar-ring:nth-child(3) { animation-delay: 0.75s; }
-.radar-ring:nth-child(4) { animation-delay: 1.5s; }
-.radar-ring:nth-child(5) { animation-delay: 2.25s; }
-
-@keyframes radarExpand {
-  0% { width: 8px; height: 8px; opacity: 0.8; border-color: rgba(116, 199, 236, 0.6); }
-  100% { width: 60px; height: 60px; opacity: 0; border-color: rgba(116, 199, 236, 0); }
-}
-
-.session-empty-title {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--subtext0);
-  letter-spacing: 0.04em;
-}
-
-.session-empty-desc {
-  font-size: 0.74rem;
-  color: var(--overlay1);
-  text-align: center;
-  max-width: 260px;
-  line-height: 1.6;
-}
-
-/* ================================================================
-   PANEL 5: DECISION TRAIL — Terminal aesthetic
-   ================================================================ */
-.card-trail {
-  background: rgba(14, 14, 22, 0.92) !important;
-}
-
-.trail-header-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.trail-count {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  color: var(--overlay0);
-}
-
-.live-indicator {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
-  border-radius: 12px;
-  background: rgba(166, 227, 161, 0.06);
-  border: 1px solid rgba(166, 227, 161, 0.12);
-}
-
-.live-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--green);
-  animation: livePulse 2s ease-in-out infinite;
-}
-
-@keyframes livePulse {
-  0%, 100% { box-shadow: 0 0 4px rgba(166, 227, 161, 0.5); opacity: 1; }
-  50% { box-shadow: 0 0 12px rgba(166, 227, 161, 0.8); opacity: 0.6; }
-}
-
-.live-text {
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  font-weight: 600;
-  color: var(--green);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.trail-scroll {
-  max-height: 300px;
-  overflow-y: auto;
+.shortcut-key {
   font-family: var(--font-mono);
   font-size: 0.7rem;
-  line-height: 1.6;
-  scrollbar-width: thin;
-  scrollbar-color: var(--surface1) transparent;
-  position: relative;
-  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 85%, transparent 100%);
-  mask-image: linear-gradient(to bottom, black 0%, black 85%, transparent 100%);
+  font-weight: 600;
+  background: var(--surface0);
+  color: var(--lavender);
+  padding: 3px 10px;
+  border-radius: 5px;
+  border: 1px solid rgba(69, 71, 90, 0.3);
 }
 
-.trail-scroll::-webkit-scrollbar { width: 4px; }
-.trail-scroll::-webkit-scrollbar-track { background: transparent; }
-.trail-scroll::-webkit-scrollbar-thumb { background: var(--surface1); border-radius: 2px; }
+.shortcut-desc {
+  font-size: 0.75rem;
+  color: var(--subtext0);
+}
 
+/* ================================================================
+   SKELETON LOADING
+   ================================================================ */
+.skeleton {
+  background: linear-gradient(90deg, rgba(49, 50, 68, 0.3) 25%, rgba(69, 71, 90, 0.3) 50%, rgba(49, 50, 68, 0.3) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ================================================================
+   OVERVIEW GRID
+   ================================================================ */
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.mini-card {
+  position: relative;
+  background: rgba(24, 24, 37, 0.78);
+  backdrop-filter: blur(24px) saturate(1.2);
+  border: 1px solid rgba(69, 71, 90, 0.35);
+  border-radius: 14px;
+  padding: 18px 20px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.mini-card:hover {
+  border-color: rgba(180, 190, 254, 0.2);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.mini-card-title {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--subtext0);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mini-card-value {
+  font-family: var(--font-mono);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.mini-card-sub {
+  font-size: 0.68rem;
+  color: var(--overlay1);
+  margin-top: 4px;
+}
+
+/* Robot on overview */
+.overview-robot {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+
+.overview-robot img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--crust) 55%, transparent 75%);
+  padding: 6px;
+  filter: drop-shadow(0 0 20px rgba(180, 190, 254, 0.4))
+          drop-shadow(0 0 50px rgba(203, 166, 247, 0.2));
+  animation: robotFloat 4s ease-in-out infinite;
+}
+
+@keyframes robotFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* ================================================================
+   TRAIL ENTRIES
+   ================================================================ */
 .trail-entry {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 6px 8px;
-  border-bottom: 1px solid rgba(49, 50, 68, 0.15);
-  transition: background 0.2s ease;
-  border-radius: 4px;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(49, 50, 68, 0.2);
+  cursor: pointer;
+  transition: background 0.15s ease;
 }
 
 .trail-entry:hover {
-  background: rgba(49, 50, 68, 0.2);
+  background: rgba(49, 50, 68, 0.15);
 }
 
-.trail-entry:last-child { border-bottom: none; }
-
-.trail-ts {
-  color: var(--overlay0);
+.trail-entry-time {
+  font-family: var(--font-mono);
   font-size: 0.6rem;
+  color: var(--overlay0);
   white-space: nowrap;
-  flex-shrink: 0;
-  font-weight: 400;
+  min-width: 52px;
 }
 
-.trail-desc {
-  color: var(--subtext0);
-  word-break: break-word;
+.trail-entry-desc {
+  font-size: 0.74rem;
+  color: var(--text);
+  flex: 1;
+  line-height: 1.4;
 }
+
+.trail-entry-detail {
+  display: none;
+  padding: 8px 12px 8px 72px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--subtext0);
+  background: rgba(49, 50, 68, 0.1);
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.4;
+  border-bottom: 1px solid rgba(49, 50, 68, 0.2);
+}
+
+.trail-entry-detail.expanded { display: block; }
 
 .trail-cursor {
-  padding: 6px 8px;
-  animation: cursorBlink 1.2s step-end infinite;
+  display: inline-block;
+  width: 8px;
+  height: 14px;
+  background: var(--teal);
+  animation: blink 1s step-end infinite;
+  margin-left: 4px;
+  vertical-align: middle;
+  border-radius: 1px;
 }
 
-.trail-cursor::after {
-  content: '\2588';
-  color: var(--teal);
-  font-size: 0.7rem;
-  opacity: 0.7;
-}
-
-@keyframes cursorBlink {
+@keyframes blink {
   0%, 50% { opacity: 1; }
   50.01%, 100% { opacity: 0; }
 }
 
-.trail-empty {
-  color: var(--overlay0);
-  font-style: italic;
-  padding: 32px 0;
-  text-align: center;
-  font-size: 0.72rem;
-}
-
 /* ================================================================
-   PANEL 6: INTELLIGENCE MEMORY
+   SESSION CARDS
    ================================================================ */
-.memory-stats-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.memory-stat-box {
-  flex: 1;
-  text-align: center;
-  padding: 14px 8px;
+.session-card {
   background: rgba(49, 50, 68, 0.2);
+  border: 1px solid rgba(69, 71, 90, 0.25);
   border-radius: 12px;
-  border: 1px solid rgba(69, 71, 90, 0.18);
-  transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  transition: all 0.2s ease;
 }
 
-.memory-stat-box:hover {
-  border-color: rgba(245, 194, 231, 0.2);
-  background: rgba(49, 50, 68, 0.4);
-  transform: translateY(-1px);
+.session-card.stale {
+  opacity: 0.5;
 }
 
-.memory-stat-num {
-  font-family: var(--font-mono);
-  font-weight: 800;
-  font-size: 1.6rem;
-  color: var(--text);
-  line-height: 1;
-}
-
-.memory-stat-label {
-  font-family: var(--font-mono);
-  font-size: 0.54rem;
-  color: var(--overlay1);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-top: 6px;
-}
-
-.reflexion-list {
+.session-card-header {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
 }
 
-.reflexion-item {
-  padding: 10px 14px;
-  background: rgba(49, 50, 68, 0.2);
-  border-radius: 12px;
-  border-left: 2px solid var(--lavender);
-  cursor: pointer;
-  transition: background 0.25s ease, border-color 0.25s ease;
-}
-
-.reflexion-item:hover {
-  background: rgba(49, 50, 68, 0.4);
-  border-color: var(--pink);
-}
-
-.reflexion-task {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--text);
-  margin-bottom: 2px;
-}
-
-.reflexion-lesson {
-  font-size: 0.7rem;
+.session-id {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
   color: var(--subtext0);
-  line-height: 1.4;
-  display: none;
 }
 
-.reflexion-item.expanded .reflexion-lesson {
-  display: block;
-  margin-top: 6px;
-}
-
-.reflexion-outcome {
-  display: inline-block;
+.session-ide {
   font-family: var(--font-mono);
   font-size: 0.58rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 2px 8px;
-  border-radius: 4px;
-  margin-top: 4px;
+  border-radius: 8px;
+  background: rgba(137, 180, 250, 0.1);
+  color: var(--blue);
+  border: 1px solid rgba(137, 180, 250, 0.15);
 }
 
-.outcome-success { background: rgba(166, 227, 161, 0.12); color: var(--green); }
-.outcome-failure { background: rgba(243, 139, 168, 0.12); color: var(--red); }
-.outcome-partial { background: rgba(249, 226, 175, 0.12); color: var(--yellow); }
-
-/* Memory empty state — enhanced */
-.memory-empty-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 30px 16px;
-}
-
-.memory-neural-icon {
-  width: 72px;
-  height: 72px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.neural-core {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--pink);
-  box-shadow: 0 0 16px rgba(245, 194, 231, 0.4);
-  animation: coreGlow 2s ease-in-out infinite;
-  z-index: 2;
-}
-
-@keyframes coreGlow {
-  0%, 100% { box-shadow: 0 0 12px rgba(245, 194, 231, 0.3); transform: scale(1); }
-  50% { box-shadow: 0 0 24px rgba(245, 194, 231, 0.6); transform: scale(1.15); }
-}
-
-.neural-ring {
-  position: absolute;
-  border-radius: 50%;
-  border: 1px solid;
-  opacity: 0;
-  animation: neuralRingExpand 3s ease-out infinite;
-}
-
-.neural-ring:nth-child(2) { animation-delay: 0s; }
-.neural-ring:nth-child(3) { animation-delay: 0.7s; }
-.neural-ring:nth-child(4) { animation-delay: 1.4s; }
-.neural-ring:nth-child(5) { animation-delay: 2.1s; }
-
-@keyframes neuralRingExpand {
-  0% { width: 12px; height: 12px; opacity: 0.7; border-color: rgba(245, 194, 231, 0.5); }
-  100% { width: 68px; height: 68px; opacity: 0; border-color: rgba(245, 194, 231, 0); }
-}
-
-.neural-particles {
-  position: absolute;
-  inset: 0;
-}
-
-.neural-particle {
-  position: absolute;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: var(--pink);
-  opacity: 0;
-  animation: particleOrbit 4s linear infinite;
-}
-
-.neural-particle:nth-child(1) { animation-delay: 0s; left: 50%; top: 0; }
-.neural-particle:nth-child(2) { animation-delay: 1s; right: 0; top: 50%; }
-.neural-particle:nth-child(3) { animation-delay: 2s; left: 50%; bottom: 0; }
-.neural-particle:nth-child(4) { animation-delay: 3s; left: 0; top: 50%; }
-
-@keyframes particleOrbit {
-  0% { opacity: 0; transform: scale(0); }
-  20% { opacity: 0.6; transform: scale(1); }
-  80% { opacity: 0.3; transform: scale(0.8); }
-  100% { opacity: 0; transform: scale(0); }
-}
-
-.memory-empty-title {
+.project-group-header {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   font-weight: 600;
   color: var(--subtext0);
+  padding: 8px 0 6px;
+  border-bottom: 1px solid rgba(49, 50, 68, 0.3);
+  margin-bottom: 8px;
+  text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
-.memory-empty-desc {
-  font-size: 0.76rem;
-  color: var(--overlay1);
+/* ================================================================
+   TRUST GAUGE
+   ================================================================ */
+.gauge-container {
+  display: flex;
+  justify-content: center;
+  margin: 14px 0;
+}
+
+.tier-ladder {
+  display: flex;
+  gap: 6px;
+  margin: 14px 0;
+}
+
+.tier-box {
+  flex: 1;
   text-align: center;
-  max-width: 260px;
-  line-height: 1.6;
+  padding: 10px 8px;
+  border-radius: 8px;
+  background: rgba(49, 50, 68, 0.2);
+  border: 1px solid rgba(69, 71, 90, 0.2);
+  transition: all 0.3s ease;
+}
+
+.tier-box.current {
+  background: rgba(203, 166, 247, 0.12);
+  border-color: rgba(203, 166, 247, 0.3);
+  box-shadow: 0 0 12px rgba(203, 166, 247, 0.1);
+}
+
+.tier-box-name {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--overlay1);
+}
+
+.tier-box.current .tier-box-name {
+  color: var(--mauve);
 }
 
 /* ================================================================
-   ANIMATIONS
+   MEMORY STATS ROW
    ================================================================ */
-.value-changed {
-  animation: valueGlow 1s ease;
+.memory-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
-@keyframes valueGlow {
-  0% { text-shadow: 0 0 20px rgba(180, 190, 254, 0.7); }
-  100% { text-shadow: none; }
+/* ================================================================
+   RESPONSIVE
+   ================================================================ */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main-area { margin-left: 0; }
+  .overview-grid { grid-template-columns: 1fr; }
+  .tier-ladder { flex-direction: column; }
+  .memory-stats-row { grid-template-columns: 1fr; }
 }
 
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+/* ================================================================
+   SCROLL LOCK TOGGLE
+   ================================================================ */
+.scroll-lock-btn {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  padding: 3px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(69, 71, 90, 0.4);
+  background: rgba(49, 50, 68, 0.3);
+  color: var(--overlay1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.scroll-lock-btn.active {
+  background: rgba(148, 226, 213, 0.12);
+  color: var(--teal);
+  border-color: rgba(148, 226, 213, 0.3);
 }
 
 /* ================================================================
    UTILITY
    ================================================================ */
-.hidden { display: none !important; }
+.flex-row { display: flex; align-items: center; gap: 10px; }
+.flex-col { display: flex; flex-direction: column; gap: 10px; }
+.gap-sm { gap: 6px; }
+.gap-md { gap: 12px; }
+.gap-lg { gap: 20px; }
+.mt-sm { margin-top: 8px; }
+.mt-md { margin-top: 16px; }
+.mb-sm { margin-bottom: 8px; }
+.mb-md { margin-bottom: 16px; }
+.text-mono { font-family: var(--font-mono); }
+.text-sm { font-size: 0.72rem; }
+.text-xs { font-size: 0.62rem; }
+.text-muted { color: var(--overlay1); }
+.text-sub { color: var(--subtext0); }
 
-/* ================================================================
-   SCROLLBAR STYLES
-   ================================================================ */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--surface1); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--surface2); }
+/* Refresh button */
+.refresh-btn {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  padding: 4px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(69, 71, 90, 0.4);
+  background: rgba(49, 50, 68, 0.3);
+  color: var(--overlay1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.refresh-btn:hover {
+  background: rgba(49, 50, 68, 0.6);
+  color: var(--text);
+}
 </style>
 </head>
 <body>
 
-<!-- Animated background -->
+<!-- Background -->
 <div class="bg-layer">
   <div class="bg-orb"></div>
   <div class="bg-orb"></div>
@@ -2046,1315 +1287,129 @@ body {
   <div class="bg-noise"></div>
 </div>
 
-<!-- ============================================================
-     HEADER
-     ============================================================ -->
-<header class="header">
-  <div class="header-left">
-    <span class="header-brand">JuhBDI</span>
-    <div class="header-divider"></div>
-    <span class="header-subtitle">Governance Dashboard</span>
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <img src="/assets/juhbdilogo.png" alt="JuhBDI">
   </div>
-  <div class="header-right">
-    <div id="sessionIndicator" class="session-indicator">
-      <div id="sessionIndicatorDot" class="session-indicator-dot si-off"></div>
-      <span id="sessionIndicatorLabel" class="session-indicator-label">No sessions</span>
-    </div>
-    <div id="connIndicator" class="connection-indicator">
-      <div class="connection-dot"></div>
-      <span class="connection-label">Offline</span>
-    </div>
-    <span id="headerTime" class="header-time">--:--:--</span>
+  <div class="sidebar-nav" id="sidebarNav">
+    <button class="nav-item active" data-view="overview">
+      <svg viewBox="0 0 18 18"><rect x="2" y="2" width="5.5" height="5.5" rx="1.5"/><rect x="10.5" y="2" width="5.5" height="5.5" rx="1.5"/><rect x="2" y="10.5" width="5.5" height="5.5" rx="1.5"/><rect x="10.5" y="10.5" width="5.5" height="5.5" rx="1.5"/></svg>
+      <span class="tooltip">Overview</span>
+    </button>
+    <button class="nav-item" data-view="execution">
+      <svg viewBox="0 0 18 18"><path d="M6 3l8 6-8 6V3z"/></svg>
+      <span class="tooltip">Execution</span>
+    </button>
+    <button class="nav-item" data-view="cost">
+      <svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="7"/><path d="M9 4.5v9M6.5 6.5h4a1.5 1.5 0 010 3H7.5a1.5 1.5 0 000 3h4"/></svg>
+      <span class="tooltip">Cost Intelligence</span>
+    </button>
+    <button class="nav-item" data-view="trust">
+      <svg viewBox="0 0 18 18"><path d="M9 2l6 3v4c0 3.5-2.5 6.5-6 7.5C5.5 15.5 3 12.5 3 9V5l6-3z"/></svg>
+      <span class="tooltip">Trust & Governance</span>
+    </button>
+    <button class="nav-item" data-view="sessions">
+      <svg viewBox="0 0 18 18"><rect x="2" y="3" width="14" height="10" rx="2"/><path d="M5 16h8"/><path d="M9 13v3"/></svg>
+      <span class="tooltip">Sessions & Context</span>
+    </button>
+    <button class="nav-item" data-view="trail">
+      <svg viewBox="0 0 18 18"><path d="M3 9h2l2-4 3 8 2-4h3"/></svg>
+      <span class="tooltip">Decision Trail</span>
+    </button>
+    <button class="nav-item" data-view="memory">
+      <svg viewBox="0 0 18 18"><path d="M9 2C5 2 3 5 3 9s2 7 6 7 6-3 6-7-2-7-6-7z"/><path d="M9 2c2 2 3 5 3 7s-1 5-3 7"/><path d="M9 2c-2 2-3 5-3 7s1 5 3 7"/><path d="M3 9h12"/></svg>
+      <span class="tooltip">Intelligence Memory</span>
+    </button>
+    <div class="sidebar-divider"></div>
+    <button class="nav-item" data-view="codehealth">
+      <svg viewBox="0 0 18 18"><path d="M5 5l-3 4 3 4"/><path d="M13 5l3 4-3 4"/><path d="M10 3L8 15"/></svg>
+      <span class="tooltip">Code Health</span>
+    </button>
   </div>
-</header>
+  <div class="sidebar-bottom">
+    <button class="nav-item" id="btnShortcuts" title="Keyboard shortcuts">
+      <svg viewBox="0 0 18 18"><rect x="1.5" y="5" width="15" height="9" rx="2"/><path d="M5 8h1M8.5 8h1M12 8h1M4 11h10"/></svg>
+      <span class="tooltip">Shortcuts (?)</span>
+    </button>
+  </div>
+</nav>
 
-<!-- ============================================================
-     DASHBOARD GRID — Robot Command Hub
-     ============================================================ -->
-<main class="dashboard">
+<!-- Main Area -->
+<div class="main-area">
 
-  <!-- ── Top: 4 panels with robot nexus in center ─────────── -->
-  <div class="command-hub">
-
-    <!-- SVG Transmission Lines -->
-    <div class="transmission-layer" id="txLayer">
-      <svg id="txSvg" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <defs>
-          <filter id="txGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="3" result="blur"/>
-            <feMerge>
-              <feMergeNode in="blur"/>
-              <feMergeNode in="blur"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-        </defs>
-        <!-- Lines drawn by JS after layout -->
-        <g id="txLines"></g>
-      </svg>
+  <!-- Metrics Bar -->
+  <header class="metrics-bar" id="metricsBar">
+    <div class="metric" id="metricExec" data-view="execution">
+      <span class="metric-icon">&#9654;</span>
+      <div>
+        <div class="metric-value" id="metricExecValue">--</div>
+        <div class="metric-label">Wave</div>
+      </div>
     </div>
-
-    <!-- Robot Nexus (centered) -->
-    <div class="robot-nexus">
-      <img src="/assets/juhbdilogo.png" alt="JuhBDI" />
+    <div class="metric" id="metricCost" data-view="cost">
+      <span class="metric-icon">$</span>
+      <div>
+        <div class="metric-value" id="metricCostValue">--</div>
+        <div class="metric-label">Spend</div>
+      </div>
+      <span class="metric-sub" id="metricCostSub"></span>
     </div>
-
-    <!-- PANEL 1: Execution Status (top-left) -->
-    <section class="card" id="panelExec">
-      <div class="card-header">
-        <div class="card-header-left">
-          <div class="panel-icon panel-icon-exec"></div>
-          <span class="card-title">Execution Status</span>
-        </div>
-        <div id="execBadges"></div>
+    <div class="metric" id="metricTrust" data-view="trust">
+      <span class="metric-icon">&#9741;</span>
+      <div>
+        <div class="metric-value" id="metricTrustValue">--</div>
+        <div class="metric-label">Trust</div>
       </div>
-      <div id="execBody"></div>
-    </section>
-
-    <!-- PANEL 2: Trust & Governance (top-right) -->
-    <section class="card" id="panelTrust">
-      <div class="card-header">
-        <div class="card-header-left">
-          <div class="panel-icon panel-icon-trust"></div>
-          <span class="card-title">Trust &amp; Governance</span>
-        </div>
+      <span class="metric-sub" id="metricTrustSub"></span>
+    </div>
+    <div class="metric" id="metricContext" data-view="sessions">
+      <span class="metric-icon">&#9679;</span>
+      <div>
+        <div class="metric-value" id="metricCtxValue">--</div>
+        <div class="metric-label">Context</div>
       </div>
-      <div id="trustBody"></div>
-    </section>
-
-    <!-- PANEL 3: Cost Intelligence (bottom-left) -->
-    <section class="card" id="panelCost">
-      <div class="card-header">
-        <div class="card-header-left">
-          <div class="panel-icon panel-icon-cost"></div>
-          <span class="card-title">Cost Intelligence</span>
-        </div>
+    </div>
+    <div class="metrics-right">
+      <div class="connection-indicator" id="connectionIndicator">
+        <div class="connection-dot"></div>
+        <span class="connection-label">SSE</span>
       </div>
-      <div id="costBody"></div>
-    </section>
-
-    <!-- PANEL 4: Sessions & Context (bottom-right) -->
-    <section class="card" id="panelContext">
-      <div class="card-header">
-        <div class="card-header-left">
-          <div class="panel-icon panel-icon-sessions"></div>
-          <span class="card-title">Sessions &amp; Context</span>
-        </div>
-        <span id="sessionCountBadge" class="session-count-badge" style="display:none;"></span>
-      </div>
-      <div id="contextBody"></div>
-    </section>
-
-  </div><!-- /command-hub -->
-
-  <!-- ── Bottom: Trail + Memory ───────────────────────────── -->
-  <div class="bottom-row">
-
-    <!-- PANEL 5: Decision Trail -->
-    <section class="card card-trail" id="panelTrail">
-      <div class="card-header">
-        <div class="card-header-left">
-          <div class="panel-icon panel-icon-trail"></div>
-          <span class="card-title">Decision Trail</span>
-        </div>
-        <div class="trail-header-right">
-          <span id="trailCount" class="trail-count"></span>
-          <div class="live-indicator">
-            <div class="live-dot"></div>
-            <span class="live-text">Live</span>
-          </div>
-        </div>
-      </div>
-      <div id="trailBody" class="trail-scroll"></div>
-    </section>
-
-    <!-- PANEL 6: Intelligence Memory -->
-    <section class="card" id="panelMemory">
-      <div class="card-header">
-        <div class="card-header-left">
-          <div class="panel-icon panel-icon-memory"></div>
-          <span class="card-title">Intelligence Memory</span>
-        </div>
-      </div>
-      <div id="memoryBody"></div>
-    </section>
-
-  </div><!-- /bottom-row -->
-
-</main>
-
-<script>
-/* ================================================================
-   GLOBALS
-   ================================================================ */
-var connected = false;
-var lastTrailCount = 0;
-var cachedState = null;
-var cachedMemory = null;
-var cachedTrail = null;
-
-/* ================================================================
-   HELPERS
-   ================================================================ */
-function $(id) { return document.getElementById(id); }
-
-function el(tag, attrs, children) {
-  var node = document.createElement(tag);
-  if (attrs) {
-    for (var k in attrs) {
-      if (!attrs.hasOwnProperty(k)) continue;
-      var v = attrs[k];
-      if (k === 'className') node.className = v;
-      else if (k === 'textContent') node.textContent = v;
-      else if (k === 'innerHTML') node.innerHTML = v;
-      else if (k.startsWith('on')) node.addEventListener(k.slice(2).toLowerCase(), v);
-      else node.setAttribute(k, v);
-    }
-  }
-  if (children) {
-    if (typeof children === 'string') node.textContent = children;
-    else if (Array.isArray(children)) children.forEach(function(c) { if (c) node.appendChild(c); });
-    else node.appendChild(children);
-  }
-  return node;
-}
-
-function svgEl(tag, attrs) {
-  var node = document.createElementNS('http://www.w3.org/2000/svg', tag);
-  if (attrs) for (var k in attrs) { if (attrs.hasOwnProperty(k)) node.setAttribute(k, attrs[k]); }
-  return node;
-}
-
-function clearNode(node) {
-  while (node.firstChild) node.removeChild(node.firstChild);
-}
-
-function fmt$(val) {
-  if (val == null || isNaN(val)) return '$0.00';
-  return '$' + val.toFixed(4);
-}
-
-function fmtTs(iso) {
-  if (!iso) return '--:--';
-  try {
-    var d = new Date(iso);
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  } catch(e) { return '--:--'; }
-}
-
-function setConnected(val) {
-  connected = val;
-  var ind = $('connIndicator');
-  var label = ind.querySelector('.connection-label');
-  if (val) {
-    ind.classList.add('connected');
-    label.textContent = 'Connected';
-  } else {
-    ind.classList.remove('connected');
-    label.textContent = 'Offline';
-  }
-}
-
-/* ================================================================
-   CLOCK
-   ================================================================ */
-function tickClock() {
-  $('headerTime').textContent = new Date().toLocaleTimeString([], {
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-  });
-}
-tickClock();
-setInterval(tickClock, 1000);
-
-/* ================================================================
-   GAUGE SVG BUILDER — With gradient stroke + glow
-   ================================================================ */
-function buildGauge(pct, gradientColors, size, glowColor) {
-  size = size || 110;
-  var r = 40;
-  var circ = 2 * Math.PI * r;
-  var offset = circ - (circ * Math.max(0, Math.min(100, pct)) / 100);
-  var gradId = 'gauge-grad-' + Math.random().toString(36).substr(2, 6);
-
-  var container = el('div', { className: 'gauge-container' });
-  container.style.width = size + 'px';
-  container.style.height = size + 'px';
-
-  var svg = svgEl('svg', { viewBox: '0 0 100 100', width: String(size), height: String(size) });
-
-  // Gradient definition
-  var defs = svgEl('defs');
-  var grad = svgEl('linearGradient', { id: gradId, x1: '0%', y1: '0%', x2: '100%', y2: '100%' });
-  if (typeof gradientColors === 'string') {
-    gradientColors = [gradientColors, gradientColors];
-  }
-  for (var i = 0; i < gradientColors.length; i++) {
-    var stop = svgEl('stop', {
-      offset: (i / (gradientColors.length - 1) * 100) + '%',
-      'stop-color': gradientColors[i]
-    });
-    grad.appendChild(stop);
-  }
-  defs.appendChild(grad);
-  svg.appendChild(defs);
-
-  var track = svgEl('circle', { cx: '50', cy: '50', r: String(r), class: 'gauge-track' });
-  var fill = svgEl('circle', {
-    cx: '50', cy: '50', r: String(r),
-    class: 'gauge-fill',
-    stroke: 'url(#' + gradId + ')',
-    'stroke-dasharray': String(circ),
-    'stroke-dashoffset': String(circ),
-  });
-
-  svg.appendChild(track);
-  svg.appendChild(fill);
-
-  // Glow
-  if (glowColor) {
-    svg.style.filter = 'drop-shadow(0 0 10px ' + glowColor + ')';
-  }
-
-  container.appendChild(svg);
-
-  var valWrap = el('div', { className: 'gauge-value' });
-  var numEl = el('span', { className: 'gauge-number', textContent: Math.round(pct) });
-  var labEl = el('span', { className: 'gauge-label-sm' });
-  valWrap.appendChild(numEl);
-  valWrap.appendChild(labEl);
-  container.appendChild(valWrap);
-
-  // Animate stroke on load
-  requestAnimationFrame(function() {
-    requestAnimationFrame(function() {
-      fill.setAttribute('stroke-dashoffset', String(offset));
-    });
-  });
-
-  return { container: container, numEl: numEl, labEl: labEl };
-}
-
-/* ================================================================
-   PANEL RENDERERS
-   ================================================================ */
-
-/* --- EXECUTION --- */
-function renderExecution(stateData) {
-  var body = $('execBody');
-  var badges = $('execBadges');
-  clearNode(body);
-  clearNode(badges);
-
-  var s = stateData && stateData.state ? stateData.state : null;
-  var roadmap = stateData && stateData.roadmap ? stateData.roadmap : null;
-  var intentSpec = stateData && stateData.intentSpec ? stateData.intentSpec : null;
-
-  // If actively executing with current_wave, show active execution view
-  if (s && s.current_wave) {
-    if (s.current_wave) {
-      badges.appendChild(el('span', { className: 'badge badge-wave', textContent: 'Wave ' + s.current_wave }));
-    }
-    if (s.current_phase) {
-      badges.appendChild(el('span', { className: 'badge badge-phase', textContent: s.current_phase }));
-    }
-
-    var tasks = s.tasks || [];
-    var total = tasks.length;
-    var done = tasks.filter(function(t) { return t.status === 'done' || t.status === 'completed'; }).length;
-    var pct = total > 0 ? Math.round((done / total) * 100) : 0;
-
-    var track = el('div', { className: 'progress-track' });
-    var fill = el('div', { className: 'progress-fill' });
-    fill.style.width = '0%';
-    track.appendChild(fill);
-    body.appendChild(track);
-    body.appendChild(el('div', { className: 'progress-label', textContent: done + '/' + total + ' tasks (' + pct + '%)' }));
-
-    // Animate progress bar
-    requestAnimationFrame(function() {
-      requestAnimationFrame(function() { fill.style.width = pct + '%'; });
-    });
-
-    if (s.last_wave_result) {
-      var lw = el('div', { className: 'exec-last-result' });
-      lw.appendChild(el('div', { className: 'label', textContent: 'Last Wave Result' }));
-      lw.appendChild(el('div', { className: 'value', textContent: s.last_wave_result }));
-      body.appendChild(lw);
-    }
-    return;
-  }
-
-  // If we have roadmap data, show the roadmap overview
-  if (roadmap && roadmap.waves && roadmap.waves.length > 0) {
-    var waves = roadmap.waves;
-    var totalTasks = 0;
-    var totalWaves = waves.length;
-    waves.forEach(function(w) { totalTasks += (w.tasks || []).length; });
-
-    // Project badge
-    var projectName = (s && s.project_name) || (intentSpec && intentSpec.project && intentSpec.project.name) || null;
-    if (projectName) {
-      var projBadge = el('div', { className: 'badge-project' });
-      projBadge.appendChild(el('span', { className: 'badge-project-dot' }));
-      projBadge.appendChild(document.createTextNode(projectName));
-      badges.appendChild(projBadge);
-    }
-
-    // Stats row
-    var statsRow = el('div', { className: 'exec-stats-row' });
-    var stat1 = el('div', { className: 'exec-stat' });
-    stat1.appendChild(el('div', { className: 'exec-stat-num', textContent: String(totalTasks) }));
-    stat1.appendChild(el('div', { className: 'exec-stat-label', textContent: 'Tasks' }));
-    statsRow.appendChild(stat1);
-
-    var stat2 = el('div', { className: 'exec-stat' });
-    stat2.appendChild(el('div', { className: 'exec-stat-num', textContent: String(totalWaves) }));
-    stat2.appendChild(el('div', { className: 'exec-stat-label', textContent: 'Waves' }));
-    statsRow.appendChild(stat2);
-
-    // Count statuses
-    var completedTasks = 0;
-    var pendingTasks = 0;
-    waves.forEach(function(w) {
-      (w.tasks || []).forEach(function(t) {
-        if (t.status === 'done' || t.status === 'completed') completedTasks++;
-        else pendingTasks++;
-      });
-    });
-
-    var stat3 = el('div', { className: 'exec-stat' });
-    stat3.appendChild(el('div', { className: 'exec-stat-num', textContent: completedTasks > 0 ? String(completedTasks) : '0' }));
-    stat3.appendChild(el('div', { className: 'exec-stat-label', textContent: 'Done' }));
-    statsRow.appendChild(stat3);
-
-    body.appendChild(statsRow);
-
-    // Wave grid
-    var waveGrid = el('div', { className: 'wave-grid' });
-    waves.forEach(function(w, idx) {
-      var wTasks = w.tasks || [];
-      var wDone = wTasks.filter(function(t) { return t.status === 'done' || t.status === 'completed'; }).length;
-      var wStatus = wDone === wTasks.length && wTasks.length > 0 ? 'wave-complete' : 'wave-pending';
-
-      var block = el('div', { className: 'wave-block ' + wStatus });
-      block.appendChild(el('div', { className: 'wave-block-id', textContent: w.id || ('W' + (idx + 1)) }));
-      block.appendChild(el('div', { className: 'wave-block-count', textContent: String(wTasks.length) }));
-      block.appendChild(el('div', { className: 'wave-block-label', textContent: wTasks.length === 1 ? 'task' : 'tasks' }));
-
-      // Tooltip with task descriptions on hover
-      var tooltipParts = [];
-      wTasks.forEach(function(t) {
-        var desc = t.description || t.id || 'task';
-        var statusIcon = (t.status === 'done' || t.status === 'completed') ? '\u2713 ' : '\u25CB ';
-        tooltipParts.push(statusIcon + desc.substring(0, 60));
-      });
-      if (tooltipParts.length > 0) block.title = tooltipParts.join('\n');
-
-      waveGrid.appendChild(block);
-    });
-    body.appendChild(waveGrid);
-
-    // Project info
-    if (s && s.architecture) {
-      var projInfo = el('div', { className: 'exec-project-name' });
-      projInfo.appendChild(el('strong', {}, 'Architecture: '));
-      projInfo.appendChild(document.createTextNode(s.architecture.substring(0, 120)));
-      body.appendChild(projInfo);
-    }
-
-    return;
-  }
-
-  // True empty state — check if we have state but no roadmap vs completely fresh
-  var emptyDiv = el('div', { className: 'empty-state' });
-  var gearIcon = el('div', { className: 'empty-icon-gear' });
-  emptyDiv.appendChild(gearIcon);
-  if (s && !roadmap) {
-    // Project initialized but no roadmap yet
-    emptyDiv.appendChild(el('div', { className: 'empty-text' }, [
-      document.createTextNode('No active roadmap. Run '),
-      el('code', {}, '/juhbdi:plan'),
-      document.createTextNode(' to create one.'),
-    ]));
-  } else {
-    emptyDiv.appendChild(el('div', { className: 'empty-text' }, [
-      document.createTextNode('No active execution. Run '),
-      el('code', {}, '/juhbdi:init'),
-      document.createTextNode(' to get started, or '),
-      el('code', {}, '/juhbdi:execute'),
-      document.createTextNode(' if already initialized.'),
-    ]));
-  }
-  body.appendChild(emptyDiv);
-}
-
-/* --- TRUST & GOVERNANCE --- */
-function renderTrust(memory, state) {
-  var body = $('trustBody');
-  clearNode(body);
-
-  var score = (memory && memory.trust_score != null) ? memory.trust_score : 0;
-  var tier = (memory && memory.trust_tier) ? memory.trust_tier : 'unknown';
-
-  var tierName, tierClass;
-  if (tier === 'unknown' || score === 0) { tierName = 'New Project'; tierClass = 'tier-new'; }
-  else if (score <= 25) { tierName = 'Intern'; tierClass = 'tier-intern'; }
-  else if (score <= 50) { tierName = 'Junior'; tierClass = 'tier-junior'; }
-  else if (score <= 75) { tierName = 'Senior'; tierClass = 'tier-senior'; }
-  else { tierName = 'Principal'; tierClass = 'tier-principal'; }
-
-  var gaugeColors, glowColor;
-  if (tier === 'unknown' || score === 0) {
-    gaugeColors = ['#6c7086', '#7f849c'];
-    glowColor = 'rgba(108, 112, 134, 0.15)';
-  } else if (score <= 25) {
-    gaugeColors = ['#7f849c', '#9399b2'];
-    glowColor = 'rgba(127, 132, 156, 0.2)';
-  } else if (score <= 50) {
-    gaugeColors = ['#89b4fa', '#74c7ec'];
-    glowColor = 'rgba(137, 180, 250, 0.2)';
-  } else if (score <= 75) {
-    gaugeColors = ['#a6e3a1', '#94e2d5'];
-    glowColor = 'rgba(166, 227, 161, 0.2)';
-  } else {
-    gaugeColors = ['#cba6f7', '#f5c2e7'];
-    glowColor = 'rgba(203, 166, 247, 0.25)';
-  }
-
-  var top = el('div', { className: 'trust-top' });
-  var gauge = buildGauge(score, gaugeColors, 110, glowColor);
-  gauge.labEl.textContent = 'TRUST';
-  // Show dash when trust hasn't been established yet
-  if (tier === 'unknown' && score === 0) {
-    gauge.numEl.textContent = '\u2014';
-    gauge.numEl.style.fontSize = '1.4rem';
-    gauge.numEl.style.color = 'var(--overlay1)';
-  }
-  top.appendChild(gauge.container);
-
-  var meta = el('div', { className: 'trust-meta' });
-  meta.appendChild(el('span', { className: 'tier-badge ' + tierClass, textContent: tierName }));
-
-  var compBar = el('div', { className: 'compliance-bar' });
-  var compPct = (state && state.state && state.state.eu_compliance_pct != null) ? state.state.eu_compliance_pct : 0;
-  var compLabel = el('div', { className: 'compliance-label' });
-  compLabel.appendChild(el('span', {}, 'EU AI Act'));
-  if (compPct > 0) {
-    compLabel.appendChild(el('span', {}, compPct + '%'));
-  } else {
-    var pendingSpan = el('span', {});
-    pendingSpan.style.fontStyle = 'italic';
-    pendingSpan.style.opacity = '0.6';
-    pendingSpan.textContent = 'pending';
-    compLabel.appendChild(pendingSpan);
-  }
-  compBar.appendChild(compLabel);
-  var compTrack = el('div', { className: 'compliance-track' });
-  var compFill = el('div', { className: 'compliance-fill' });
-  compFill.style.width = '0%';
-  compTrack.appendChild(compFill);
-  compBar.appendChild(compTrack);
-  meta.appendChild(compBar);
-
-  // Animate compliance bar
-  requestAnimationFrame(function() {
-    requestAnimationFrame(function() { compFill.style.width = compPct + '%'; });
-  });
-
-  top.appendChild(meta);
-  body.appendChild(top);
-
-  var trail = (state && state.trail) || [];
-  var govEntries = trail.filter(function(e) {
-    return e && (e.event_type === 'governance' || e.event_type === 'decision');
-  }).slice(-3);
-
-  if (govEntries.length > 0) {
-    var govDiv = el('div', { className: 'gov-decisions' });
-    for (var i = 0; i < govEntries.length; i++) {
-      var entry = govEntries[i];
-      var item = el('div', { className: 'gov-decision-item' });
-      item.appendChild(el('div', { className: 'decision-time', textContent: fmtTs(entry.timestamp) }));
-      item.appendChild(el('div', {}, entry.description || entry.event || 'Decision recorded'));
-      govDiv.appendChild(item);
-    }
-    body.appendChild(govDiv);
-  } else if (tier === 'unknown' || score === 0) {
-    // Informative hint when no governance data yet
-    var trustHint = el('div', {
-      className: 'gov-decision-item',
-      style: 'border-left-color: var(--overlay0); opacity: 0.7; font-style: italic;'
-    });
-    trustHint.textContent = 'Trust score builds after task execution. Run /juhbdi:execute to begin.';
-    body.appendChild(trustHint);
-  }
-}
-
-/* --- COST INTELLIGENCE --- */
-function renderCost(cost) {
-  var body = $('costBody');
-  clearNode(body);
-
-  var dist = (cost && cost.model_distribution) ? cost.model_distribution : {};
-  var distKeys = Object.keys(dist);
-  var totalRouted = distKeys.reduce(function(s, k) { return s + dist[k]; }, 0);
-  var hasSpend = cost && (cost.total_spend > 0 || cost.opus_equivalent > 0);
-  var hasDist = distKeys.length > 0 && totalRouted > 0;
-
-  // Only show empty if BOTH spend=0 AND no distribution data
-  if (!hasSpend && !hasDist) {
-    var emptyDiv = el('div', { className: 'empty-state' });
-    var barsIcon = el('div', { className: 'empty-icon-bars' });
-    for (var b = 0; b < 5; b++) barsIcon.appendChild(el('div', { className: 'bar-anim' }));
-    emptyDiv.appendChild(barsIcon);
-    emptyDiv.appendChild(el('div', { className: 'empty-text' }, [
-      document.createTextNode('No routing data yet. Costs are tracked when '),
-      el('code', {}, '/juhbdi:execute'),
-      document.createTextNode(' routes tasks to models.'),
-    ]));
-    body.appendChild(emptyDiv);
-    return;
-  }
-
-  // If we have spend data, show the savings hero
-  if (hasSpend) {
-    var savPct = cost.savings_pct || 0;
-    var hero = el('div', { className: 'cost-hero' });
-    hero.appendChild(el('div', { className: 'cost-big-number', textContent: savPct + '%' }));
-    body.appendChild(hero);
-    body.appendChild(el('div', { className: 'cost-big-label', textContent: 'Savings vs Opus-Only' }));
-
-    var maxCost = Math.max(cost.total_spend || 0.0001, cost.opus_equivalent || 0.0001);
-    var comp = el('div', { className: 'cost-comparison' });
-
-    var g1 = el('div', { className: 'cost-bar-group' });
-    var h1 = el('div', { className: 'cost-bar-header' });
-    h1.appendChild(el('span', { className: 'cost-bar-name', textContent: 'Actual' }));
-    h1.appendChild(el('span', { className: 'cost-bar-value', textContent: fmt$(cost.total_spend) }));
-    g1.appendChild(h1);
-    var t1 = el('div', { className: 'cost-bar-track' });
-    var f1 = el('div', { className: 'cost-bar-fill actual' });
-    f1.style.width = '0%';
-    t1.appendChild(f1);
-    g1.appendChild(t1);
-    comp.appendChild(g1);
-
-    var g2 = el('div', { className: 'cost-bar-group' });
-    var h2 = el('div', { className: 'cost-bar-header' });
-    h2.appendChild(el('span', { className: 'cost-bar-name', textContent: 'Opus-Only' }));
-    h2.appendChild(el('span', { className: 'cost-bar-value', textContent: fmt$(cost.opus_equivalent) }));
-    g2.appendChild(h2);
-    var t2 = el('div', { className: 'cost-bar-track' });
-    var f2 = el('div', { className: 'cost-bar-fill opus' });
-    f2.style.width = '0%';
-    t2.appendChild(f2);
-    g2.appendChild(t2);
-    comp.appendChild(g2);
-
-    body.appendChild(comp);
-
-    // Animate bars
-    requestAnimationFrame(function() {
-      requestAnimationFrame(function() {
-        f1.style.width = ((cost.total_spend / maxCost) * 100) + '%';
-        f2.style.width = ((cost.opus_equivalent / maxCost) * 100) + '%';
-      });
-    });
-  }
-
-  // Show model distribution if we have it (even with 0 spend)
-  if (hasDist) {
-    // Routing stat
-    var routingStat = el('div', { className: 'cost-routing-stat' });
-    routingStat.appendChild(el('div', { className: 'cost-routing-num', textContent: String(totalRouted) }));
-    var routingLabelDiv = el('div');
-    routingLabelDiv.appendChild(el('div', { className: 'cost-routing-label', textContent: 'Routing' }));
-    routingLabelDiv.appendChild(el('div', { className: 'cost-routing-label', textContent: totalRouted === 1 ? 'Decision' : 'Decisions' }));
-    routingStat.appendChild(routingLabelDiv);
-    body.appendChild(routingStat);
-
-    // Distribution bar
-    var distDiv = el('div', { className: 'model-dist' });
-    distDiv.appendChild(el('div', { className: 'model-dist-label', textContent: 'Model Distribution' }));
-
-    var bar = el('div', { className: 'model-stacked-bar' });
-
-    var modelOrder = ['haiku', 'sonnet', 'opus'];
-    var sorted = distKeys.sort(function(a, b) {
-      var ia = modelOrder.findIndex(function(m) { return a.toLowerCase().indexOf(m) !== -1; });
-      var ib = modelOrder.findIndex(function(m) { return b.toLowerCase().indexOf(m) !== -1; });
-      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
-    });
-
-    for (var si = 0; si < sorted.length; si++) {
-      var model = sorted[si];
-      var segPct = (dist[model] / totalRouted) * 100;
-      var seg = el('div', { className: 'segment' });
-      seg.style.width = segPct + '%';
-      var lm = model.toLowerCase();
-      if (lm.indexOf('haiku') !== -1) seg.classList.add('segment-haiku');
-      else if (lm.indexOf('sonnet') !== -1) seg.classList.add('segment-sonnet');
-      else if (lm.indexOf('opus') !== -1) seg.classList.add('segment-opus');
-      else seg.classList.add('segment-unknown');
-      bar.appendChild(seg);
-    }
-    distDiv.appendChild(bar);
-
-    var legend = el('div', { className: 'model-legend' });
-    for (var li = 0; li < sorted.length; li++) {
-      var lmodel = sorted[li];
-      var legendItem = el('div', { className: 'legend-item' });
-      var dot = el('div', { className: 'legend-dot' });
-      var llm = lmodel.toLowerCase();
-      if (llm.indexOf('haiku') !== -1) dot.style.background = 'linear-gradient(135deg, #94e2d5, #7dd6c6)';
-      else if (llm.indexOf('sonnet') !== -1) dot.style.background = 'linear-gradient(135deg, #89b4fa, #a0c8fc)';
-      else if (llm.indexOf('opus') !== -1) dot.style.background = 'linear-gradient(135deg, #cba6f7, #d6b8fa)';
-      else dot.style.background = 'linear-gradient(135deg, #45475a, #585b70)';
-      legendItem.appendChild(dot);
-      legendItem.appendChild(el('span', {}, lmodel + ' (' + dist[lmodel] + ')'));
-      legend.appendChild(legendItem);
-    }
-    distDiv.appendChild(legend);
-    body.appendChild(distDiv);
-  }
-}
-
-/* --- SESSIONS & CONTEXT --- */
-var cachedSessions = [];
-var sessionFreshnessInterval = null;
-
-function getIdeSlug(platform) {
-  if (!platform || platform === 'unknown') return 'default';
-  var p = platform.toLowerCase().replace(/[\s_]+/g, '-');
-  var knownSlugs = ['claude-code', 'cursor', 'windsurf', 'kiro', 'copilot', 'cline', 'roo-code', 'kilo-code'];
-  for (var i = 0; i < knownSlugs.length; i++) {
-    if (p.indexOf(knownSlugs[i]) !== -1) return knownSlugs[i];
-  }
-  if (p.indexOf('github') !== -1) return 'copilot';
-  return 'default';
-}
-
-function getIdeDisplayName(platform) {
-  if (!platform || platform === 'unknown') return 'Session';
-  var slug = getIdeSlug(platform);
-  var names = {
-    'claude-code': 'Claude Code',
-    'cursor': 'Cursor',
-    'windsurf': 'Windsurf',
-    'kiro': 'Kiro',
-    'copilot': 'Copilot',
-    'cline': 'Cline',
-    'roo-code': 'Roo Code',
-    'kilo-code': 'Kilo Code',
-    'default': 'Session'
-  };
-  return names[slug] || platform;
-}
-
-function getProgressColorClass(level) {
-  if (!level) return 'sp-green';
-  var l = level.toUpperCase();
-  if (l === 'NORMAL') return 'sp-green';
-  if (l === 'WARNING') return 'sp-yellow';
-  if (l === 'URGENT') return 'sp-orange';
-  return 'sp-red';
-}
-
-function truncateProjectPath(dir) {
-  if (!dir || dir === 'unknown') return '';
-  var parts = dir.replace(/\\/g, '/').split('/').filter(Boolean);
-  if (parts.length <= 2) return parts.join('/');
-  return parts.slice(-2).join('/');
-}
-
-function formatTimeAgo(isoStr) {
-  if (!isoStr) return '';
-  try {
-    var diff = Math.floor((Date.now() - new Date(isoStr).getTime()) / 1000);
-    if (diff < 0) diff = 0;
-    if (diff < 60) return diff + 's ago';
-    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
-    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
-    return Math.floor(diff / 86400) + 'd ago';
-  } catch (e) { return ''; }
-}
-
-function getWorstLevel(sessions) {
-  var order = ['NORMAL', 'WARNING', 'URGENT', 'CRITICAL', 'EMERGENCY'];
-  var worst = 0;
-  for (var i = 0; i < sessions.length; i++) {
-    var lvl = (sessions[i].level || 'NORMAL').toUpperCase();
-    var idx = order.indexOf(lvl);
-    if (idx > worst) worst = idx;
-  }
-  return order[worst];
-}
-
-function updateHeaderSessionIndicator(allSessions) {
-  var dotEl = $('sessionIndicatorDot');
-  var labelEl = $('sessionIndicatorLabel');
-  if (!dotEl || !labelEl) return;
-
-  if (!allSessions || allSessions.length === 0) {
-    dotEl.className = 'session-indicator-dot si-off';
-    labelEl.textContent = 'No sessions';
-    return;
-  }
-
-  var activeSess = allSessions.filter(function(s) { return !s.stale; });
-  var worst = getWorstLevel(activeSess.length > 0 ? activeSess : allSessions);
-  var dotClass = 'si-green';
-  if (worst === 'WARNING') dotClass = 'si-yellow';
-  else if (worst === 'URGENT' || worst === 'CRITICAL' || worst === 'EMERGENCY') dotClass = 'si-red';
-  if (activeSess.length === 0) dotClass = 'si-off';
-
-  dotEl.className = 'session-indicator-dot ' + dotClass;
-  var count = activeSess.length;
-  labelEl.textContent = count > 0
-    ? count + ' active session' + (count > 1 ? 's' : '')
-    : allSessions.length + ' stale';
-}
-
-function buildSessionCard(session) {
-  var ideSlug = getIdeSlug(session.ide_platform);
-
-  var card = el('div', { className: 'session-card ide-' + ideSlug });
-  if (session.stale) card.classList.add('session-stale');
-
-  // Top row: IDE badge + level badge
-  var top = el('div', { className: 'session-card-top' });
-  var ideBadge = el('span', {
-    className: 'ide-badge ide-badge-' + ideSlug,
-    textContent: getIdeDisplayName(session.ide_platform)
-  });
-  top.appendChild(ideBadge);
-
-  var level = (session.level || 'NORMAL').toUpperCase();
-  var levelBadge = el('span', {
-    className: 'session-level-badge session-level-' + level,
-    textContent: level
-  });
-  top.appendChild(levelBadge);
-  card.appendChild(top);
-
-  // Mini progress bar
-  var pct = session.remaining_pct != null ? session.remaining_pct : 100;
-  var trackDiv = el('div', { className: 'session-progress-track' });
-  var fillDiv = el('div', { className: 'session-progress-fill ' + getProgressColorClass(session.level) });
-  trackDiv.appendChild(fillDiv);
-  card.appendChild(trackDiv);
-
-  // Animate progress bar
-  requestAnimationFrame(function() {
-    requestAnimationFrame(function() { fillDiv.style.width = Math.max(0, Math.min(100, pct)) + '%'; });
-  });
-
-  // Bottom row: percentage + meta
-  var bottom = el('div', { className: 'session-card-bottom' });
-  var pctEl = el('span', { className: 'session-pct', textContent: Math.round(pct) + '%' });
-  bottom.appendChild(pctEl);
-
-  var meta = el('div', { className: 'session-meta' });
-
-  // Project path (truncated)
-  var projPath = truncateProjectPath(session.project_dir);
-  if (projPath) {
-    meta.appendChild(el('span', { className: 'session-project-path', textContent: projPath }));
-  } else {
-    var noProj = el('span', { className: 'session-project-path' });
-    noProj.style.fontStyle = 'italic';
-    noProj.style.opacity = '0.6';
-    noProj.textContent = 'No project info';
-    meta.appendChild(noProj);
-  }
-
-  // Freshness
-  var freshnessEl;
-  if (session.stale) {
-    freshnessEl = el('span', { className: 'session-freshness stale-label', textContent: 'stale' });
-  } else {
-    freshnessEl = el('span', {
-      className: 'session-freshness',
-      textContent: formatTimeAgo(session.timestamp)
-    });
-    freshnessEl.setAttribute('data-ts', session.timestamp || '');
-  }
-  meta.appendChild(freshnessEl);
-
-  // Session ID (first 8 chars)
-  var sid = session.session_id || '';
-  if (sid) {
-    meta.appendChild(el('span', { className: 'session-id', textContent: sid.substring(0, 8) }));
-  }
-
-  bottom.appendChild(meta);
-  card.appendChild(bottom);
-
-  return card;
-}
-
-function buildFolderSvg() {
-  var svg = svgEl('svg', { viewBox: '0 0 16 16', fill: 'none', width: '14', height: '14' });
-  var path = svgEl('path', {
-    d: 'M2 3a1 1 0 011-1h3.586a1 1 0 01.707.293L8.414 3.414A1 1 0 009.12 3.707H13a1 1 0 011 1V12a1 1 0 01-1 1H3a1 1 0 01-1-1V3z',
-    stroke: 'currentColor',
-    'stroke-width': '1.2',
-    fill: 'none'
-  });
-  svg.appendChild(path);
-  return svg;
-}
-
-function renderSessions(sessionsData) {
-  var body = $('contextBody');
-  var badge = $('sessionCountBadge');
-  clearNode(body);
-
-  // Flatten all sessions from the grouped data
-  var allSessions = [];
-  var groups = sessionsData || [];
-  for (var g = 0; g < groups.length; g++) {
-    var sessions = groups[g].sessions || [];
-    for (var s = 0; s < sessions.length; s++) {
-      allSessions.push(sessions[s]);
-    }
-  }
-
-  // Separate active vs stale
-  var activeSessions = allSessions.filter(function(s) { return !s.stale; });
-  var staleSessions = allSessions.filter(function(s) { return s.stale; });
-  var MAX_STALE_SHOWN = 3;
-  var visibleStale = staleSessions.slice(0, MAX_STALE_SHOWN);
-  var hiddenStaleCount = staleSessions.length - visibleStale.length;
-
-  // Store for freshness updates (only visible ones)
-  cachedSessions = activeSessions.concat(visibleStale);
-
-  // Update header indicator
-  updateHeaderSessionIndicator(allSessions);
-
-  // Update header badge — count active only
-  if (badge) {
-    if (activeSessions.length > 0) {
-      badge.textContent = activeSessions.length + ' active';
-      badge.style.display = '';
-    } else if (staleSessions.length > 0) {
-      badge.textContent = staleSessions.length + ' stale';
-      badge.style.display = '';
-      badge.style.borderColor = 'rgba(108, 112, 134, 0.3)';
-      badge.style.color = 'var(--overlay1)';
-    } else {
-      badge.style.display = 'none';
-    }
-  }
-
-  // Empty state
-  if (allSessions.length === 0) {
-    var emptyDiv = el('div', { className: 'empty-state' });
-
-    var radarIcon = el('div', { className: 'session-radar-icon' });
-    radarIcon.appendChild(el('div', { className: 'radar-center' }));
-    radarIcon.appendChild(el('div', { className: 'radar-ring' }));
-    radarIcon.appendChild(el('div', { className: 'radar-ring' }));
-    radarIcon.appendChild(el('div', { className: 'radar-ring' }));
-    radarIcon.appendChild(el('div', { className: 'radar-ring' }));
-
-    emptyDiv.appendChild(radarIcon);
-    emptyDiv.appendChild(el('div', { className: 'session-empty-title', textContent: 'No active sessions detected' }));
-    emptyDiv.appendChild(el('div', { className: 'session-empty-desc', textContent: 'Sessions appear automatically when JuhBDI runs in any supported IDE. Context levels update in real time.' }));
-    body.appendChild(emptyDiv);
-    return;
-  }
-
-  // Create scrollable container
-  var scrollContainer = el('div', { className: 'sessions-scroll' });
-
-  // Render by project groups
-  if (groups.length === 1) {
-    // Single project — show active first, then limited stale
-    for (var i = 0; i < activeSessions.length; i++) {
-      scrollContainer.appendChild(buildSessionCard(activeSessions[i]));
-    }
-    for (var j = 0; j < visibleStale.length; j++) {
-      scrollContainer.appendChild(buildSessionCard(visibleStale[j]));
-    }
-  } else {
-    // Multiple projects — group with headers
-    for (var gi = 0; gi < groups.length; gi++) {
-      var group = groups[gi];
-      var groupSessions = group.sessions || [];
-      if (groupSessions.length === 0) continue;
-
-      var groupActive = groupSessions.filter(function(s) { return !s.stale; });
-      var groupStale = groupSessions.filter(function(s) { return s.stale; });
-      var groupVisible = groupActive.concat(groupStale.slice(0, MAX_STALE_SHOWN));
-
-      if (groupVisible.length === 0) continue;
-
-      var groupDiv = el('div', { className: 'session-project-group' });
-      var header = el('div', { className: 'session-project-header' });
-      header.appendChild(buildFolderSvg());
-      var groupPath = truncateProjectPath(group.project_dir);
-      if (groupPath) {
-        header.appendChild(document.createTextNode(groupPath));
-      } else {
-        var noGroupPath = el('span', {});
-        noGroupPath.style.fontStyle = 'italic';
-        noGroupPath.style.opacity = '0.6';
-        noGroupPath.textContent = 'Unknown project';
-        header.appendChild(noGroupPath);
-      }
-      groupDiv.appendChild(header);
-
-      for (var si = 0; si < groupVisible.length; si++) {
-        groupDiv.appendChild(buildSessionCard(groupVisible[si]));
-      }
-
-      scrollContainer.appendChild(groupDiv);
-    }
-  }
-
-  body.appendChild(scrollContainer);
-
-  // Show hidden stale count
-  if (hiddenStaleCount > 0) {
-    body.appendChild(el('div', {
-      className: 'sessions-hidden-note',
-      textContent: '+ ' + hiddenStaleCount + ' older session' + (hiddenStaleCount > 1 ? 's' : '') + ' not shown'
-    }));
-  }
-}
-
-// Auto-update freshness timestamps every second
-function startFreshnessTimer() {
-  if (sessionFreshnessInterval) return;
-  sessionFreshnessInterval = setInterval(function() {
-    var els = document.querySelectorAll('.session-freshness[data-ts]');
-    for (var i = 0; i < els.length; i++) {
-      var ts = els[i].getAttribute('data-ts');
-      if (ts) els[i].textContent = formatTimeAgo(ts);
-    }
-  }, 1000);
-}
-startFreshnessTimer();
-
-/* --- DECISION TRAIL --- */
-function renderTrail(trail) {
-  var body = $('trailBody');
-  var countEl = $('trailCount');
-
-  if (!trail || trail.length === 0) {
-    if (body.children.length === 0 || body.querySelector('.trail-empty')) {
-      clearNode(body);
-      body.appendChild(el('div', { className: 'trail-empty', textContent: 'No trail entries yet. Decisions are recorded as commands execute.' }));
-    }
-    if (countEl) countEl.textContent = '';
-    return;
-  }
-
-  if (trail.length === lastTrailCount) return;
-
-  clearNode(body);
-  lastTrailCount = trail.length;
-  if (countEl) countEl.textContent = trail.length + ' entries';
-
-  var typeColorMap = {
-    command: 'type-command',
-    decision: 'type-decision',
-    routing: 'type-routing',
-    execution: 'type-execution',
-    error: 'type-error',
-    governance: 'type-governance',
-    verification: 'type-verification',
-    recovery: 'type-recovery',
-  };
-
-  for (var i = 0; i < trail.length; i++) {
-    var entry = trail[i];
-    if (!entry) continue;
-    var row = el('div', { className: 'trail-entry' });
-    row.style.animation = 'fadeInUp 0.3s ease ' + (i * 0.03) + 's both';
-    row.appendChild(el('span', { className: 'trail-ts', textContent: fmtTs(entry.timestamp) }));
-
-    var evtType = (entry.event_type || 'event').toLowerCase();
-    var badgeClass = typeColorMap[evtType] || 'type-default';
-    row.appendChild(el('span', { className: 'type-badge ' + badgeClass, textContent: evtType }));
-
-    var desc = entry.description || entry.event || entry.event_type || '';
-    row.appendChild(el('span', { className: 'trail-desc', textContent: desc }));
-
-    body.appendChild(row);
-  }
-
-  // Blinking cursor at bottom
-  body.appendChild(el('div', { className: 'trail-cursor' }));
-
-  body.scrollTop = body.scrollHeight;
-}
-
-/* --- INTELLIGENCE MEMORY --- */
-function renderMemory(memory) {
-  var body = $('memoryBody');
-  clearNode(body);
-
-  var rCount = (memory && memory.reflexion_count) || 0;
-  var tCount = (memory && memory.trace_count) || 0;
-  var pCount = (memory && memory.principle_count) || 0;
-
-  if (rCount === 0 && tCount === 0 && pCount === 0) {
-    var container = el('div', { className: 'memory-empty-container' });
-
-    // Animated neural icon
-    var neuralIcon = el('div', { className: 'memory-neural-icon' });
-    neuralIcon.appendChild(el('div', { className: 'neural-core' }));
-    neuralIcon.appendChild(el('div', { className: 'neural-ring' }));
-    neuralIcon.appendChild(el('div', { className: 'neural-ring' }));
-    neuralIcon.appendChild(el('div', { className: 'neural-ring' }));
-    neuralIcon.appendChild(el('div', { className: 'neural-ring' }));
-
-    var particles = el('div', { className: 'neural-particles' });
-    for (var p = 0; p < 4; p++) particles.appendChild(el('div', { className: 'neural-particle' }));
-    neuralIcon.appendChild(particles);
-
-    container.appendChild(neuralIcon);
-    container.appendChild(el('div', { className: 'memory-empty-title', textContent: 'Neural Memory Idle' }));
-    container.appendChild(el('div', { className: 'memory-empty-desc', textContent: 'Memory builds as JuhBDI learns from reflexions, traces, and principles during execution.' }));
-    body.appendChild(container);
-    return;
-  }
-
-  var row = el('div', { className: 'memory-stats-row' });
-  function statBox(num, label) {
-    var box = el('div', { className: 'memory-stat-box' });
-    box.appendChild(el('div', { className: 'memory-stat-num', textContent: String(num) }));
-    box.appendChild(el('div', { className: 'memory-stat-label', textContent: label }));
-    return box;
-  }
-  row.appendChild(statBox(rCount, 'Reflexions'));
-  row.appendChild(statBox(tCount, 'Traces'));
-  row.appendChild(statBox(pCount, 'Principles'));
-  body.appendChild(row);
-
-  var recent = (memory && memory.recent_reflexions) || [];
-  if (recent.length > 0) {
-    var list = el('div', { className: 'reflexion-list' });
-    for (var ri = 0; ri < recent.length; ri++) {
-      var r = recent[ri];
-      var item = el('div', { className: 'reflexion-item', onClick: function() {
-        this.classList.toggle('expanded');
-      }});
-      item.appendChild(el('div', { className: 'reflexion-task', textContent: r.task || 'Unnamed task' }));
-      item.appendChild(el('div', { className: 'reflexion-lesson', textContent: r.lesson || '' }));
-      if (r.outcome) {
-        var oc = r.outcome === 'success' ? 'outcome-success' :
-                 r.outcome === 'failure' ? 'outcome-failure' : 'outcome-partial';
-        item.appendChild(el('span', { className: 'reflexion-outcome ' + oc, textContent: r.outcome }));
-      }
-      list.appendChild(item);
-    }
-    body.appendChild(list);
-  }
-}
-
-/* ================================================================
-   MASTER UPDATE
-   ================================================================ */
-function updateDashboard(data) {
-  if (!data) return;
-
-  // Cache all data for cross-panel references
-  if (data.state !== undefined) cachedState = data.state;
-  if (data.memory !== undefined) cachedMemory = data.memory;
-  if (data.trail !== undefined) cachedTrail = data.trail;
-
-  if (data.state !== undefined) {
-    renderExecution(data.state);
-    var mem = data.memory || cachedMemory;
-    var trailData = data.trail || cachedTrail || [];
-    renderTrust(mem, { state: (data.state && data.state.state) || data.state, trail: trailData });
-  }
-  if (data.cost !== undefined) renderCost(data.cost);
-  if (data.sessions !== undefined) {
-    renderSessions(data.sessions);
-  } else if (data.context !== undefined) {
-    // Legacy fallback: wrap single context into sessions format
-    var ctx = data.context;
-    if (ctx && ctx.remaining_pct != null) {
-      renderSessions([{
-        project_dir: ctx.project_dir || '',
-        sessions: [{
-          session_id: ctx.session_id || 'legacy',
-          project_dir: ctx.project_dir || '',
-          ide_platform: ctx.ide_platform || 'claude-code',
-          remaining_pct: ctx.remaining_pct,
-          usable_pct: ctx.usable_pct != null ? ctx.usable_pct : ctx.remaining_pct,
-          level: ctx.level || 'NORMAL',
-          timestamp: ctx.timestamp || new Date().toISOString(),
-          stale: false
-        }]
-      }]);
-    } else {
-      renderSessions([]);
-    }
-  }
-  if (data.trail !== undefined) renderTrail(data.trail);
-  if (data.memory !== undefined) {
-    renderMemory(data.memory);
-    // Re-render trust with updated memory
-    var st = data.state || cachedState;
-    var trailForTrust = data.trail || cachedTrail || [];
-    renderTrust(data.memory, { state: (st && st.state) || st, trail: trailForTrust });
-  }
-}
-
-/* ================================================================
-   SSE CONNECTION
-   ================================================================ */
-var evtSource = null;
-
-function connect() {
-  if (evtSource) { try { evtSource.close(); } catch(e) {} }
-  evtSource = new EventSource('/api/events');
-  evtSource.onmessage = function(e) {
-    try {
-      var data = JSON.parse(e.data);
-      if (data.type === 'connected') { setConnected(true); return; }
-      updateDashboard(data);
-    } catch(err) {}
-  };
-  evtSource.onerror = function() {
-    setConnected(false);
-    try { evtSource.close(); } catch(e) {}
-    setTimeout(connect, 3000);
-  };
-}
-
-/* ================================================================
-   INITIAL LOAD
-   ================================================================ */
-document.addEventListener('DOMContentLoaded', function() {
-  renderExecution(null);
-  renderTrust(null, null);
-  renderCost(null);
-  renderSessions([]);
-  renderTrail(null);
-  renderMemory(null);
-
-  Promise.all([
-    fetch('/api/state').then(function(r) { return r.json(); }).catch(function() { return null; }),
-    fetch('/api/trail').then(function(r) { return r.json(); }).catch(function() { return []; }),
-    fetch('/api/cost').then(function(r) { return r.json(); }).catch(function() { return null; }),
-    fetch('/api/memory').then(function(r) { return r.json(); }).catch(function() { return null; }),
-    fetch('/api/sessions').then(function(r) { return r.json(); }).catch(function() { return []; }),
-    fetch('/api/context').then(function(r) { return r.json(); }).catch(function() { return null; }),
-  ]).then(function(results) {
-    var sessionsData = results[4];
-    var contextData = results[5];
-
-    updateDashboard({
-      state: results[0],
-      trail: results[1],
-      cost: results[2],
-      memory: results[3],
-      sessions: (sessionsData && sessionsData.length > 0) ? sessionsData : undefined,
-      context: (sessionsData && sessionsData.length > 0) ? undefined : contextData,
-    });
-  });
-
-  connect();
-
-  // ── Transmission Lines ─────────────────────────────────────
-  setTimeout(function() { drawTransmissionLines(); }, 300);
-  window.addEventListener('resize', function() {
-    clearTimeout(window._txDebounce);
-    window._txDebounce = setTimeout(function() { drawTransmissionLines(); }, 100);
-  });
-});
-
-function drawTransmissionLines() {
-  var hub = document.querySelector('.command-hub');
-  var nexus = document.querySelector('.robot-nexus');
-  var svg = document.getElementById('txSvg');
-  var linesG = document.getElementById('txLines');
-  if (!hub || !nexus || !svg || !linesG) return;
-
-  var hubRect = hub.getBoundingClientRect();
-  var nexusRect = nexus.getBoundingClientRect();
-  svg.setAttribute('viewBox', '0 0 ' + hubRect.width + ' ' + hubRect.height);
-
-  // Robot center in hub-relative coordinates
-  var cx = (nexusRect.left + nexusRect.width / 2) - hubRect.left;
-  var cy = (nexusRect.top + nexusRect.height / 2) - hubRect.top;
-
-  var panels = [
-    { id: 'panelExec',    cls: 'exec',    dur: '2.8s' },
-    { id: 'panelTrust',   cls: 'trust',   dur: '3.4s' },
-    { id: 'panelCost',    cls: 'cost',    dur: '3.0s' },
-    { id: 'panelContext',  cls: 'context', dur: '3.6s' },
-  ];
-
-  // Clear existing
-  while (linesG.firstChild) linesG.removeChild(linesG.firstChild);
-
-  var svgNS = 'http://www.w3.org/2000/svg';
-  panels.forEach(function(p, idx) {
-    var el = document.getElementById(p.id);
-    if (!el) return;
-    var r = el.getBoundingClientRect();
-
-    // Panel bounds in hub-relative coords
-    var pLeft = r.left - hubRect.left;
-    var pRight = pLeft + r.width;
-    var pTop = r.top - hubRect.top;
-    var pBottom = pTop + r.height;
-    var pCx = (pLeft + pRight) / 2;
-    var pCy = (pTop + pBottom) / 2;
-
-    // Connect from inner corner of panel (corner closest to robot center)
-    var ex = cx < pCx ? pLeft + 30 : pRight - 30;
-    var ey = cy < pCy ? pTop + 20 : pBottom - 20;
-
-    // Start point: offset from robot center toward panel
-    var dx = ex - cx, dy = ey - cy;
-    var dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist < 1) return;
-    var nx = dx / dist, ny = dy / dist;
-    var sx = cx + nx * 50;
-    var sy = cy + ny * 50;
-
-    // Curve control point — offset perpendicular to the line for a graceful arc
-    var mx = (sx + ex) / 2, my = (sy + ey) / 2;
-    var curveMag = dist * 0.15;
-    var cpx = mx + ny * curveMag, cpy = my - nx * curveMag;
-
-    var pathD = 'M ' + sx + ' ' + sy + ' Q ' + cpx + ' ' + cpy + ' ' + ex + ' ' + ey;
-    var pathId = 'txPath_' + p.cls;
-
-    // Draw the line path
-    var path = document.createElementNS(svgNS, 'path');
-    path.id = pathId;
-    path.setAttribute('class', 'tx-line tx-line-' + p.cls);
-    path.setAttribute('d', pathD);
-    linesG.appendChild(path);
-
-    // Animated dot traveling along the path
-    var circle = document.createElementNS(svgNS, 'circle');
-    circle.setAttribute('class', 'tx-dot tx-dot-' + p.cls);
-    circle.setAttribute('r', '4');
-    var motion = document.createElementNS(svgNS, 'animateMotion');
-    motion.setAttribute('dur', p.dur);
-    motion.setAttribute('repeatCount', 'indefinite');
-    motion.setAttribute('keyPoints', '0;1;0');
-    motion.setAttribute('keyTimes', '0;0.5;1');
-    motion.setAttribute('calcMode', 'spline');
-    motion.setAttribute('keySplines', '0.4 0 0.6 1;0.4 0 0.6 1');
-    var mpath = document.createElementNS(svgNS, 'mpath');
-    mpath.setAttribute('href', '#' + pathId);
-    motion.appendChild(mpath);
-    circle.appendChild(motion);
-    linesG.appendChild(circle);
-  });
-}
-</script>
+      <div class="header-time" id="headerTime">--:--:--</div>
+    </div>
+  </header>
+
+  <!-- Workspace -->
+  <main class="workspace" id="workspace">
+    <div class="view active" id="viewOverview" data-view="overview"></div>
+    <div class="view" id="viewExecution" data-view="execution"></div>
+    <div class="view" id="viewCost" data-view="cost"></div>
+    <div class="view" id="viewTrust" data-view="trust"></div>
+    <div class="view" id="viewSessions" data-view="sessions"></div>
+    <div class="view" id="viewTrail" data-view="trail"></div>
+    <div class="view" id="viewMemory" data-view="memory"></div>
+    <div class="view" id="viewCodehealth" data-view="codehealth"></div>
+  </main>
+</div>
+
+<!-- Keyboard Shortcut Overlay -->
+<div class="shortcut-overlay" id="shortcutOverlay">
+  <div class="shortcut-modal">
+    <h2>Keyboard Shortcuts</h2>
+    <div class="shortcut-row"><span class="shortcut-key">1</span><span class="shortcut-desc">Overview</span></div>
+    <div class="shortcut-row"><span class="shortcut-key">2</span><span class="shortcut-desc">Execution</span></div>
+    <div class="shortcut-row"><span class="shortcut-key">3</span><span class="shortcut-desc">Cost Intelligence</span></div>
+    <div class="shortcut-row"><span class="shortcut-key">4</span><span class="shortcut-desc">Trust & Governance</span></div>
+    <div class="shortcut-row"><span class="shortcut-key">5</span><span class="shortcut-desc">Sessions & Context</span></div>
+    <div class="shortcut-row"><span class="shortcut-key">6</span><span class="shortcut-desc">Decision Trail</span></div>
+    <div class="shortcut-row"><span class="shortcut-key">7</span><span class="shortcut-desc">Intelligence Memory</span></div>
+    <div class="shortcut-row"><span class="shortcut-key">8</span><span class="shortcut-desc">Code Health</span></div>
+    <div class="shortcut-row"><span class="shortcut-key">/</span><span class="shortcut-desc">Focus trail search</span></div>
+    <div class="shortcut-row"><span class="shortcut-key">Esc</span><span class="shortcut-desc">Close / Overview</span></div>
+    <div class="shortcut-row"><span class="shortcut-key">?</span><span class="shortcut-desc">Toggle this overlay</span></div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
 </body>
 </html>
