@@ -57,7 +57,7 @@ async function main() {
       // Validate timestamp before using
       if (isValidTimestamp(latest.timestamp)) {
         const handoffAge = Date.now() - new Date(latest.timestamp).getTime();
-        if (handoffAge < 2 * 60 * 60 * 1000 && latest.prompt_file) {
+        if (handoffAge < 24 * 60 * 60 * 1000 && latest.prompt_file) {
           try {
             handoffContext = fs.readFileSync(latest.prompt_file, "utf-8");
             handoffIntelligence = latest.intelligence_state || null;
