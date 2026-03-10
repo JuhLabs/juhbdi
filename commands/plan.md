@@ -175,7 +175,43 @@ Each task MUST have:
 }
 ```
 
-## Step 5: Validate and Write Roadmap
+## Step 5: Preview the Plan (Before Writing)
+
+**Before writing the roadmap**, show the user a preview of the wave structure and ask for approval:
+
+```
+## Plan Preview
+
+**Request:** [refined request]
+**Waves:** N (M tasks total)
+**Estimated time:** ~X minutes total
+
+### Wave 1 — [purpose] (N tasks, parallel/sequential)
+- t1: [brief description] (~N min)
+- t2: [brief description] (~N min)
+
+### Wave 2 — [purpose] (N tasks)
+- t3: [brief description] (~N min)
+- t4: [brief description] (~N min)
+
+### Horizon (remaining work)
+- [remaining goal 1]
+- [remaining goal 2]
+- Key unknowns: [list]
+
+**Options:**
+- ✓ Approve — write this plan and proceed
+- ✎ Edit — change scope, reorder, split/merge waves
+- ✗ Cancel — discard and start over
+```
+
+Use AskUserQuestion: "Does this plan look right? (approve / edit / cancel)"
+
+- If **approve**: proceed to Step 6 (validate and write)
+- If **edit**: ask what to change, adjust the wave structure, and re-preview
+- If **cancel**: log a trail entry and stop
+
+## Step 6: Validate and Write Roadmap
 
 ```bash
 ~/.bun/bin/bun run ${CLAUDE_PLUGIN_ROOT}/src/cli-utils/validate-roadmap.ts '<roadmap_json>'
@@ -183,16 +219,15 @@ Each task MUST have:
 
 If validation fails, fix and retry.
 
-## Step 6: Present the Plan
+## Step 7: Present the Final Plan
 
-Show the user a clear, visual summary:
+Show the user a confirmation summary:
 
 ```
-## Execution Plan
+## Plan Written ✓
 
 **Request:** [refined request]
 **Waves:** N (M tasks total)
-**Estimated approach:** [wave-by-wave overview]
 
 ### Wave 1 — [purpose] (N tasks, parallel/sequential)
 - t1: [brief description]
@@ -206,7 +241,7 @@ Show the user a clear, visual summary:
 Ready to execute? Run `/juhbdi:execute`
 ```
 
-## Step 7: Log Trail
+## Step 8: Log Trail
 
 ```bash
 ~/.bun/bin/bun run ${CLAUDE_PLUGIN_ROOT}/src/cli-utils/trail-append.ts '{"event_type":"command","description":"Plan generated and written to roadmap-intent.json","reasoning":"Generated N waves with N total tasks","alternatives_considered":[],"constraint_refs":[],"outcome":"approved"}'

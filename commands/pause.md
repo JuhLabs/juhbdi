@@ -33,10 +33,22 @@ If the current wave has some tasks completed and some still pending, capture par
 From the bridge file (if available):
 - `context_remaining_pct`: remaining context percentage
 
-Ask the user (via AskUserQuestion):
+Ask the user (via AskUserQuestion) — ask all questions in sequence, one at a time:
+
+**Round 1 — Capture state:**
 - "Any key decisions made this session?" (free text)
-- "Any blockers or issues?" (free text)
+- "Any blockers or issues to flag for next time?" (free text)
 - "What should the next session start with?" (free text)
+
+**Round 2 — Reflect:**
+- "What worked well this session? (e.g., approach, tooling, workflow)" (free text — helps build experiential memory)
+- "How confident are you in the current plan? (1-5, where 5 = very confident)" (choice: 1/2/3/4/5 — stored in handoff for resume to assess)
+
+Save the confidence level in the handoff JSON under `session_confidence` (number 1-5).
+Save the "what worked well" response under `session_learnings` (string).
+
+If confidence is 1-2, ask one follow-up:
+- "What's the biggest risk or uncertainty right now?" (free text — stored in handoff under `top_risk`)
 
 ## Step 3: Write Handoff
 

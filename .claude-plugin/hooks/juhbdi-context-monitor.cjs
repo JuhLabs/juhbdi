@@ -211,6 +211,83 @@ Pick up where it left off. Read the handoff file first.
   }
 }
 
+function writeLatestJson(cwd, sessionId, remainingPct, savedState) {
+  const juhbdiDir = path.join(cwd, ".juhbdi");
+  const handoffDir = path.join(juhbdiDir, "handoffs");
+  const ts = new Date().toISOString();
+  const tsSlug = ts.replace(/[:.]/g, "-").slice(0, 19);
+
+  try {
+    fs.mkdirSync(handoffDir, { recursive: true });
+  } catch { return; }
+
+  // Build a human-readable prompt file (matches precompact format)
+  const promptPath = path.join(handoffDir, `continue-${tsSlug}.md`);
+
+  // Read git state for context
+  let branch = "unknown";
+  try {
+    const { execFileSync } = require("child_process");
+    branch = execFileSync("git", ["branch", "--show-current"], {
+      cwd, timeout: 3000, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"]
+    }).trim();
+  } catch { /* non-fatal */ }
+
+  // Read pending tasks
+  let pendingTasks = [];
+  try {
+    const roadmapPath = path.join(juhbdiDir, "roadmap-intent.json");
+    if (fs.existsSync(roadmapPath)) {
+      const roadmap = JSON.parse(fs.readFileSync(roadmapPath, "utf-8"));
+      pendingTasks = (roadmap.waves || [])
+        .flatMap((w) => w.tasks || [])
+        .filter((t) => t.status === "pending" || t.status === "in_progress")
+        .map((t) => ({ id: t.id, description: t.description, status: t.status }));
+    }
+  } catch { /* non-fatal */ }
+
+  const taskList = pendingTasks.length > 0
+    ? pendingTasks.map((t) => `- [${t.status}] ${t.description}`).join("\n")
+    : "No pending JuhBDI tasks.";
+
+  const promptContent = `# JuhBDI Context-Monitor Handoff
+Generated: ${ts}
+Trigger: context-monitor (${Math.round(remainingPct)}% remaining)
+
+## Git State
+Branch: \`${branch}\`
+
+## Pending Tasks
+${taskList}
+
+## Intelligence State
+${savedState && savedState.stateSnapshot ? Object.entries(savedState.stateSnapshot.intelligence_state || {}).map(([k, v]) => `- ${k}: ${v}`).join("\n") : "State snapshot not available."}
+
+## Next Session Prompt
+\`\`\`
+Continue from JuhBDI context-monitor handoff (${tsSlug}).
+Read .juhbdi/handoffs/continue-${tsSlug}.md for context.
+Branch: ${branch}. ${pendingTasks.length} pending tasks.
+\`\`\`
+`;
+
+  atomicWrite(promptPath, promptContent);
+
+  // Write latest.json in the same format precompact uses
+  const latestPath = path.join(handoffDir, "latest.json");
+  const intelligenceState = savedState && savedState.stateSnapshot
+    ? savedState.stateSnapshot.intelligence_state || {}
+    : {};
+
+  atomicWrite(latestPath, JSON.stringify({
+    handoff_file: savedState ? savedState.snapshotPath : null,
+    prompt_file: promptPath,
+    timestamp: ts,
+    session_id: sessionId,
+    intelligence_state: intelligenceState,
+  }, null, 2));
+}
+
 async function main() {
   const input = JSON.parse(await new Promise((resolve) => {
     let data = "";
@@ -300,6 +377,8 @@ async function main() {
   let handoffPath = null;
   if ((currentLevel === "CRITICAL" || currentLevel === "EMERGENCY") && !state.handoff_written) {
     handoffPath = writeHandoffFile(cwd, sessionId, remainingPct);
+    // Also write latest.json so session-primer always finds the handoff
+    writeLatestJson(cwd, sessionId, remainingPct, savedState);
   }
 
   // Update state
@@ -324,6 +403,7 @@ async function main() {
       `STOP ALL WORK IMMEDIATELY. Context is at emergency level.`,
       ``,
       `State has been auto-saved${savedState ? ` to .juhbdi/handoffs/` : ``}.`,
+      `Handoff written to .juhbdi/handoffs/latest.json for session-primer.`,
       ``,
       `Tell the user:`,
       `"Context is critically low at ${pct}%. All governance state has been saved.`,
@@ -340,30 +420,42 @@ async function main() {
       `\n!!! JUHBDI CONTEXT CRITICAL — ${pct}% REMAINING !!!`,
       ``,
       `All state has been auto-saved${savedState ? ` to .juhbdi/handoffs/` : ``}.`,
+      `Handoff written to .juhbdi/handoffs/latest.json for session-primer.`,
       ``,
       `You MUST stop new work NOW. Do these things immediately:`,
       `1. Save important context to memory files (Write tool -> ~/.claude/projects/*/memory/)`,
-      `2. Fill in the handoff file${handoffPath ? ` at ${handoffPath}` : ` (run /juhbdi:pause)`}`,
-      `3. Tell the user: "Context is at ${pct}%. I've saved a handoff file. Start a new session with this prompt:"`,
-      `4. Give the user a copy-paste prompt for the next session that summarizes current work`,
+      `2. Tell the user their context is at ${pct}%`,
+      `3. Give the user this FILLED-IN continuation prompt (replace all [brackets]):`,
       ``,
-      `DO NOT start any new tool calls, file reads, or code changes.`,
-      `DO NOT say "I'll continue" — you are OUT of context.`,
+      `---BEGIN CONTINUATION TEMPLATE---`,
+      `Previous session paused at: ${new Date().toISOString()}`,
+      `Branch: [fill in current git branch]`,
+      `Task in progress: [fill in what you were working on]`,
+      `Files modified this session: [list the key files you changed]`,
+      `Progress: [what's done, what's left]`,
+      ``,
+      `To continue:`,
+      `1. Run /juhbdi:resume`,
+      `2. Then: [fill in the specific next action to take]`,
+      `---END CONTINUATION TEMPLATE---`,
+      ``,
+      `IMPORTANT: Fill in EVERY bracket above with real values from this session.`,
+      `DO NOT leave any [brackets] unfilled. DO NOT start new tool calls or file reads.`,
     ].join("\n");
   } else if (currentLevel === "URGENT") {
     message = [
       `[JUHBDI CONTEXT URGENT] ${pct}% remaining — approaching critical.`,
-      `Finish your current task, then:`,
-      `- Update memory files with anything important from this session`,
-      `- Warn the user that context is getting tight`,
-      `- Prepare to write a handoff prompt if you can't finish`,
-      `Do NOT start new multi-step tasks.`,
+      `Finish your current task, then prepare to hand off:`,
+      `- Save key decisions to memory: ~/.claude/projects/*/memory/MEMORY.md`,
+      `- Run /juhbdi:pause to create a structured handoff file`,
+      `- Warn the user: "Context is at ${pct}%. We should wrap up soon or pause."`,
+      `Do NOT start new multi-step tasks. Complete what you're doing and stop.`,
     ].join("\n");
   } else {
     message = [
       `[JUHBDI CONTEXT WARNING] ${pct}% remaining.`,
-      `Be mindful of context usage. Wrap up current work before starting anything new.`,
-      `If you have more work ahead, mention to the user that context is getting tight.`,
+      `Context is getting tight. Consider running /juhbdi:pause if you have more work ahead.`,
+      `Wrap up your current task before starting anything new.`,
     ].join("\n");
   }
 

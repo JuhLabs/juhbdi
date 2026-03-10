@@ -57,6 +57,16 @@ If routing outcome data is available (from `routing_outcome` annotations in trai
 
 If fewer than 5 routing outcomes exist, show "Insufficient data for accuracy stats" instead.
 
+## Next Steps
+
+After displaying all status information, suggest relevant next actions based on current state:
+
+- If pending tasks exist: `"Ready to continue? Run /juhbdi:execute to pick up where you left off."`
+- If no roadmap exists: `"No active plan. Run /juhbdi:plan <what to build> to create one."`
+- If all tasks are complete: `"All tasks complete! Run /juhbdi:reflect to capture learnings, or /juhbdi:plan for new work."`
+- If there are failures: `"Some tasks failed. Run /juhbdi:execute to retry, or /juhbdi:trail --failures to investigate."`
+- Always include: `"Other options: /juhbdi:pause to save progress, /juhbdi:stats for detailed metrics."`
+
 ### Week-over-Week Comparison
 
 If there are trail entries from more than 7 days ago, compute a week-over-week comparison:

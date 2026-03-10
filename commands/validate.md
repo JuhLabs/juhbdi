@@ -1,7 +1,7 @@
 ---
 name: validate
 description: Validate all JuhBDI project files against their Zod schemas
-allowed-tools: ["Bash"]
+allowed-tools: ["Bash", "AskUserQuestion", "Write", "Read"]
 ---
 
 Validate the JuhBDI project's schema files to ensure they conform to the required structure.
@@ -28,3 +28,18 @@ Validate the JuhBDI project's schema files to ensure they conform to the require
    - File not found: "Run `/juhbdi:init` to create missing configuration files"
 
 5. Summarize: "All files valid." or "Validation failed — N file(s) have errors. See fix suggestions above."
+
+## Next Steps
+
+After displaying validation results, suggest relevant next actions:
+
+- If all files are valid: `"All good! Run /juhbdi:status for a full project overview, or /juhbdi:plan to start new work."`
+- If errors were found: `"Want me to fix these automatically? (y/n) Or run /juhbdi:init to regenerate config files."`
+- If `.juhbdi/` is missing entirely: `"No JuhBDI project found. Run /juhbdi:init to set one up."`
+
+Use AskUserQuestion to offer the auto-fix option when errors are found. If the user says yes, apply the fix suggestions from step 4 automatically, then re-run validation to confirm.
+
+Update the frontmatter to include AskUserQuestion in allowed-tools:
+
+---
+**Note:** The `allowed-tools` in frontmatter must include `AskUserQuestion` for the auto-fix prompt to work.
