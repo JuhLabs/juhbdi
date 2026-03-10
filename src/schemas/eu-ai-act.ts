@@ -30,6 +30,40 @@ export const Article12FieldsSchema = z.object({
   // Article 14 — human oversight
   human_oversight_level: z.enum(["none", "informed", "approval_required", "manual_override"]).optional(),
   human_reviewer: z.string().optional(),      // Who reviewed (anonymized ID, not PII)
+
+  // NEW: Data origin tracking (Article 12(2))
+  data_origin: z.enum(["user_input", "codebase", "external_api", "generated", "cached"]).optional(),
+
+  // NEW: Model fingerprinting (Article 12(1))
+  model_fingerprint: z.object({
+    provider: z.string(),
+    model_id: z.string(),
+    version: z.string().optional(),
+    capabilities: z.array(z.string()).optional(),
+  }).optional(),
+
+  // NEW: Intervention points (Article 14)
+  intervention_points: z.array(z.object({
+    point_id: z.string(),
+    description: z.string(),
+    requires_human: z.boolean(),
+    triggered: z.boolean(),
+  })).optional(),
+
+  // NEW: Stakeholder annotations (Article 12(3))
+  stakeholder_annotations: z.array(z.object({
+    annotator_id: z.string(),  // anonymized
+    annotation: z.string(),
+    timestamp: z.iso.datetime(),
+  })).optional(),
+
+  // NEW: Immutability proof (Article 12(1))
+  immutability_proof: z.object({
+    hash_algorithm: z.literal("sha256"),
+    entry_hash: z.string(),
+    prev_hash: z.string(),
+    chain_position: z.number().int().min(0),
+  }).optional(),
 }).optional();
 
 export type Article12Fields = z.infer<typeof Article12FieldsSchema>;

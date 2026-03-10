@@ -107,4 +107,104 @@ describe("Article12FieldsSchema", () => {
     expect(result!.ai_act_risk_class).toBe("minimal");
     expect(result!.deployer_id).toBeUndefined();
   });
+
+  // M17: New fields
+  test("data_origin accepts valid values", () => {
+    for (const origin of ["user_input", "codebase", "external_api", "generated", "cached"] as const) {
+      const result = Article12FieldsSchema.parse({ data_origin: origin });
+      expect(result!.data_origin).toBe(origin);
+    }
+  });
+
+  test("data_origin rejects invalid value", () => {
+    expect(() => Article12FieldsSchema.parse({ data_origin: "unknown" })).toThrow();
+  });
+
+  test("model_fingerprint accepts valid object", () => {
+    const result = Article12FieldsSchema.parse({
+      model_fingerprint: {
+        provider: "anthropic",
+        model_id: "claude-opus-4-20250514",
+        version: "4.0",
+        capabilities: ["code", "analysis"],
+      },
+    });
+    expect(result!.model_fingerprint!.provider).toBe("anthropic");
+    expect(result!.model_fingerprint!.capabilities).toEqual(["code", "analysis"]);
+  });
+
+  test("model_fingerprint requires provider and model_id", () => {
+    expect(() => Article12FieldsSchema.parse({
+      model_fingerprint: { provider: "anthropic" },
+    })).toThrow();
+  });
+
+  test("intervention_points accepts array of points", () => {
+    const result = Article12FieldsSchema.parse({
+      intervention_points: [
+        { point_id: "hitl-1", description: "HITL gate", requires_human: true, triggered: false },
+        { point_id: "review-1", description: "Code review", requires_human: false, triggered: true },
+      ],
+    });
+    expect(result!.intervention_points).toHaveLength(2);
+    expect(result!.intervention_points![0].point_id).toBe("hitl-1");
+  });
+
+  test("stakeholder_annotations accepts annotated entries", () => {
+    const result = Article12FieldsSchema.parse({
+      stakeholder_annotations: [
+        { annotator_id: "reviewer-42", annotation: "Approved", timestamp: "2026-03-10T10:00:00Z" },
+      ],
+    });
+    expect(result!.stakeholder_annotations).toHaveLength(1);
+    expect(result!.stakeholder_annotations![0].annotator_id).toBe("reviewer-42");
+  });
+
+  test("immutability_proof accepts valid hash chain entry", () => {
+    const result = Article12FieldsSchema.parse({
+      immutability_proof: {
+        hash_algorithm: "sha256",
+        entry_hash: "abc123def456",
+        prev_hash: "000000genesis",
+        chain_position: 0,
+      },
+    });
+    expect(result!.immutability_proof!.hash_algorithm).toBe("sha256");
+    expect(result!.immutability_proof!.chain_position).toBe(0);
+  });
+
+  test("immutability_proof rejects non-sha256 algorithm", () => {
+    expect(() => Article12FieldsSchema.parse({
+      immutability_proof: {
+        hash_algorithm: "md5",
+        entry_hash: "abc",
+        prev_hash: "def",
+        chain_position: 0,
+      },
+    })).toThrow();
+  });
+
+  test("full record with all new fields validates", () => {
+    const fullRecord = {
+      ai_act_risk_class: "high",
+      deployer_id: "org-001",
+      system_id: "sys-001",
+      operation_start: "2026-03-10T08:00:00Z",
+      operation_end: "2026-03-10T08:30:00Z",
+      input_data_ref: "hash:input",
+      output_data_ref: "hash:output",
+      model_version: "claude-opus-4-20250514",
+      retention_policy: "2_years",
+      human_oversight_level: "approval_required",
+      human_reviewer: "admin-1",
+      data_origin: "codebase",
+      model_fingerprint: { provider: "anthropic", model_id: "claude-opus-4-20250514" },
+      intervention_points: [{ point_id: "p1", description: "Gate", requires_human: true, triggered: false }],
+      stakeholder_annotations: [{ annotator_id: "r1", annotation: "OK", timestamp: "2026-03-10T09:00:00Z" }],
+      immutability_proof: { hash_algorithm: "sha256", entry_hash: "a1b2", prev_hash: "0000", chain_position: 5 },
+    };
+    const result = Article12FieldsSchema.parse(fullRecord);
+    expect(result).toBeDefined();
+    expect(Object.keys(result!).length).toBe(16);
+  });
 });
