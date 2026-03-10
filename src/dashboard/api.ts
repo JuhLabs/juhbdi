@@ -38,7 +38,13 @@ export function getCostData(juhbdiDir: string) {
     const cost = entry.cost_estimate || 0;
     totalSpend += cost;
     opusEquivalent += (entry.opus_equivalent_cost || cost);
-    const model = entry.routed_to || "unknown";
+    // Extract model from routed_to field, or parse from description as fallback
+    let model = entry.routed_to;
+    if (!model && entry.description) {
+      const match = entry.description.match(/\bto\s+(opus|sonnet|haiku|claude[^\s]*)/i);
+      if (match) model = match[1].toLowerCase();
+    }
+    model = model || "unknown";
     modelCounts[model] = (modelCounts[model] || 0) + 1;
   }
 
