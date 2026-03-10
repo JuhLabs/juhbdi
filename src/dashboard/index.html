@@ -519,6 +519,43 @@ body {
 }
 
 /* ================================================================
+   PANEL ICON SPRITESHEET — 3D glass-morphism icons
+   1536x1024 image, 3x2 grid = 512x512 per icon
+   ================================================================ */
+.panel-icon {
+  width: 48px;
+  height: 48px;
+  background-image: url('/assets/dashboardicons.png');
+  background-size: 300% 200%;
+  background-repeat: no-repeat;
+  flex-shrink: 0;
+  image-rendering: auto;
+  filter: drop-shadow(0 0 6px rgba(180, 190, 254, 0.25));
+  transition: filter 0.4s ease, transform 0.4s ease;
+}
+
+.panel-icon:hover,
+.card:hover .panel-icon,
+.mini-card:hover .panel-icon {
+  filter: drop-shadow(0 0 12px rgba(180, 190, 254, 0.45));
+  transform: scale(1.1);
+}
+
+.panel-icon-lg {
+  width: 80px;
+  height: 80px;
+}
+
+/* Row 1: Rocket, Crystal $, Windows */
+.panel-icon-exec     { background-position: 0% 0%; }
+.panel-icon-cost     { background-position: 50% 0%; }
+.panel-icon-sessions { background-position: 100% 0%; }
+/* Row 2: Shield, Brain, Path */
+.panel-icon-trust    { background-position: 0% 100%; }
+.panel-icon-memory   { background-position: 50% 100%; }
+.panel-icon-trail    { background-position: 100% 100%; }
+
+/* ================================================================
    BADGES & PILLS
    ================================================================ */
 .badge {

@@ -19,6 +19,17 @@ const VIEW_LABELS = {
   codehealth: 'Code Health',
 };
 
+// Spritesheet icon CSS class per view (3D glass-morphism icons)
+const VIEW_ICONS = {
+  execution: 'panel-icon-exec',
+  cost: 'panel-icon-cost',
+  trust: 'panel-icon-trust',
+  sessions: 'panel-icon-sessions',
+  trail: 'panel-icon-trail',
+  memory: 'panel-icon-memory',
+  codehealth: 'panel-icon-trail', // reuse path icon for code health
+};
+
 // ================================================================
 // STATE
 // ================================================================
@@ -66,6 +77,12 @@ const svgEl = (tag, attrs = {}) => {
 };
 
 const clear = (node) => { while (node.firstChild) node.removeChild(node.firstChild); };
+
+const viewIcon = (view, large) => {
+  const iconClass = VIEW_ICONS[view];
+  if (!iconClass) return null;
+  return el('div', { className: 'panel-icon ' + (large ? 'panel-icon-lg ' : '') + iconClass });
+};
 
 const fmt$ = (n) => typeof n === 'number' ? '$' + n.toFixed(4) : '--';
 
@@ -411,13 +428,25 @@ const renderOverview = () => {
 
 const miniCard = (view, title, dataFn, accentColor) => {
   const data = dataFn();
+  const iconClass = VIEW_ICONS[view];
+  const children = [];
+
+  if (iconClass) {
+    children.push(el('div', { className: 'panel-icon ' + iconClass }));
+  }
+  children.push(
+    el('div', { style: { flex: '1' } }, [
+      el('div', { className: 'mini-card-title' }, [
+        el('span', { className: 'accent-dot', style: { background: accentColor } }),
+        document.createTextNode(title),
+      ]),
+      el('div', { className: 'mini-card-value', textContent: data.value }),
+      el('div', { className: 'mini-card-sub', textContent: data.sub }),
+    ])
+  );
+
   const card = el('div', { className: 'mini-card', onClick: () => navigateTo(view) }, [
-    el('div', { className: 'mini-card-title' }, [
-      el('span', { className: 'accent-dot', style: { background: accentColor } }),
-      document.createTextNode(title),
-    ]),
-    el('div', { className: 'mini-card-value', textContent: data.value }),
-    el('div', { className: 'mini-card-sub', textContent: data.sub }),
+    el('div', { className: 'flex-row gap-md', style: { alignItems: 'center' } }, children),
   ]);
   return card;
 };
