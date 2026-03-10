@@ -18,3 +18,4 @@ docs/
 *.png
 !site/*.png
 !site/icons/*.png
+!src/dashboard/assets/*.png

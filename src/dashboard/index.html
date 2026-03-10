@@ -430,14 +430,47 @@ body {
   margin-bottom: 18px;
 }
 
+.card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .card-title {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.72rem;
-  color: var(--subtext0);
-  letter-spacing: 0.14em;
+  font-size: 1.1rem;
+  color: var(--subtext1);
+  letter-spacing: 0.10em;
   text-transform: uppercase;
 }
+
+/* ── Panel Icon Spritesheet ────────────────────────────────── */
+/* 1536x1024 image, 3x2 grid = 512x512 per icon               */
+.panel-icon {
+  width: 110px;
+  height: 110px;
+  background-image: url('/assets/dashboardicons.png');
+  background-size: 300% 200%; /* 3 cols x 2 rows */
+  background-repeat: no-repeat;
+  flex-shrink: 0;
+  image-rendering: auto;
+  filter: drop-shadow(0 0 8px rgba(180, 190, 254, 0.3));
+  transition: filter 0.4s ease, transform 0.4s ease;
+}
+.card:hover .panel-icon {
+  filter: drop-shadow(0 0 14px rgba(180, 190, 254, 0.5));
+  transform: scale(1.12);
+}
+
+/* Row 1: Rocket, Crystal $, Windows */
+.panel-icon-exec     { background-position: 0% 0%; }
+.panel-icon-cost     { background-position: 50% 0%; }
+.panel-icon-sessions { background-position: 100% 0%; }
+/* Row 2: Shield, Brain, Path */
+.panel-icon-trust    { background-position: 0% 100%; }
+.panel-icon-memory   { background-position: 50% 100%; }
+.panel-icon-trail    { background-position: 100% 100%; }
 
 /* ================================================================
    BADGES & PILLS
@@ -1903,7 +1936,10 @@ body {
   <!-- PANEL 1: Execution Status -->
   <section class="card" id="panelExec">
     <div class="card-header">
-      <span class="card-title">Execution Status</span>
+      <div class="card-header-left">
+        <div class="panel-icon panel-icon-exec"></div>
+        <span class="card-title">Execution Status</span>
+      </div>
       <div id="execBadges"></div>
     </div>
     <div id="execBody"></div>
@@ -1912,7 +1948,10 @@ body {
   <!-- PANEL 2: Trust & Governance -->
   <section class="card" id="panelTrust">
     <div class="card-header">
-      <span class="card-title">Trust &amp; Governance</span>
+      <div class="card-header-left">
+        <div class="panel-icon panel-icon-trust"></div>
+        <span class="card-title">Trust &amp; Governance</span>
+      </div>
     </div>
     <div id="trustBody"></div>
   </section>
@@ -1920,7 +1959,10 @@ body {
   <!-- PANEL 3: Cost Intelligence -->
   <section class="card" id="panelCost">
     <div class="card-header">
-      <span class="card-title">Cost Intelligence</span>
+      <div class="card-header-left">
+        <div class="panel-icon panel-icon-cost"></div>
+        <span class="card-title">Cost Intelligence</span>
+      </div>
     </div>
     <div id="costBody"></div>
   </section>
@@ -1928,7 +1970,10 @@ body {
   <!-- PANEL 4: Sessions & Context -->
   <section class="card" id="panelContext">
     <div class="card-header">
-      <span class="card-title">Sessions &amp; Context</span>
+      <div class="card-header-left">
+        <div class="panel-icon panel-icon-sessions"></div>
+        <span class="card-title">Sessions &amp; Context</span>
+      </div>
       <span id="sessionCountBadge" class="session-count-badge" style="display:none;"></span>
     </div>
     <div id="contextBody"></div>
@@ -1937,7 +1982,10 @@ body {
   <!-- PANEL 5: Decision Trail -->
   <section class="card card-trail" id="panelTrail">
     <div class="card-header">
-      <span class="card-title">Decision Trail</span>
+      <div class="card-header-left">
+        <div class="panel-icon panel-icon-trail"></div>
+        <span class="card-title">Decision Trail</span>
+      </div>
       <div class="trail-header-right">
         <span id="trailCount" class="trail-count"></span>
         <div class="live-indicator">
@@ -1952,7 +2000,10 @@ body {
   <!-- PANEL 6: Intelligence Memory -->
   <section class="card" id="panelMemory">
     <div class="card-header">
-      <span class="card-title">Intelligence Memory</span>
+      <div class="card-header-left">
+        <div class="panel-icon panel-icon-memory"></div>
+        <span class="card-title">Intelligence Memory</span>
+      </div>
     </div>
     <div id="memoryBody"></div>
   </section>
@@ -1966,6 +2017,8 @@ body {
 var connected = false;
 var lastTrailCount = 0;
 var cachedState = null;
+var cachedMemory = null;
+var cachedTrail = null;
 
 /* ================================================================
    HELPERS
@@ -2239,15 +2292,26 @@ function renderExecution(stateData) {
     return;
   }
 
-  // True empty state
+  // True empty state — check if we have state but no roadmap vs completely fresh
   var emptyDiv = el('div', { className: 'empty-state' });
   var gearIcon = el('div', { className: 'empty-icon-gear' });
   emptyDiv.appendChild(gearIcon);
-  emptyDiv.appendChild(el('div', { className: 'empty-text' }, [
-    document.createTextNode('No active execution. Run '),
-    el('code', {}, '/juhbdi:execute'),
-    document.createTextNode(' to start.'),
-  ]));
+  if (s && !roadmap) {
+    // Project initialized but no roadmap yet
+    emptyDiv.appendChild(el('div', { className: 'empty-text' }, [
+      document.createTextNode('No active roadmap. Run '),
+      el('code', {}, '/juhbdi:plan'),
+      document.createTextNode(' to create one.'),
+    ]));
+  } else {
+    emptyDiv.appendChild(el('div', { className: 'empty-text' }, [
+      document.createTextNode('No active execution. Run '),
+      el('code', {}, '/juhbdi:init'),
+      document.createTextNode(' to get started, or '),
+      el('code', {}, '/juhbdi:execute'),
+      document.createTextNode(' if already initialized.'),
+    ]));
+  }
   body.appendChild(emptyDiv);
 }
 
@@ -2287,6 +2351,12 @@ function renderTrust(memory, state) {
   var top = el('div', { className: 'trust-top' });
   var gauge = buildGauge(score, gaugeColors, 110, glowColor);
   gauge.labEl.textContent = 'TRUST';
+  // Show dash when trust hasn't been established yet
+  if (tier === 'unknown' && score === 0) {
+    gauge.numEl.textContent = '\u2014';
+    gauge.numEl.style.fontSize = '1.4rem';
+    gauge.numEl.style.color = 'var(--overlay1)';
+  }
   top.appendChild(gauge.container);
 
   var meta = el('div', { className: 'trust-meta' });
@@ -2296,7 +2366,15 @@ function renderTrust(memory, state) {
   var compPct = (state && state.state && state.state.eu_compliance_pct != null) ? state.state.eu_compliance_pct : 0;
   var compLabel = el('div', { className: 'compliance-label' });
   compLabel.appendChild(el('span', {}, 'EU AI Act'));
-  compLabel.appendChild(el('span', {}, compPct + '%'));
+  if (compPct > 0) {
+    compLabel.appendChild(el('span', {}, compPct + '%'));
+  } else {
+    var pendingSpan = el('span', {});
+    pendingSpan.style.fontStyle = 'italic';
+    pendingSpan.style.opacity = '0.6';
+    pendingSpan.textContent = 'pending';
+    compLabel.appendChild(pendingSpan);
+  }
   compBar.appendChild(compLabel);
   var compTrack = el('div', { className: 'compliance-track' });
   var compFill = el('div', { className: 'compliance-fill' });
@@ -2328,6 +2406,14 @@ function renderTrust(memory, state) {
       govDiv.appendChild(item);
     }
     body.appendChild(govDiv);
+  } else if (tier === 'unknown' || score === 0) {
+    // Informative hint when no governance data yet
+    var trustHint = el('div', {
+      className: 'gov-decision-item',
+      style: 'border-left-color: var(--overlay0); opacity: 0.7; font-style: italic;'
+    });
+    trustHint.textContent = 'Trust score builds after task execution. Run /juhbdi:execute to begin.';
+    body.appendChild(trustHint);
   }
 }
 
@@ -2349,9 +2435,9 @@ function renderCost(cost) {
     for (var b = 0; b < 5; b++) barsIcon.appendChild(el('div', { className: 'bar-anim' }));
     emptyDiv.appendChild(barsIcon);
     emptyDiv.appendChild(el('div', { className: 'empty-text' }, [
-      document.createTextNode('Costs tracked after '),
+      document.createTextNode('No routing data yet. Costs are tracked when '),
       el('code', {}, '/juhbdi:execute'),
-      document.createTextNode(' routes tasks.'),
+      document.createTextNode(' routes tasks to models.'),
     ]));
     body.appendChild(emptyDiv);
     return;
@@ -2465,7 +2551,7 @@ var cachedSessions = [];
 var sessionFreshnessInterval = null;
 
 function getIdeSlug(platform) {
-  if (!platform) return 'default';
+  if (!platform || platform === 'unknown') return 'default';
   var p = platform.toLowerCase().replace(/[\s_]+/g, '-');
   var knownSlugs = ['claude-code', 'cursor', 'windsurf', 'kiro', 'copilot', 'cline', 'roo-code', 'kilo-code'];
   for (var i = 0; i < knownSlugs.length; i++) {
@@ -2476,7 +2562,7 @@ function getIdeSlug(platform) {
 }
 
 function getIdeDisplayName(platform) {
-  if (!platform) return 'Unknown';
+  if (!platform || platform === 'unknown') return 'Session';
   var slug = getIdeSlug(platform);
   var names = {
     'claude-code': 'Claude Code',
@@ -2487,7 +2573,7 @@ function getIdeDisplayName(platform) {
     'cline': 'Cline',
     'roo-code': 'Roo Code',
     'kilo-code': 'Kilo Code',
-    'default': platform
+    'default': 'Session'
   };
   return names[slug] || platform;
 }
@@ -2502,7 +2588,7 @@ function getProgressColorClass(level) {
 }
 
 function truncateProjectPath(dir) {
-  if (!dir) return '';
+  if (!dir || dir === 'unknown') return '';
   var parts = dir.replace(/\\/g, '/').split('/').filter(Boolean);
   if (parts.length <= 2) return parts.join('/');
   return parts.slice(-2).join('/');
@@ -2601,6 +2687,12 @@ function buildSessionCard(session) {
   var projPath = truncateProjectPath(session.project_dir);
   if (projPath) {
     meta.appendChild(el('span', { className: 'session-project-path', textContent: projPath }));
+  } else {
+    var noProj = el('span', { className: 'session-project-path' });
+    noProj.style.fontStyle = 'italic';
+    noProj.style.opacity = '0.6';
+    noProj.textContent = 'No project info';
+    meta.appendChild(noProj);
   }
 
   // Freshness
@@ -2695,8 +2787,8 @@ function renderSessions(sessionsData) {
     radarIcon.appendChild(el('div', { className: 'radar-ring' }));
 
     emptyDiv.appendChild(radarIcon);
-    emptyDiv.appendChild(el('div', { className: 'session-empty-title', textContent: 'No active sessions' }));
-    emptyDiv.appendChild(el('div', { className: 'session-empty-desc', textContent: 'Sessions appear when JuhBDI runs in any IDE' }));
+    emptyDiv.appendChild(el('div', { className: 'session-empty-title', textContent: 'No active sessions detected' }));
+    emptyDiv.appendChild(el('div', { className: 'session-empty-desc', textContent: 'Sessions appear automatically when JuhBDI runs in any supported IDE. Context levels update in real time.' }));
     body.appendChild(emptyDiv);
     return;
   }
@@ -2729,7 +2821,16 @@ function renderSessions(sessionsData) {
       var groupDiv = el('div', { className: 'session-project-group' });
       var header = el('div', { className: 'session-project-header' });
       header.appendChild(buildFolderSvg());
-      header.appendChild(document.createTextNode(truncateProjectPath(group.project_dir)));
+      var groupPath = truncateProjectPath(group.project_dir);
+      if (groupPath) {
+        header.appendChild(document.createTextNode(groupPath));
+      } else {
+        var noGroupPath = el('span', {});
+        noGroupPath.style.fontStyle = 'italic';
+        noGroupPath.style.opacity = '0.6';
+        noGroupPath.textContent = 'Unknown project';
+        header.appendChild(noGroupPath);
+      }
       groupDiv.appendChild(header);
 
       for (var si = 0; si < groupVisible.length; si++) {
@@ -2772,7 +2873,7 @@ function renderTrail(trail) {
   if (!trail || trail.length === 0) {
     if (body.children.length === 0 || body.querySelector('.trail-empty')) {
       clearNode(body);
-      body.appendChild(el('div', { className: 'trail-empty', textContent: 'Awaiting first decision\u2026' }));
+      body.appendChild(el('div', { className: 'trail-empty', textContent: 'No trail entries yet. Decisions are recorded as commands execute.' }));
     }
     if (countEl) countEl.textContent = '';
     return;
@@ -2888,12 +2989,16 @@ function renderMemory(memory) {
 function updateDashboard(data) {
   if (!data) return;
 
-  // Cache state for cross-panel references
+  // Cache all data for cross-panel references
   if (data.state !== undefined) cachedState = data.state;
+  if (data.memory !== undefined) cachedMemory = data.memory;
+  if (data.trail !== undefined) cachedTrail = data.trail;
 
   if (data.state !== undefined) {
     renderExecution(data.state);
-    renderTrust(data.memory, { state: (data.state && data.state.state) || data.state, trail: data.trail || [] });
+    var mem = data.memory || cachedMemory;
+    var trailData = data.trail || cachedTrail || [];
+    renderTrust(mem, { state: (data.state && data.state.state) || data.state, trail: trailData });
   }
   if (data.cost !== undefined) renderCost(data.cost);
   if (data.sessions !== undefined) {
@@ -2922,10 +3027,10 @@ function updateDashboard(data) {
   if (data.trail !== undefined) renderTrail(data.trail);
   if (data.memory !== undefined) {
     renderMemory(data.memory);
-    if (data.state !== undefined || cachedState) {
-      var st = data.state || cachedState;
-      renderTrust(data.memory, { state: (st && st.state) || st, trail: data.trail || [] });
-    }
+    // Re-render trust with updated memory
+    var st = data.state || cachedState;
+    var trailForTrust = data.trail || cachedTrail || [];
+    renderTrust(data.memory, { state: (st && st.state) || st, trail: trailForTrust });
   }
 }
 

@@ -115,6 +115,16 @@ Bun.serve({
         });
       }
 
+      case "/assets/dashboardicons.png": {
+        const iconPath = path.join(import.meta.dir, "assets", "dashboardicons.png");
+        if (fs.existsSync(iconPath)) {
+          return new Response(Bun.file(iconPath), {
+            headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=86400" },
+          });
+        }
+        return new Response("Not found", { status: 404 });
+      }
+
       default:
         return new Response("Not found", { status: 404 });
     }
