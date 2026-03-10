@@ -101,6 +101,20 @@ curl -fsSL https://www.juhlabs.com/juhbdi/install.sh -o install.sh && bash insta
 **Platforms:** macOS &middot; Linux &middot; Windows (WSL2)
 **Requirements:** [Bun](https://bun.sh) (auto-installs if missing) &middot; [Node.js](https://nodejs.org) &middot; [Claude Code](https://claude.ai/code) &middot; Git
 
+### IDE Support
+
+JuhBDI works natively in Claude Code and can be installed into 17 AI coding tools:
+
+```bash
+npx juhbdi install --list              # See all supported IDEs
+npx juhbdi install --ide cursor        # Install for Cursor
+npx juhbdi install --ide all           # Install for all detected IDEs
+npx juhbdi install --ide detect        # Auto-detect IDEs in project
+npx juhbdi uninstall --ide cursor      # Remove from an IDE
+```
+
+**Supported:** Claude Code, Cursor, Windsurf, Kilo Code, Kiro, Roo Code, Cline, OpenCode, GitHub Copilot, Codex CLI, Gemini CLI, Google Antigravity, Augment Code, CodeBuddy, Trae, QwenCoder, VS Code
+
 ## Commands
 
 | Command | Description |
