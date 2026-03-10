@@ -11,6 +11,12 @@
 /* ================================================================
    DESIGN TOKENS — Catppuccin Mocha + JuhBDI accents
    ================================================================ */
+@property --border-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
 :root {
   --base: #1e1e2e;
   --mantle: #181825;
@@ -40,7 +46,6 @@
   --font-display: 'Outfit', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', 'Fira Code', monospace;
 
-  /* Panel accent colors */
   --accent-exec: var(--lavender);
   --accent-trust: var(--mauve);
   --accent-cost: var(--green);
@@ -70,7 +75,7 @@ body {
 }
 
 /* ================================================================
-   ANIMATED BACKGROUND — Floating gradient orbs + noise
+   ANIMATED BACKGROUND — Gradient orbs + drifting grid + noise
    ================================================================ */
 .bg-layer {
   position: fixed;
@@ -80,57 +85,97 @@ body {
   overflow: hidden;
 }
 
+/* SVG noise filter for grain texture */
+.bg-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+  mix-blend-mode: overlay;
+}
+
 .bg-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(120px);
-  opacity: 0.07;
-  animation: orbFloat 25s ease-in-out infinite;
+  filter: blur(100px);
+  will-change: transform;
 }
 
 .bg-orb:nth-child(1) {
-  width: 600px; height: 600px;
-  background: var(--mauve);
-  top: -200px; left: -100px;
-  animation-delay: 0s;
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, var(--mauve), transparent 70%);
+  top: -250px; left: -200px;
+  opacity: 0.15;
+  animation: orbFloat1 28s ease-in-out infinite;
 }
 
 .bg-orb:nth-child(2) {
-  width: 500px; height: 500px;
-  background: var(--blue);
-  top: 40%; right: -150px;
-  animation-delay: -8s;
-  animation-duration: 30s;
+  width: 550px; height: 550px;
+  background: radial-gradient(circle, var(--blue), transparent 70%);
+  top: 35%; right: -200px;
+  opacity: 0.12;
+  animation: orbFloat2 32s ease-in-out infinite;
 }
 
 .bg-orb:nth-child(3) {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, var(--teal), transparent 70%);
+  bottom: -150px; left: 25%;
+  opacity: 0.13;
+  animation: orbFloat3 24s ease-in-out infinite;
+}
+
+.bg-orb:nth-child(4) {
   width: 400px; height: 400px;
-  background: var(--teal);
-  bottom: -100px; left: 30%;
-  animation-delay: -16s;
-  animation-duration: 22s;
+  background: radial-gradient(circle, var(--pink), transparent 70%);
+  top: 60%; left: 10%;
+  opacity: 0.08;
+  animation: orbFloat1 35s ease-in-out infinite reverse;
 }
 
-@keyframes orbFloat {
+@keyframes orbFloat1 {
   0%, 100% { transform: translate(0, 0) scale(1); }
-  25% { transform: translate(40px, -30px) scale(1.05); }
-  50% { transform: translate(-20px, 40px) scale(0.95); }
-  75% { transform: translate(30px, 20px) scale(1.02); }
+  25% { transform: translate(60px, -50px) scale(1.08); }
+  50% { transform: translate(-30px, 60px) scale(0.92); }
+  75% { transform: translate(50px, 30px) scale(1.04); }
 }
 
-/* Subtle grid overlay */
-.bg-layer::after {
-  content: '';
+@keyframes orbFloat2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-70px, 40px) scale(1.06); }
+  66% { transform: translate(40px, -60px) scale(0.94); }
+}
+
+@keyframes orbFloat3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  20% { transform: translate(50px, -40px) scale(1.1); }
+  40% { transform: translate(-40px, 20px) scale(0.96); }
+  60% { transform: translate(30px, 50px) scale(1.02); }
+  80% { transform: translate(-60px, -20px) scale(0.98); }
+}
+
+/* Drifting grid overlay */
+.bg-grid {
   position: absolute;
-  inset: 0;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
   background-image:
-    linear-gradient(rgba(49, 50, 68, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(49, 50, 68, 0.08) 1px, transparent 1px);
-  background-size: 48px 48px;
+    linear-gradient(rgba(180, 190, 254, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(180, 190, 254, 0.04) 1px, transparent 1px);
+  background-size: 52px 52px;
+  animation: gridDrift 60s linear infinite;
+}
+
+@keyframes gridDrift {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  100% { transform: translate(52px, 52px) rotate(0.5deg); }
 }
 
 /* ================================================================
-   HEADER
+   HEADER — Command center top bar
    ================================================================ */
 .header {
   position: sticky;
@@ -140,14 +185,14 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 32px;
-  height: 56px;
-  background: rgba(17, 17, 27, 0.85);
-  backdrop-filter: blur(24px) saturate(1.2);
-  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  height: 58px;
+  background: rgba(17, 17, 27, 0.88);
+  backdrop-filter: blur(32px) saturate(1.4);
+  -webkit-backdrop-filter: blur(32px) saturate(1.4);
   border-bottom: 1px solid rgba(180, 190, 254, 0.06);
 }
 
-/* Gradient accent line at very top */
+/* Animated rainbow gradient line at top */
 .header::before {
   content: '';
   position: absolute;
@@ -155,8 +200,17 @@ body {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, var(--mauve), var(--lavender), var(--blue), var(--teal), var(--green));
-  opacity: 0.8;
+  background: linear-gradient(90deg,
+    var(--mauve), var(--lavender), var(--blue), var(--sapphire),
+    var(--teal), var(--green), var(--yellow), var(--peach),
+    var(--red), var(--pink), var(--mauve));
+  background-size: 200% 100%;
+  animation: rainbowShift 8s linear infinite;
+}
+
+@keyframes rainbowShift {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
 }
 
 .header-left {
@@ -167,18 +221,20 @@ body {
 
 .header-brand {
   font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: 1.2rem;
-  background: linear-gradient(135deg, var(--lavender), var(--mauve));
+  font-weight: 800;
+  font-size: 1.3rem;
+  background: linear-gradient(135deg, var(--lavender) 0%, var(--mauve) 50%, var(--pink) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  text-shadow: none;
+  filter: drop-shadow(0 0 12px rgba(180, 190, 254, 0.3));
 }
 
 .header-divider {
   width: 1px;
-  height: 20px;
-  background: var(--surface1);
+  height: 22px;
+  background: linear-gradient(180deg, transparent, var(--surface1), transparent);
 }
 
 .header-subtitle {
@@ -186,7 +242,8 @@ body {
   font-weight: 500;
   font-size: 0.78rem;
   color: var(--subtext0);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .header-right {
@@ -199,45 +256,46 @@ body {
   display: flex;
   align-items: center;
   gap: 7px;
-  padding: 4px 12px;
+  padding: 5px 14px;
   border-radius: 20px;
   background: rgba(49, 50, 68, 0.4);
   border: 1px solid rgba(49, 50, 68, 0.6);
-  transition: all 0.3s ease;
+  transition: all 0.4s ease;
 }
 
 .connection-indicator.connected {
-  border-color: rgba(166, 227, 161, 0.2);
+  border-color: rgba(166, 227, 161, 0.25);
   background: rgba(166, 227, 161, 0.06);
+  box-shadow: 0 0 12px rgba(166, 227, 161, 0.08);
 }
 
 .connection-dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--overlay0);
-  transition: all 0.3s ease;
+  transition: all 0.4s ease;
 }
 
 .connection-indicator.connected .connection-dot {
   background: var(--green);
-  box-shadow: 0 0 8px rgba(166, 227, 161, 0.6);
+  box-shadow: 0 0 8px rgba(166, 227, 161, 0.7);
   animation: dotPulse 2s ease-in-out infinite;
 }
 
 @keyframes dotPulse {
   0%, 100% { box-shadow: 0 0 6px rgba(166, 227, 161, 0.4); }
-  50% { box-shadow: 0 0 12px rgba(166, 227, 161, 0.8); }
+  50% { box-shadow: 0 0 14px rgba(166, 227, 161, 0.9); }
 }
 
 .connection-label {
   font-family: var(--font-mono);
   font-size: 0.62rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--overlay0);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  transition: color 0.3s ease;
+  transition: color 0.4s ease;
 }
 
 .connection-indicator.connected .connection-label {
@@ -246,10 +304,14 @@ body {
 
 .header-time {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 500;
   color: var(--subtext0);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  background: rgba(49, 50, 68, 0.25);
+  border-radius: 8px;
+  border: 1px solid rgba(49, 50, 68, 0.3);
 }
 
 /* ================================================================
@@ -261,9 +323,9 @@ body {
   display: grid;
   grid-template-columns: 1.8fr 1fr;
   grid-template-rows: auto auto auto;
-  gap: 16px;
-  padding: 20px 28px 48px;
-  max-width: 1520px;
+  gap: 18px;
+  padding: 22px 28px 52px;
+  max-width: 1540px;
   margin: 0 auto;
 }
 
@@ -273,69 +335,89 @@ body {
 }
 
 /* ================================================================
-   CARD BASE — Frosted glass with colored top accent
+   CARD BASE — Frosted glass with animated gradient hover border
    ================================================================ */
 .card {
   position: relative;
-  background: rgba(24, 24, 37, 0.75);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(24, 24, 37, 0.78);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
   border: 1px solid rgba(69, 71, 90, 0.35);
-  border-radius: 16px;
-  padding: 22px 24px;
+  border-radius: 18px;
+  padding: 24px 26px;
   opacity: 0;
-  transform: translateY(16px);
-  animation: cardEnter 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.25s ease;
+  transform: translateY(20px);
+  animation: cardEnter 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transition: border-color 0.35s ease, box-shadow 0.35s ease, transform 0.3s ease;
   overflow: hidden;
 }
 
-/* Colored top accent bar */
+/* Inner glow */
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+}
+
+.card:hover::after {
+  opacity: 1;
+}
+
+/* Colored top accent bar — gradient, wider */
 .card::before {
   content: '';
   position: absolute;
   top: 0;
-  left: 24px;
-  right: 24px;
-  height: 2px;
-  border-radius: 0 0 2px 2px;
-  opacity: 0.6;
-  transition: opacity 0.3s ease;
-}
-
-.card:hover {
-  border-color: rgba(69, 71, 90, 0.55);
-  transform: translateY(-2px);
+  left: 0;
+  right: 0;
+  height: 3px;
+  opacity: 0.7;
+  transition: opacity 0.35s ease, height 0.35s ease;
 }
 
 .card:hover::before {
   opacity: 1;
+  height: 3px;
 }
 
-/* Per-panel accent colors */
-.card:nth-child(1) { grid-column: 1; grid-row: 1; animation-delay: 0.04s; }
-.card:nth-child(1)::before { background: linear-gradient(90deg, var(--accent-exec), transparent); }
-.card:nth-child(1):hover { box-shadow: 0 8px 32px -8px rgba(180, 190, 254, 0.08); }
+/* Per-panel accent colors + hover effects */
+.card:nth-child(1) { grid-column: 1; grid-row: 1; animation-delay: 0.05s; }
+.card:nth-child(1)::before { background: linear-gradient(90deg, var(--accent-exec), var(--blue), transparent 80%); }
+.card:nth-child(1)::after { background: radial-gradient(ellipse at top left, rgba(180, 190, 254, 0.04), transparent 60%); }
+.card:nth-child(1):hover { border-color: rgba(180, 190, 254, 0.25); box-shadow: 0 12px 40px -10px rgba(180, 190, 254, 0.12), inset 0 1px 0 rgba(180, 190, 254, 0.06); }
 
-.card:nth-child(2) { grid-column: 2; grid-row: 1; animation-delay: 0.08s; }
-.card:nth-child(2)::before { background: linear-gradient(90deg, var(--accent-trust), transparent); }
-.card:nth-child(2):hover { box-shadow: 0 8px 32px -8px rgba(203, 166, 247, 0.08); }
+.card:nth-child(2) { grid-column: 2; grid-row: 1; animation-delay: 0.10s; }
+.card:nth-child(2)::before { background: linear-gradient(90deg, var(--accent-trust), var(--pink), transparent 80%); }
+.card:nth-child(2)::after { background: radial-gradient(ellipse at top left, rgba(203, 166, 247, 0.04), transparent 60%); }
+.card:nth-child(2):hover { border-color: rgba(203, 166, 247, 0.25); box-shadow: 0 12px 40px -10px rgba(203, 166, 247, 0.12), inset 0 1px 0 rgba(203, 166, 247, 0.06); }
 
-.card:nth-child(3) { grid-column: 1; grid-row: 2; animation-delay: 0.12s; }
-.card:nth-child(3)::before { background: linear-gradient(90deg, var(--accent-cost), transparent); }
-.card:nth-child(3):hover { box-shadow: 0 8px 32px -8px rgba(166, 227, 161, 0.08); }
+.card:nth-child(3) { grid-column: 1; grid-row: 2; animation-delay: 0.15s; }
+.card:nth-child(3)::before { background: linear-gradient(90deg, var(--accent-cost), var(--teal), transparent 80%); }
+.card:nth-child(3)::after { background: radial-gradient(ellipse at top left, rgba(166, 227, 161, 0.04), transparent 60%); }
+.card:nth-child(3):hover { border-color: rgba(166, 227, 161, 0.25); box-shadow: 0 12px 40px -10px rgba(166, 227, 161, 0.12), inset 0 1px 0 rgba(166, 227, 161, 0.06); }
 
-.card:nth-child(4) { grid-column: 2; grid-row: 2; animation-delay: 0.16s; }
-.card:nth-child(4)::before { background: linear-gradient(90deg, var(--accent-context), transparent); }
-.card:nth-child(4):hover { box-shadow: 0 8px 32px -8px rgba(116, 199, 236, 0.08); }
+.card:nth-child(4) { grid-column: 2; grid-row: 2; animation-delay: 0.20s; }
+.card:nth-child(4)::before { background: linear-gradient(90deg, var(--accent-context), var(--blue), transparent 80%); }
+.card:nth-child(4)::after { background: radial-gradient(ellipse at top left, rgba(116, 199, 236, 0.04), transparent 60%); }
+.card:nth-child(4):hover { border-color: rgba(116, 199, 236, 0.25); box-shadow: 0 12px 40px -10px rgba(116, 199, 236, 0.12), inset 0 1px 0 rgba(116, 199, 236, 0.06); }
 
-.card:nth-child(5) { grid-column: 1; grid-row: 3; animation-delay: 0.20s; }
-.card:nth-child(5)::before { background: linear-gradient(90deg, var(--accent-trail), transparent); }
-.card:nth-child(5):hover { box-shadow: 0 8px 32px -8px rgba(148, 226, 213, 0.08); }
+.card:nth-child(5) { grid-column: 1; grid-row: 3; animation-delay: 0.25s; }
+.card:nth-child(5)::before { background: linear-gradient(90deg, var(--accent-trail), var(--green), transparent 80%); }
+.card:nth-child(5)::after { background: radial-gradient(ellipse at top left, rgba(148, 226, 213, 0.04), transparent 60%); }
+.card:nth-child(5):hover { border-color: rgba(148, 226, 213, 0.25); box-shadow: 0 12px 40px -10px rgba(148, 226, 213, 0.12), inset 0 1px 0 rgba(148, 226, 213, 0.06); }
 
-.card:nth-child(6) { grid-column: 2; grid-row: 3; animation-delay: 0.24s; }
-.card:nth-child(6)::before { background: linear-gradient(90deg, var(--accent-memory), transparent); }
-.card:nth-child(6):hover { box-shadow: 0 8px 32px -8px rgba(245, 194, 231, 0.08); }
+.card:nth-child(6) { grid-column: 2; grid-row: 3; animation-delay: 0.30s; }
+.card:nth-child(6)::before { background: linear-gradient(90deg, var(--accent-memory), var(--mauve), transparent 80%); }
+.card:nth-child(6)::after { background: radial-gradient(ellipse at top left, rgba(245, 194, 231, 0.04), transparent 60%); }
+.card:nth-child(6):hover { border-color: rgba(245, 194, 231, 0.25); box-shadow: 0 12px 40px -10px rgba(245, 194, 231, 0.12), inset 0 1px 0 rgba(245, 194, 231, 0.06); }
 
 @keyframes cardEnter {
   to { opacity: 1; transform: translateY(0); }
@@ -345,15 +427,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .card-title {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--subtext0);
-  letter-spacing: 0.1em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
@@ -374,20 +456,43 @@ body {
 .badge-wave {
   background: rgba(180, 190, 254, 0.12);
   color: var(--lavender);
-  border: 1px solid rgba(180, 190, 254, 0.15);
+  border: 1px solid rgba(180, 190, 254, 0.18);
 }
 
 .badge-phase {
   background: rgba(137, 180, 250, 0.12);
   color: var(--blue);
-  border: 1px solid rgba(137, 180, 250, 0.15);
+  border: 1px solid rgba(137, 180, 250, 0.18);
   margin-left: 6px;
+}
+
+.badge-project {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, rgba(180, 190, 254, 0.1), rgba(137, 180, 250, 0.06));
+  color: var(--lavender);
+  border: 1px solid rgba(180, 190, 254, 0.15);
+  letter-spacing: 0.02em;
+}
+
+.badge-project-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--lavender);
+  box-shadow: 0 0 6px rgba(180, 190, 254, 0.5);
 }
 
 .tier-badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 14px;
+  padding: 5px 16px;
   border-radius: 20px;
   font-family: var(--font-mono);
   font-size: 0.68rem;
@@ -432,9 +537,9 @@ body {
    ================================================================ */
 .progress-track {
   width: 100%;
-  height: 6px;
+  height: 7px;
   background: var(--surface0);
-  border-radius: 3px;
+  border-radius: 4px;
   overflow: hidden;
   position: relative;
 }
@@ -442,16 +547,17 @@ body {
 .progress-fill {
   height: 100%;
   background: linear-gradient(90deg, var(--lavender), var(--blue));
-  border-radius: 3px;
+  border-radius: 4px;
   transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
   position: relative;
+  box-shadow: 0 0 10px rgba(180, 190, 254, 0.3);
 }
 
 .progress-fill::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%);
   animation: shimmer 2.5s ease-in-out infinite;
 }
 
@@ -468,33 +574,17 @@ body {
 }
 
 /* ================================================================
-   EMPTY STATE
+   EMPTY STATE — CSS-only animated icons
    ================================================================ */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 32px 16px;
+  padding: 36px 16px;
   text-align: center;
-  gap: 12px;
+  gap: 14px;
 }
-
-.empty-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.4rem;
-  line-height: 1;
-  opacity: 0.3;
-}
-
-.empty-icon-exec { background: rgba(180, 190, 254, 0.08); }
-.empty-icon-cost { background: rgba(166, 227, 161, 0.08); }
-.empty-icon-mem  { background: rgba(245, 194, 231, 0.08); }
 
 .empty-text {
   color: var(--overlay1);
@@ -514,8 +604,110 @@ body {
   border: 1px solid rgba(180, 190, 254, 0.1);
 }
 
+/* CSS-only animated icons for empty states */
+
+/* Spinning gear icon */
+.empty-icon-gear {
+  width: 52px;
+  height: 52px;
+  position: relative;
+  animation: gearSpin 8s linear infinite;
+}
+
+.empty-icon-gear::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  border: 3px solid rgba(180, 190, 254, 0.2);
+}
+
+.empty-icon-gear::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px dashed rgba(180, 190, 254, 0.12);
+}
+
+@keyframes gearSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Pulsing concentric rings for memory */
+.empty-icon-rings {
+  width: 56px;
+  height: 56px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid;
+  animation: ringPulse 3s ease-in-out infinite;
+}
+
+.ring:nth-child(1) {
+  width: 14px; height: 14px;
+  border-color: rgba(245, 194, 231, 0.5);
+  animation-delay: 0s;
+}
+
+.ring:nth-child(2) {
+  width: 26px; height: 26px;
+  border-color: rgba(245, 194, 231, 0.35);
+  animation-delay: 0.3s;
+}
+
+.ring:nth-child(3) {
+  width: 38px; height: 38px;
+  border-color: rgba(245, 194, 231, 0.22);
+  animation-delay: 0.6s;
+}
+
+.ring:nth-child(4) {
+  width: 50px; height: 50px;
+  border-color: rgba(245, 194, 231, 0.12);
+  animation-delay: 0.9s;
+}
+
+@keyframes ringPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.12); opacity: 0.4; }
+}
+
+/* Animated chart bars for cost empty state */
+.empty-icon-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 40px;
+  padding: 0 6px;
+}
+
+.bar-anim {
+  width: 6px;
+  border-radius: 3px 3px 0 0;
+  animation: barGrow 2s ease-in-out infinite;
+}
+
+.bar-anim:nth-child(1) { background: rgba(166, 227, 161, 0.3); animation-delay: 0s; height: 16px; }
+.bar-anim:nth-child(2) { background: rgba(166, 227, 161, 0.4); animation-delay: 0.15s; height: 24px; }
+.bar-anim:nth-child(3) { background: rgba(148, 226, 213, 0.5); animation-delay: 0.3s; height: 32px; }
+.bar-anim:nth-child(4) { background: rgba(148, 226, 213, 0.4); animation-delay: 0.45s; height: 20px; }
+.bar-anim:nth-child(5) { background: rgba(166, 227, 161, 0.3); animation-delay: 0.6s; height: 28px; }
+
+@keyframes barGrow {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.5); }
+}
+
 /* ================================================================
-   PANEL 1: EXECUTION STATUS
+   PANEL 1: EXECUTION STATUS — Roadmap view
    ================================================================ */
 .exec-wave-info {
   display: flex;
@@ -524,17 +716,154 @@ body {
   margin-bottom: 14px;
 }
 
+.exec-roadmap {
+  margin-top: 6px;
+}
+
+.exec-stats-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.exec-stat {
+  flex: 1;
+  text-align: center;
+  padding: 14px 8px;
+  background: rgba(49, 50, 68, 0.25);
+  border-radius: 12px;
+  border: 1px solid rgba(69, 71, 90, 0.2);
+  transition: border-color 0.25s ease, background 0.25s ease;
+}
+
+.exec-stat:hover {
+  border-color: rgba(180, 190, 254, 0.2);
+  background: rgba(49, 50, 68, 0.4);
+}
+
+.exec-stat-num {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 2rem;
+  line-height: 1;
+  background: linear-gradient(135deg, var(--lavender), var(--blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.exec-stat-label {
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  color: var(--overlay1);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 6px;
+}
+
+.wave-grid {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.wave-block {
+  flex: 1;
+  position: relative;
+  padding: 10px 8px;
+  background: rgba(49, 50, 68, 0.2);
+  border-radius: 10px;
+  border: 1px solid rgba(69, 71, 90, 0.15);
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: default;
+  overflow: hidden;
+}
+
+.wave-block::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--surface1);
+  transition: background 0.3s ease;
+}
+
+.wave-block:hover {
+  background: rgba(49, 50, 68, 0.4);
+  border-color: rgba(180, 190, 254, 0.2);
+}
+
+.wave-block.wave-complete::before { background: var(--green); box-shadow: 0 0 8px rgba(166, 227, 161, 0.3); }
+.wave-block.wave-active::before { background: var(--lavender); box-shadow: 0 0 8px rgba(180, 190, 254, 0.3); animation: wavePulse 2s ease-in-out infinite; }
+.wave-block.wave-active { border-color: rgba(180, 190, 254, 0.25); background: rgba(180, 190, 254, 0.04); }
+.wave-block.wave-pending::before { background: var(--surface1); }
+
+@keyframes wavePulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(180, 190, 254, 0.2); }
+  50% { box-shadow: 0 0 14px rgba(180, 190, 254, 0.5); }
+}
+
+.wave-block-id {
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  font-weight: 600;
+  color: var(--overlay1);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.wave-block-count {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 2px;
+  line-height: 1;
+}
+
+.wave-block-label {
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  color: var(--overlay0);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 3px;
+}
+
+.wave-block.wave-complete .wave-block-count { color: var(--green); }
+.wave-block.wave-active .wave-block-count { color: var(--lavender); }
+
+.exec-project-name {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  color: var(--overlay1);
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(49, 50, 68, 0.15);
+  border-radius: 8px;
+  border-left: 2px solid rgba(180, 190, 254, 0.2);
+}
+
+.exec-project-name strong {
+  color: var(--subtext1);
+  font-weight: 500;
+}
+
 .exec-last-result {
   margin-top: 14px;
-  padding: 10px 14px;
-  background: rgba(49, 50, 68, 0.35);
-  border-radius: 10px;
-  border-left: 3px solid var(--surface1);
+  padding: 12px 16px;
+  background: rgba(49, 50, 68, 0.3);
+  border-radius: 12px;
+  border-left: 3px solid var(--lavender);
+  box-shadow: inset 0 0 20px rgba(180, 190, 254, 0.02);
 }
 
 .exec-last-result .label {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   color: var(--subtext0);
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -552,21 +881,17 @@ body {
 .trust-top {
   display: flex;
   align-items: flex-start;
-  gap: 18px;
+  gap: 20px;
   margin-bottom: 14px;
 }
 
 .gauge-container {
   position: relative;
-  width: 100px;
-  height: 100px;
   flex-shrink: 0;
 }
 
 .gauge-container svg {
-  width: 100px;
-  height: 100px;
-  filter: drop-shadow(0 0 8px var(--gauge-glow, transparent));
+  filter: drop-shadow(0 0 10px var(--gauge-glow, transparent));
   transition: filter 0.4s ease;
 }
 
@@ -582,7 +907,7 @@ body {
   stroke-linecap: round;
   transform: rotate(-90deg);
   transform-origin: center;
-  transition: stroke-dashoffset 1s cubic-bezier(0.22, 1, 0.36, 1), stroke 0.4s ease;
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.22, 1, 0.36, 1), stroke 0.4s ease;
 }
 
 .gauge-value {
@@ -596,26 +921,26 @@ body {
 
 .gauge-number {
   font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: 1.5rem;
+  font-weight: 800;
+  font-size: 1.8rem;
   line-height: 1;
   color: var(--text);
 }
 
 .gauge-label-sm {
   font-family: var(--font-mono);
-  font-size: 0.55rem;
+  font-size: 0.52rem;
   color: var(--overlay1);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-top: 2px;
+  letter-spacing: 0.12em;
+  margin-top: 3px;
 }
 
 .trust-meta {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   padding-top: 4px;
 }
 
@@ -623,27 +948,29 @@ body {
 
 .compliance-label {
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: 0.62rem;
   color: var(--overlay1);
-  margin-bottom: 5px;
+  margin-bottom: 6px;
   display: flex;
   justify-content: space-between;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .compliance-track {
   width: 100%;
-  height: 4px;
+  height: 5px;
   background: rgba(49, 50, 68, 0.6);
-  border-radius: 2px;
+  border-radius: 3px;
   overflow: hidden;
 }
 
 .compliance-fill {
   height: 100%;
   background: linear-gradient(90deg, var(--teal), var(--green));
-  border-radius: 2px;
+  border-radius: 3px;
   transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 0 8px rgba(148, 226, 213, 0.2);
 }
 
 .gov-decisions {
@@ -654,18 +981,19 @@ body {
 }
 
 .gov-decision-item {
-  padding: 8px 12px;
-  background: rgba(49, 50, 68, 0.25);
-  border-radius: 8px;
+  padding: 9px 14px;
+  background: rgba(49, 50, 68, 0.2);
+  border-radius: 10px;
   border-left: 2px solid var(--mauve);
   font-size: 0.75rem;
   color: var(--subtext0);
   line-height: 1.4;
-  transition: background 0.2s ease;
+  transition: background 0.25s ease, border-color 0.25s ease;
 }
 
 .gov-decision-item:hover {
   background: rgba(49, 50, 68, 0.4);
+  border-color: var(--pink);
 }
 
 .gov-decision-item .decision-time {
@@ -688,20 +1016,21 @@ body {
 .cost-big-number {
   font-family: var(--font-mono);
   font-weight: 800;
-  font-size: 2.6rem;
+  font-size: 2.8rem;
   line-height: 1;
   background: linear-gradient(135deg, var(--green), var(--teal));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  filter: drop-shadow(0 0 16px rgba(166, 227, 161, 0.2));
 }
 
 .cost-big-label {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   color: var(--overlay1);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   margin-bottom: 18px;
 }
 
@@ -717,13 +1046,15 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
 }
 
 .cost-bar-name {
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: 0.62rem;
   color: var(--overlay1);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .cost-bar-value {
@@ -735,7 +1066,7 @@ body {
 
 .cost-bar-track {
   width: 100%;
-  height: 5px;
+  height: 6px;
   background: rgba(49, 50, 68, 0.5);
   border-radius: 3px;
   overflow: hidden;
@@ -747,25 +1078,25 @@ body {
   transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.cost-bar-fill.actual { background: linear-gradient(90deg, var(--green), var(--teal)); }
-.cost-bar-fill.opus   { background: linear-gradient(90deg, var(--mauve), var(--pink)); }
+.cost-bar-fill.actual { background: linear-gradient(90deg, var(--green), var(--teal)); box-shadow: 0 0 8px rgba(166, 227, 161, 0.2); }
+.cost-bar-fill.opus   { background: linear-gradient(90deg, var(--mauve), var(--pink)); box-shadow: 0 0 8px rgba(203, 166, 247, 0.2); }
 
 .model-dist { margin-top: 4px; }
 
 .model-dist-label {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   color: var(--overlay1);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 6px;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
 }
 
 .model-stacked-bar {
   width: 100%;
-  height: 8px;
+  height: 10px;
   background: rgba(49, 50, 68, 0.4);
-  border-radius: 4px;
+  border-radius: 5px;
   overflow: hidden;
   display: flex;
 }
@@ -775,32 +1106,64 @@ body {
   transition: width 0.6s ease;
 }
 
-.segment-haiku   { background: var(--teal); }
-.segment-sonnet  { background: var(--blue); }
-.segment-opus    { background: var(--mauve); }
-.segment-unknown { background: var(--surface1); }
+.segment-haiku   { background: linear-gradient(90deg, var(--teal), #7dd6c6); }
+.segment-sonnet  { background: linear-gradient(90deg, var(--blue), #a0c8fc); }
+.segment-opus    { background: linear-gradient(90deg, var(--mauve), #d6b8fa); }
+.segment-unknown { background: linear-gradient(90deg, var(--surface1), var(--surface2)); }
 
 .model-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 8px;
+  gap: 14px;
+  margin-top: 10px;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.62rem;
   color: var(--overlay1);
 }
 
 .legend-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 3px;
   flex-shrink: 0;
+}
+
+/* Routing stat metric */
+.cost-routing-stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  background: rgba(49, 50, 68, 0.2);
+  border-radius: 10px;
+  border: 1px solid rgba(69, 71, 90, 0.15);
+}
+
+.cost-routing-num {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 1.8rem;
+  line-height: 1;
+  background: linear-gradient(135deg, var(--green), var(--teal));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.cost-routing-label {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: var(--overlay1);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  line-height: 1.4;
 }
 
 /* ================================================================
@@ -810,23 +1173,28 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 8px 0;
+  gap: 14px;
+  padding: 10px 0;
 }
 
 .context-level {
   font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 0.78rem;
-  letter-spacing: 0.12em;
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
-.level-normal   { color: var(--green); }
-.level-warning  { color: var(--yellow); }
-.level-urgent   { color: var(--peach); }
-.level-critical { color: var(--red); }
-.level-emergency { color: var(--red); text-shadow: 0 0 16px rgba(243, 139, 168, 0.5); }
+.level-normal   { color: var(--green); text-shadow: 0 0 16px rgba(166, 227, 161, 0.3); }
+.level-warning  { color: var(--yellow); text-shadow: 0 0 16px rgba(249, 226, 175, 0.3); }
+.level-urgent   { color: var(--peach); text-shadow: 0 0 16px rgba(250, 179, 135, 0.3); }
+.level-critical { color: var(--red); text-shadow: 0 0 16px rgba(243, 139, 168, 0.4); }
+.level-emergency { color: var(--red); text-shadow: 0 0 24px rgba(243, 139, 168, 0.6); animation: emergencyFlash 1s ease-in-out infinite; }
+
+@keyframes emergencyFlash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
 
 .pulse-warning { animation: pulseWarn 1.5s ease-in-out infinite; }
 
@@ -836,10 +1204,10 @@ body {
 }
 
 /* ================================================================
-   PANEL 5: DECISION TRAIL
+   PANEL 5: DECISION TRAIL — Terminal aesthetic
    ================================================================ */
 .card-trail {
-  background: rgba(17, 17, 27, 0.85) !important;
+  background: rgba(14, 14, 22, 0.92) !important;
 }
 
 .trail-header-right {
@@ -874,7 +1242,7 @@ body {
 
 @keyframes livePulse {
   0%, 100% { box-shadow: 0 0 4px rgba(166, 227, 161, 0.5); opacity: 1; }
-  50% { box-shadow: 0 0 10px rgba(166, 227, 161, 0.8); opacity: 0.6; }
+  50% { box-shadow: 0 0 12px rgba(166, 227, 161, 0.8); opacity: 0.6; }
 }
 
 .live-text {
@@ -887,13 +1255,16 @@ body {
 }
 
 .trail-scroll {
-  max-height: 280px;
+  max-height: 300px;
   overflow-y: auto;
   font-family: var(--font-mono);
   font-size: 0.7rem;
   line-height: 1.6;
   scrollbar-width: thin;
   scrollbar-color: var(--surface1) transparent;
+  position: relative;
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 85%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 0%, black 85%, transparent 100%);
 }
 
 .trail-scroll::-webkit-scrollbar { width: 4px; }
@@ -904,13 +1275,14 @@ body {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  padding: 5px 0;
-  border-bottom: 1px solid rgba(49, 50, 68, 0.2);
-  transition: background 0.15s ease;
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(49, 50, 68, 0.15);
+  transition: background 0.2s ease;
+  border-radius: 4px;
 }
 
 .trail-entry:hover {
-  background: rgba(49, 50, 68, 0.15);
+  background: rgba(49, 50, 68, 0.2);
 }
 
 .trail-entry:last-child { border-bottom: none; }
@@ -928,6 +1300,23 @@ body {
   word-break: break-word;
 }
 
+.trail-cursor {
+  padding: 6px 8px;
+  animation: cursorBlink 1.2s step-end infinite;
+}
+
+.trail-cursor::after {
+  content: '\2588';
+  color: var(--teal);
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+@keyframes cursorBlink {
+  0%, 50% { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
+}
+
 .trail-empty {
   color: var(--overlay0);
   font-style: italic;
@@ -942,39 +1331,40 @@ body {
 .memory-stats-row {
   display: flex;
   gap: 8px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .memory-stat-box {
   flex: 1;
   text-align: center;
-  padding: 12px 8px;
-  background: rgba(49, 50, 68, 0.25);
-  border-radius: 10px;
-  border: 1px solid rgba(69, 71, 90, 0.2);
-  transition: border-color 0.2s ease, background 0.2s ease;
+  padding: 14px 8px;
+  background: rgba(49, 50, 68, 0.2);
+  border-radius: 12px;
+  border: 1px solid rgba(69, 71, 90, 0.18);
+  transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
 }
 
 .memory-stat-box:hover {
-  border-color: rgba(69, 71, 90, 0.4);
+  border-color: rgba(245, 194, 231, 0.2);
   background: rgba(49, 50, 68, 0.4);
+  transform: translateY(-1px);
 }
 
 .memory-stat-num {
   font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: 1.4rem;
+  font-weight: 800;
+  font-size: 1.6rem;
   color: var(--text);
   line-height: 1;
 }
 
 .memory-stat-label {
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: 0.54rem;
   color: var(--overlay1);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-top: 5px;
+  letter-spacing: 0.1em;
+  margin-top: 6px;
 }
 
 .reflexion-list {
@@ -984,12 +1374,12 @@ body {
 }
 
 .reflexion-item {
-  padding: 10px 12px;
+  padding: 10px 14px;
   background: rgba(49, 50, 68, 0.2);
-  border-radius: 10px;
+  border-radius: 12px;
   border-left: 2px solid var(--lavender);
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition: background 0.25s ease, border-color 0.25s ease;
 }
 
 .reflexion-item:hover {
@@ -1023,7 +1413,7 @@ body {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  padding: 1px 6px;
+  padding: 2px 8px;
   border-radius: 4px;
   margin-top: 4px;
 }
@@ -1031,6 +1421,100 @@ body {
 .outcome-success { background: rgba(166, 227, 161, 0.12); color: var(--green); }
 .outcome-failure { background: rgba(243, 139, 168, 0.12); color: var(--red); }
 .outcome-partial { background: rgba(249, 226, 175, 0.12); color: var(--yellow); }
+
+/* Memory empty state — enhanced */
+.memory-empty-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 30px 16px;
+}
+
+.memory-neural-icon {
+  width: 72px;
+  height: 72px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.neural-core {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--pink);
+  box-shadow: 0 0 16px rgba(245, 194, 231, 0.4);
+  animation: coreGlow 2s ease-in-out infinite;
+  z-index: 2;
+}
+
+@keyframes coreGlow {
+  0%, 100% { box-shadow: 0 0 12px rgba(245, 194, 231, 0.3); transform: scale(1); }
+  50% { box-shadow: 0 0 24px rgba(245, 194, 231, 0.6); transform: scale(1.15); }
+}
+
+.neural-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid;
+  opacity: 0;
+  animation: neuralRingExpand 3s ease-out infinite;
+}
+
+.neural-ring:nth-child(2) { animation-delay: 0s; }
+.neural-ring:nth-child(3) { animation-delay: 0.7s; }
+.neural-ring:nth-child(4) { animation-delay: 1.4s; }
+.neural-ring:nth-child(5) { animation-delay: 2.1s; }
+
+@keyframes neuralRingExpand {
+  0% { width: 12px; height: 12px; opacity: 0.7; border-color: rgba(245, 194, 231, 0.5); }
+  100% { width: 68px; height: 68px; opacity: 0; border-color: rgba(245, 194, 231, 0); }
+}
+
+.neural-particles {
+  position: absolute;
+  inset: 0;
+}
+
+.neural-particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--pink);
+  opacity: 0;
+  animation: particleOrbit 4s linear infinite;
+}
+
+.neural-particle:nth-child(1) { animation-delay: 0s; left: 50%; top: 0; }
+.neural-particle:nth-child(2) { animation-delay: 1s; right: 0; top: 50%; }
+.neural-particle:nth-child(3) { animation-delay: 2s; left: 50%; bottom: 0; }
+.neural-particle:nth-child(4) { animation-delay: 3s; left: 0; top: 50%; }
+
+@keyframes particleOrbit {
+  0% { opacity: 0; transform: scale(0); }
+  20% { opacity: 0.6; transform: scale(1); }
+  80% { opacity: 0.3; transform: scale(0.8); }
+  100% { opacity: 0; transform: scale(0); }
+}
+
+.memory-empty-title {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--subtext0);
+  letter-spacing: 0.04em;
+}
+
+.memory-empty-desc {
+  font-size: 0.76rem;
+  color: var(--overlay1);
+  text-align: center;
+  max-width: 260px;
+  line-height: 1.6;
+}
 
 /* ================================================================
    ANIMATIONS
@@ -1040,14 +1524,27 @@ body {
 }
 
 @keyframes valueGlow {
-  0% { text-shadow: 0 0 16px rgba(180, 190, 254, 0.6); }
+  0% { text-shadow: 0 0 20px rgba(180, 190, 254, 0.7); }
   100% { text-shadow: none; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ================================================================
    UTILITY
    ================================================================ */
 .hidden { display: none !important; }
+
+/* ================================================================
+   SCROLLBAR STYLES
+   ================================================================ */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface1); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--surface2); }
 </style>
 </head>
 <body>
@@ -1057,6 +1554,9 @@ body {
   <div class="bg-orb"></div>
   <div class="bg-orb"></div>
   <div class="bg-orb"></div>
+  <div class="bg-orb"></div>
+  <div class="bg-grid"></div>
+  <div class="bg-noise"></div>
 </div>
 
 <!-- ============================================================
@@ -1144,8 +1644,9 @@ body {
 /* ================================================================
    GLOBALS
    ================================================================ */
-let connected = false;
-let lastTrailCount = 0;
+var connected = false;
+var lastTrailCount = 0;
+var cachedState = null;
 
 /* ================================================================
    HELPERS
@@ -1153,26 +1654,29 @@ let lastTrailCount = 0;
 function $(id) { return document.getElementById(id); }
 
 function el(tag, attrs, children) {
-  const node = document.createElement(tag);
+  var node = document.createElement(tag);
   if (attrs) {
-    for (const [k, v] of Object.entries(attrs)) {
+    for (var k in attrs) {
+      if (!attrs.hasOwnProperty(k)) continue;
+      var v = attrs[k];
       if (k === 'className') node.className = v;
       else if (k === 'textContent') node.textContent = v;
+      else if (k === 'innerHTML') node.innerHTML = v;
       else if (k.startsWith('on')) node.addEventListener(k.slice(2).toLowerCase(), v);
       else node.setAttribute(k, v);
     }
   }
   if (children) {
     if (typeof children === 'string') node.textContent = children;
-    else if (Array.isArray(children)) children.forEach(c => { if (c) node.appendChild(c); });
+    else if (Array.isArray(children)) children.forEach(function(c) { if (c) node.appendChild(c); });
     else node.appendChild(children);
   }
   return node;
 }
 
 function svgEl(tag, attrs) {
-  const node = document.createElementNS('http://www.w3.org/2000/svg', tag);
-  if (attrs) for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+  var node = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  if (attrs) for (var k in attrs) { if (attrs.hasOwnProperty(k)) node.setAttribute(k, attrs[k]); }
   return node;
 }
 
@@ -1188,15 +1692,15 @@ function fmt$(val) {
 function fmtTs(iso) {
   if (!iso) return '--:--';
   try {
-    const d = new Date(iso);
+    var d = new Date(iso);
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  } catch { return '--:--'; }
+  } catch(e) { return '--:--'; }
 }
 
 function setConnected(val) {
   connected = val;
-  const ind = $('connIndicator');
-  const label = ind.querySelector('.connection-label');
+  var ind = $('connIndicator');
+  var label = ind.querySelector('.connection-label');
   if (val) {
     ind.classList.add('connected');
     label.textContent = 'Connected';
@@ -1218,45 +1722,71 @@ tickClock();
 setInterval(tickClock, 1000);
 
 /* ================================================================
-   GAUGE SVG BUILDER
+   GAUGE SVG BUILDER — With gradient stroke + glow
    ================================================================ */
-function buildGauge(pct, color, size) {
-  size = size || 100;
-  const r = 40;
-  const circ = 2 * Math.PI * r;
-  const offset = circ - (circ * Math.max(0, Math.min(100, pct)) / 100);
+function buildGauge(pct, gradientColors, size, glowColor) {
+  size = size || 110;
+  var r = 40;
+  var circ = 2 * Math.PI * r;
+  var offset = circ - (circ * Math.max(0, Math.min(100, pct)) / 100);
+  var gradId = 'gauge-grad-' + Math.random().toString(36).substr(2, 6);
 
-  const container = el('div', { className: 'gauge-container' });
-  if (size !== 100) {
-    container.style.width = size + 'px';
-    container.style.height = size + 'px';
+  var container = el('div', { className: 'gauge-container' });
+  container.style.width = size + 'px';
+  container.style.height = size + 'px';
+
+  var svg = svgEl('svg', { viewBox: '0 0 100 100', width: String(size), height: String(size) });
+
+  // Gradient definition
+  var defs = svgEl('defs');
+  var grad = svgEl('linearGradient', { id: gradId, x1: '0%', y1: '0%', x2: '100%', y2: '100%' });
+  if (typeof gradientColors === 'string') {
+    gradientColors = [gradientColors, gradientColors];
   }
+  for (var i = 0; i < gradientColors.length; i++) {
+    var stop = svgEl('stop', {
+      offset: (i / (gradientColors.length - 1) * 100) + '%',
+      'stop-color': gradientColors[i]
+    });
+    grad.appendChild(stop);
+  }
+  defs.appendChild(grad);
+  svg.appendChild(defs);
 
-  const svg = svgEl('svg', { viewBox: '0 0 100 100', width: String(size), height: String(size) });
-  const track = svgEl('circle', { cx: '50', cy: '50', r: String(r), class: 'gauge-track' });
-  const fill = svgEl('circle', {
+  var track = svgEl('circle', { cx: '50', cy: '50', r: String(r), class: 'gauge-track' });
+  var fill = svgEl('circle', {
     cx: '50', cy: '50', r: String(r),
     class: 'gauge-fill',
-    stroke: color,
+    stroke: 'url(#' + gradId + ')',
     'stroke-dasharray': String(circ),
-    'stroke-dashoffset': String(offset),
+    'stroke-dashoffset': String(circ),
   });
 
   svg.appendChild(track);
   svg.appendChild(fill);
+
+  // Glow
+  if (glowColor) {
+    svg.style.filter = 'drop-shadow(0 0 10px ' + glowColor + ')';
+  }
+
   container.appendChild(svg);
 
-  // Set glow color via CSS custom property
-  container.style.setProperty('--gauge-glow', color.replace('var(', '').replace(')', ''));
-
-  const valWrap = el('div', { className: 'gauge-value' });
-  const numEl = el('span', { className: 'gauge-number', textContent: Math.round(pct) });
-  const labEl = el('span', { className: 'gauge-label-sm' });
+  var valWrap = el('div', { className: 'gauge-value' });
+  var numEl = el('span', { className: 'gauge-number', textContent: Math.round(pct) });
+  var labEl = el('span', { className: 'gauge-label-sm' });
   valWrap.appendChild(numEl);
   valWrap.appendChild(labEl);
   container.appendChild(valWrap);
 
-  return { container, numEl, labEl };
+  // Animate stroke on load
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      fill.setAttribute('stroke-dashoffset', String(offset));
+    });
+  });
+
+  return { container: container, numEl: numEl, labEl: labEl };
 }
 
 /* ================================================================
@@ -1264,104 +1794,216 @@ function buildGauge(pct, color, size) {
    ================================================================ */
 
 /* --- EXECUTION --- */
-function renderExecution(state) {
-  const body = $('execBody');
-  const badges = $('execBadges');
+function renderExecution(stateData) {
+  var body = $('execBody');
+  var badges = $('execBadges');
   clearNode(body);
   clearNode(badges);
 
-  const s = state && state.state ? state.state : null;
-  if (!s || !s.current_wave) {
-    body.appendChild(el('div', { className: 'empty-state' }, [
-      el('div', { className: 'empty-icon empty-icon-exec', textContent: '\u2699\uFE0F' }),
-      el('div', { className: 'empty-text' }, [
-        document.createTextNode('No active execution. Run '),
-        el('code', {}, '/juhbdi:execute'),
-        document.createTextNode(' to start.'),
-      ]),
-    ]));
+  var s = stateData && stateData.state ? stateData.state : null;
+  var roadmap = stateData && stateData.roadmap ? stateData.roadmap : null;
+  var intentSpec = stateData && stateData.intentSpec ? stateData.intentSpec : null;
+
+  // If actively executing with current_wave, show active execution view
+  if (s && s.current_wave) {
+    if (s.current_wave) {
+      badges.appendChild(el('span', { className: 'badge badge-wave', textContent: 'Wave ' + s.current_wave }));
+    }
+    if (s.current_phase) {
+      badges.appendChild(el('span', { className: 'badge badge-phase', textContent: s.current_phase }));
+    }
+
+    var tasks = s.tasks || [];
+    var total = tasks.length;
+    var done = tasks.filter(function(t) { return t.status === 'done' || t.status === 'completed'; }).length;
+    var pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+    var track = el('div', { className: 'progress-track' });
+    var fill = el('div', { className: 'progress-fill' });
+    fill.style.width = '0%';
+    track.appendChild(fill);
+    body.appendChild(track);
+    body.appendChild(el('div', { className: 'progress-label', textContent: done + '/' + total + ' tasks (' + pct + '%)' }));
+
+    // Animate progress bar
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() { fill.style.width = pct + '%'; });
+    });
+
+    if (s.last_wave_result) {
+      var lw = el('div', { className: 'exec-last-result' });
+      lw.appendChild(el('div', { className: 'label', textContent: 'Last Wave Result' }));
+      lw.appendChild(el('div', { className: 'value', textContent: s.last_wave_result }));
+      body.appendChild(lw);
+    }
     return;
   }
 
-  if (s.current_wave) {
-    badges.appendChild(el('span', { className: 'badge badge-wave', textContent: 'Wave ' + s.current_wave }));
-  }
-  if (s.current_phase) {
-    badges.appendChild(el('span', { className: 'badge badge-phase', textContent: s.current_phase }));
+  // If we have roadmap data, show the roadmap overview
+  if (roadmap && roadmap.waves && roadmap.waves.length > 0) {
+    var waves = roadmap.waves;
+    var totalTasks = 0;
+    var totalWaves = waves.length;
+    waves.forEach(function(w) { totalTasks += (w.tasks || []).length; });
+
+    // Project badge
+    var projectName = (s && s.project_name) || (intentSpec && intentSpec.project && intentSpec.project.name) || null;
+    if (projectName) {
+      var projBadge = el('div', { className: 'badge-project' });
+      projBadge.appendChild(el('span', { className: 'badge-project-dot' }));
+      projBadge.appendChild(document.createTextNode(projectName));
+      badges.appendChild(projBadge);
+    }
+
+    // Stats row
+    var statsRow = el('div', { className: 'exec-stats-row' });
+    var stat1 = el('div', { className: 'exec-stat' });
+    stat1.appendChild(el('div', { className: 'exec-stat-num', textContent: String(totalTasks) }));
+    stat1.appendChild(el('div', { className: 'exec-stat-label', textContent: 'Tasks' }));
+    statsRow.appendChild(stat1);
+
+    var stat2 = el('div', { className: 'exec-stat' });
+    stat2.appendChild(el('div', { className: 'exec-stat-num', textContent: String(totalWaves) }));
+    stat2.appendChild(el('div', { className: 'exec-stat-label', textContent: 'Waves' }));
+    statsRow.appendChild(stat2);
+
+    // Count statuses
+    var completedTasks = 0;
+    var pendingTasks = 0;
+    waves.forEach(function(w) {
+      (w.tasks || []).forEach(function(t) {
+        if (t.status === 'done' || t.status === 'completed') completedTasks++;
+        else pendingTasks++;
+      });
+    });
+
+    var stat3 = el('div', { className: 'exec-stat' });
+    stat3.appendChild(el('div', { className: 'exec-stat-num', textContent: completedTasks > 0 ? String(completedTasks) : '0' }));
+    stat3.appendChild(el('div', { className: 'exec-stat-label', textContent: 'Done' }));
+    statsRow.appendChild(stat3);
+
+    body.appendChild(statsRow);
+
+    // Wave grid
+    var waveGrid = el('div', { className: 'wave-grid' });
+    waves.forEach(function(w, idx) {
+      var wTasks = w.tasks || [];
+      var wDone = wTasks.filter(function(t) { return t.status === 'done' || t.status === 'completed'; }).length;
+      var wStatus = wDone === wTasks.length && wTasks.length > 0 ? 'wave-complete' : 'wave-pending';
+
+      var block = el('div', { className: 'wave-block ' + wStatus });
+      block.appendChild(el('div', { className: 'wave-block-id', textContent: w.id || ('W' + (idx + 1)) }));
+      block.appendChild(el('div', { className: 'wave-block-count', textContent: String(wTasks.length) }));
+      block.appendChild(el('div', { className: 'wave-block-label', textContent: wTasks.length === 1 ? 'task' : 'tasks' }));
+
+      // Tooltip with task descriptions on hover
+      var tooltipParts = [];
+      wTasks.forEach(function(t) {
+        var desc = t.description || t.id || 'task';
+        var statusIcon = (t.status === 'done' || t.status === 'completed') ? '\u2713 ' : '\u25CB ';
+        tooltipParts.push(statusIcon + desc.substring(0, 60));
+      });
+      if (tooltipParts.length > 0) block.title = tooltipParts.join('\n');
+
+      waveGrid.appendChild(block);
+    });
+    body.appendChild(waveGrid);
+
+    // Project info
+    if (s && s.architecture) {
+      var projInfo = el('div', { className: 'exec-project-name' });
+      projInfo.appendChild(el('strong', {}, 'Architecture: '));
+      projInfo.appendChild(document.createTextNode(s.architecture.substring(0, 120)));
+      body.appendChild(projInfo);
+    }
+
+    return;
   }
 
-  const tasks = s.tasks || [];
-  const total = tasks.length;
-  const done = tasks.filter(t => t.status === 'done' || t.status === 'completed').length;
-  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-
-  const track = el('div', { className: 'progress-track' });
-  const fill = el('div', { className: 'progress-fill' });
-  fill.style.width = pct + '%';
-  track.appendChild(fill);
-  body.appendChild(track);
-  body.appendChild(el('div', { className: 'progress-label', textContent: done + '/' + total + ' tasks (' + pct + '%)' }));
-
-  if (s.last_wave_result) {
-    const lw = el('div', { className: 'exec-last-result' });
-    lw.appendChild(el('div', { className: 'label', textContent: 'Last Wave Result' }));
-    lw.appendChild(el('div', { className: 'value', textContent: s.last_wave_result }));
-    body.appendChild(lw);
-  }
+  // True empty state
+  var emptyDiv = el('div', { className: 'empty-state' });
+  var gearIcon = el('div', { className: 'empty-icon-gear' });
+  emptyDiv.appendChild(gearIcon);
+  emptyDiv.appendChild(el('div', { className: 'empty-text' }, [
+    document.createTextNode('No active execution. Run '),
+    el('code', {}, '/juhbdi:execute'),
+    document.createTextNode(' to start.'),
+  ]));
+  body.appendChild(emptyDiv);
 }
 
 /* --- TRUST & GOVERNANCE --- */
 function renderTrust(memory, state) {
-  const body = $('trustBody');
+  var body = $('trustBody');
   clearNode(body);
 
-  const score = (memory && memory.trust_score != null) ? memory.trust_score : 0;
-  const tier = (memory && memory.trust_tier) ? memory.trust_tier : 'unknown';
+  var score = (memory && memory.trust_score != null) ? memory.trust_score : 0;
+  var tier = (memory && memory.trust_tier) ? memory.trust_tier : 'unknown';
 
-  let tierName, tierClass;
+  var tierName, tierClass;
   if (tier === 'unknown' || score === 0) { tierName = 'New Project'; tierClass = 'tier-new'; }
   else if (score <= 25) { tierName = 'Intern'; tierClass = 'tier-intern'; }
   else if (score <= 50) { tierName = 'Junior'; tierClass = 'tier-junior'; }
   else if (score <= 75) { tierName = 'Senior'; tierClass = 'tier-senior'; }
   else { tierName = 'Principal'; tierClass = 'tier-principal'; }
 
-  let gaugeColor;
-  if (tier === 'unknown' || score === 0) gaugeColor = 'var(--overlay0)';
-  else if (score <= 25) gaugeColor = 'var(--overlay1)';
-  else if (score <= 50) gaugeColor = 'var(--blue)';
-  else if (score <= 75) gaugeColor = 'var(--green)';
-  else gaugeColor = 'var(--mauve)';
+  var gaugeColors, glowColor;
+  if (tier === 'unknown' || score === 0) {
+    gaugeColors = ['#6c7086', '#7f849c'];
+    glowColor = 'rgba(108, 112, 134, 0.15)';
+  } else if (score <= 25) {
+    gaugeColors = ['#7f849c', '#9399b2'];
+    glowColor = 'rgba(127, 132, 156, 0.2)';
+  } else if (score <= 50) {
+    gaugeColors = ['#89b4fa', '#74c7ec'];
+    glowColor = 'rgba(137, 180, 250, 0.2)';
+  } else if (score <= 75) {
+    gaugeColors = ['#a6e3a1', '#94e2d5'];
+    glowColor = 'rgba(166, 227, 161, 0.2)';
+  } else {
+    gaugeColors = ['#cba6f7', '#f5c2e7'];
+    glowColor = 'rgba(203, 166, 247, 0.25)';
+  }
 
-  const top = el('div', { className: 'trust-top' });
-  const gauge = buildGauge(score, gaugeColor, 100);
-  gauge.labEl.textContent = 'trust';
+  var top = el('div', { className: 'trust-top' });
+  var gauge = buildGauge(score, gaugeColors, 110, glowColor);
+  gauge.labEl.textContent = 'TRUST';
   top.appendChild(gauge.container);
 
-  const meta = el('div', { className: 'trust-meta' });
+  var meta = el('div', { className: 'trust-meta' });
   meta.appendChild(el('span', { className: 'tier-badge ' + tierClass, textContent: tierName }));
 
-  const compBar = el('div', { className: 'compliance-bar' });
-  const compPct = (state && state.state && state.state.eu_compliance_pct != null) ? state.state.eu_compliance_pct : 0;
-  const compLabel = el('div', { className: 'compliance-label' });
+  var compBar = el('div', { className: 'compliance-bar' });
+  var compPct = (state && state.state && state.state.eu_compliance_pct != null) ? state.state.eu_compliance_pct : 0;
+  var compLabel = el('div', { className: 'compliance-label' });
   compLabel.appendChild(el('span', {}, 'EU AI Act'));
   compLabel.appendChild(el('span', {}, compPct + '%'));
   compBar.appendChild(compLabel);
-  const compTrack = el('div', { className: 'compliance-track' });
-  const compFill = el('div', { className: 'compliance-fill' });
-  compFill.style.width = compPct + '%';
+  var compTrack = el('div', { className: 'compliance-track' });
+  var compFill = el('div', { className: 'compliance-fill' });
+  compFill.style.width = '0%';
   compTrack.appendChild(compFill);
   compBar.appendChild(compTrack);
   meta.appendChild(compBar);
 
+  // Animate compliance bar
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() { compFill.style.width = compPct + '%'; });
+  });
+
   top.appendChild(meta);
   body.appendChild(top);
 
-  const trail = (state && state.trail) || [];
-  const govEntries = trail.filter(e => e && (e.event_type === 'governance' || e.event_type === 'decision')).slice(-3);
+  var trail = (state && state.trail) || [];
+  var govEntries = trail.filter(function(e) {
+    return e && (e.event_type === 'governance' || e.event_type === 'decision');
+  }).slice(-3);
+
   if (govEntries.length > 0) {
-    const govDiv = el('div', { className: 'gov-decisions' });
-    for (const entry of govEntries) {
-      const item = el('div', { className: 'gov-decision-item' });
+    var govDiv = el('div', { className: 'gov-decisions' });
+    for (var i = 0; i < govEntries.length; i++) {
+      var entry = govEntries[i];
+      var item = el('div', { className: 'gov-decision-item' });
       item.appendChild(el('div', { className: 'decision-time', textContent: fmtTs(entry.timestamp) }));
       item.appendChild(el('div', {}, entry.description || entry.event || 'Decision recorded'));
       govDiv.appendChild(item);
@@ -1372,97 +2014,127 @@ function renderTrust(memory, state) {
 
 /* --- COST INTELLIGENCE --- */
 function renderCost(cost) {
-  const body = $('costBody');
+  var body = $('costBody');
   clearNode(body);
 
-  if (!cost || (cost.total_spend === 0 && cost.opus_equivalent === 0)) {
-    body.appendChild(el('div', { className: 'empty-state' }, [
-      el('div', { className: 'empty-icon empty-icon-cost', textContent: '\uD83D\uDCB0' }),
-      el('div', { className: 'empty-text' }, [
-        document.createTextNode('Costs tracked after '),
-        el('code', {}, '/juhbdi:execute'),
-        document.createTextNode(' routes tasks.'),
-      ]),
+  var dist = (cost && cost.model_distribution) ? cost.model_distribution : {};
+  var distKeys = Object.keys(dist);
+  var totalRouted = distKeys.reduce(function(s, k) { return s + dist[k]; }, 0);
+  var hasSpend = cost && (cost.total_spend > 0 || cost.opus_equivalent > 0);
+  var hasDist = distKeys.length > 0 && totalRouted > 0;
+
+  // Only show empty if BOTH spend=0 AND no distribution data
+  if (!hasSpend && !hasDist) {
+    var emptyDiv = el('div', { className: 'empty-state' });
+    var barsIcon = el('div', { className: 'empty-icon-bars' });
+    for (var b = 0; b < 5; b++) barsIcon.appendChild(el('div', { className: 'bar-anim' }));
+    emptyDiv.appendChild(barsIcon);
+    emptyDiv.appendChild(el('div', { className: 'empty-text' }, [
+      document.createTextNode('Costs tracked after '),
+      el('code', {}, '/juhbdi:execute'),
+      document.createTextNode(' routes tasks.'),
     ]));
+    body.appendChild(emptyDiv);
     return;
   }
 
-  const savPct = cost.savings_pct || 0;
-  const hero = el('div', { className: 'cost-hero' });
-  hero.appendChild(el('div', { className: 'cost-big-number', textContent: savPct + '%' }));
-  body.appendChild(hero);
-  body.appendChild(el('div', { className: 'cost-big-label', textContent: 'savings vs opus-only' }));
+  // If we have spend data, show the savings hero
+  if (hasSpend) {
+    var savPct = cost.savings_pct || 0;
+    var hero = el('div', { className: 'cost-hero' });
+    hero.appendChild(el('div', { className: 'cost-big-number', textContent: savPct + '%' }));
+    body.appendChild(hero);
+    body.appendChild(el('div', { className: 'cost-big-label', textContent: 'Savings vs Opus-Only' }));
 
-  const maxCost = Math.max(cost.total_spend || 0.0001, cost.opus_equivalent || 0.0001);
-  const comp = el('div', { className: 'cost-comparison' });
+    var maxCost = Math.max(cost.total_spend || 0.0001, cost.opus_equivalent || 0.0001);
+    var comp = el('div', { className: 'cost-comparison' });
 
-  const g1 = el('div', { className: 'cost-bar-group' });
-  const h1 = el('div', { className: 'cost-bar-header' });
-  h1.appendChild(el('span', { className: 'cost-bar-name', textContent: 'Actual' }));
-  h1.appendChild(el('span', { className: 'cost-bar-value', textContent: fmt$(cost.total_spend) }));
-  g1.appendChild(h1);
-  const t1 = el('div', { className: 'cost-bar-track' });
-  const f1 = el('div', { className: 'cost-bar-fill actual' });
-  f1.style.width = ((cost.total_spend / maxCost) * 100) + '%';
-  t1.appendChild(f1);
-  g1.appendChild(t1);
-  comp.appendChild(g1);
+    var g1 = el('div', { className: 'cost-bar-group' });
+    var h1 = el('div', { className: 'cost-bar-header' });
+    h1.appendChild(el('span', { className: 'cost-bar-name', textContent: 'Actual' }));
+    h1.appendChild(el('span', { className: 'cost-bar-value', textContent: fmt$(cost.total_spend) }));
+    g1.appendChild(h1);
+    var t1 = el('div', { className: 'cost-bar-track' });
+    var f1 = el('div', { className: 'cost-bar-fill actual' });
+    f1.style.width = '0%';
+    t1.appendChild(f1);
+    g1.appendChild(t1);
+    comp.appendChild(g1);
 
-  const g2 = el('div', { className: 'cost-bar-group' });
-  const h2 = el('div', { className: 'cost-bar-header' });
-  h2.appendChild(el('span', { className: 'cost-bar-name', textContent: 'Opus-only' }));
-  h2.appendChild(el('span', { className: 'cost-bar-value', textContent: fmt$(cost.opus_equivalent) }));
-  g2.appendChild(h2);
-  const t2 = el('div', { className: 'cost-bar-track' });
-  const f2 = el('div', { className: 'cost-bar-fill opus' });
-  f2.style.width = ((cost.opus_equivalent / maxCost) * 100) + '%';
-  t2.appendChild(f2);
-  g2.appendChild(t2);
-  comp.appendChild(g2);
+    var g2 = el('div', { className: 'cost-bar-group' });
+    var h2 = el('div', { className: 'cost-bar-header' });
+    h2.appendChild(el('span', { className: 'cost-bar-name', textContent: 'Opus-Only' }));
+    h2.appendChild(el('span', { className: 'cost-bar-value', textContent: fmt$(cost.opus_equivalent) }));
+    g2.appendChild(h2);
+    var t2 = el('div', { className: 'cost-bar-track' });
+    var f2 = el('div', { className: 'cost-bar-fill opus' });
+    f2.style.width = '0%';
+    t2.appendChild(f2);
+    g2.appendChild(t2);
+    comp.appendChild(g2);
 
-  body.appendChild(comp);
+    body.appendChild(comp);
 
-  const dist = cost.model_distribution || {};
-  const distKeys = Object.keys(dist);
-  if (distKeys.length > 0) {
-    const distDiv = el('div', { className: 'model-dist' });
+    // Animate bars
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        f1.style.width = ((cost.total_spend / maxCost) * 100) + '%';
+        f2.style.width = ((cost.opus_equivalent / maxCost) * 100) + '%';
+      });
+    });
+  }
+
+  // Show model distribution if we have it (even with 0 spend)
+  if (hasDist) {
+    // Routing stat
+    var routingStat = el('div', { className: 'cost-routing-stat' });
+    routingStat.appendChild(el('div', { className: 'cost-routing-num', textContent: String(totalRouted) }));
+    var routingLabelDiv = el('div');
+    routingLabelDiv.appendChild(el('div', { className: 'cost-routing-label', textContent: 'Routing' }));
+    routingLabelDiv.appendChild(el('div', { className: 'cost-routing-label', textContent: totalRouted === 1 ? 'Decision' : 'Decisions' }));
+    routingStat.appendChild(routingLabelDiv);
+    body.appendChild(routingStat);
+
+    // Distribution bar
+    var distDiv = el('div', { className: 'model-dist' });
     distDiv.appendChild(el('div', { className: 'model-dist-label', textContent: 'Model Distribution' }));
 
-    const totalModels = distKeys.reduce((s, k) => s + dist[k], 0);
-    const bar = el('div', { className: 'model-stacked-bar' });
+    var bar = el('div', { className: 'model-stacked-bar' });
 
-    const modelOrder = ['haiku', 'sonnet', 'opus'];
-    const sorted = distKeys.sort((a, b) => {
-      const ia = modelOrder.findIndex(m => a.toLowerCase().includes(m));
-      const ib = modelOrder.findIndex(m => b.toLowerCase().includes(m));
+    var modelOrder = ['haiku', 'sonnet', 'opus'];
+    var sorted = distKeys.sort(function(a, b) {
+      var ia = modelOrder.findIndex(function(m) { return a.toLowerCase().indexOf(m) !== -1; });
+      var ib = modelOrder.findIndex(function(m) { return b.toLowerCase().indexOf(m) !== -1; });
       return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
     });
 
-    for (const model of sorted) {
-      const pct = (dist[model] / totalModels) * 100;
-      const seg = el('div', { className: 'segment' });
-      seg.style.width = pct + '%';
-      const lm = model.toLowerCase();
-      if (lm.includes('haiku')) seg.classList.add('segment-haiku');
-      else if (lm.includes('sonnet')) seg.classList.add('segment-sonnet');
-      else if (lm.includes('opus')) seg.classList.add('segment-opus');
+    for (var si = 0; si < sorted.length; si++) {
+      var model = sorted[si];
+      var segPct = (dist[model] / totalRouted) * 100;
+      var seg = el('div', { className: 'segment' });
+      seg.style.width = segPct + '%';
+      var lm = model.toLowerCase();
+      if (lm.indexOf('haiku') !== -1) seg.classList.add('segment-haiku');
+      else if (lm.indexOf('sonnet') !== -1) seg.classList.add('segment-sonnet');
+      else if (lm.indexOf('opus') !== -1) seg.classList.add('segment-opus');
       else seg.classList.add('segment-unknown');
       bar.appendChild(seg);
     }
     distDiv.appendChild(bar);
 
-    const legend = el('div', { className: 'model-legend' });
-    for (const model of sorted) {
-      const li = el('div', { className: 'legend-item' });
-      const dot = el('div', { className: 'legend-dot' });
-      const lm = model.toLowerCase();
-      if (lm.includes('haiku')) dot.style.background = 'var(--teal)';
-      else if (lm.includes('sonnet')) dot.style.background = 'var(--blue)';
-      else if (lm.includes('opus')) dot.style.background = 'var(--mauve)';
-      else dot.style.background = 'var(--surface1)';
-      li.appendChild(dot);
-      li.appendChild(el('span', {}, model + ' (' + dist[model] + ')'));
-      legend.appendChild(li);
+    var legend = el('div', { className: 'model-legend' });
+    for (var li = 0; li < sorted.length; li++) {
+      var lmodel = sorted[li];
+      var legendItem = el('div', { className: 'legend-item' });
+      var dot = el('div', { className: 'legend-dot' });
+      var llm = lmodel.toLowerCase();
+      if (llm.indexOf('haiku') !== -1) dot.style.background = 'linear-gradient(135deg, #94e2d5, #7dd6c6)';
+      else if (llm.indexOf('sonnet') !== -1) dot.style.background = 'linear-gradient(135deg, #89b4fa, #a0c8fc)';
+      else if (llm.indexOf('opus') !== -1) dot.style.background = 'linear-gradient(135deg, #cba6f7, #d6b8fa)';
+      else dot.style.background = 'linear-gradient(135deg, #45475a, #585b70)';
+      legendItem.appendChild(dot);
+      legendItem.appendChild(el('span', {}, lmodel + ' (' + dist[lmodel] + ')'));
+      legend.appendChild(legendItem);
     }
     distDiv.appendChild(legend);
     body.appendChild(distDiv);
@@ -1471,27 +2143,36 @@ function renderCost(cost) {
 
 /* --- CONTEXT HEALTH --- */
 function renderContext(context) {
-  const body = $('contextBody');
+  var body = $('contextBody');
   clearNode(body);
 
-  const pct = (context && context.remaining_pct != null) ? context.remaining_pct : 100;
-  const level = (context && context.level) ? context.level : 'NORMAL';
+  var pct = (context && context.remaining_pct != null) ? context.remaining_pct : 100;
+  var level = (context && context.level) ? context.level : 'NORMAL';
 
-  let color;
-  if (pct > 45) color = 'var(--green)';
-  else if (pct > 35) color = 'var(--yellow)';
-  else if (pct > 28) color = 'var(--peach)';
-  else color = 'var(--red)';
+  var colors, glowColor;
+  if (pct > 45) {
+    colors = ['#a6e3a1', '#94e2d5'];
+    glowColor = 'rgba(166, 227, 161, 0.2)';
+  } else if (pct > 35) {
+    colors = ['#f9e2af', '#fab387'];
+    glowColor = 'rgba(249, 226, 175, 0.2)';
+  } else if (pct > 28) {
+    colors = ['#fab387', '#f38ba8'];
+    glowColor = 'rgba(250, 179, 135, 0.25)';
+  } else {
+    colors = ['#f38ba8', '#eb6f92'];
+    glowColor = 'rgba(243, 139, 168, 0.3)';
+  }
 
-  const center = el('div', { className: 'context-center' });
-  const gauge = buildGauge(pct, color, 110);
-  gauge.labEl.textContent = 'remaining';
+  var center = el('div', { className: 'context-center' });
+  var gauge = buildGauge(pct, colors, 120, glowColor);
+  gauge.labEl.textContent = 'REMAINING';
 
   if (level !== 'NORMAL') gauge.container.classList.add('pulse-warning');
 
   center.appendChild(gauge.container);
 
-  const levelClass = 'level-' + level.toLowerCase();
+  var levelClass = 'level-' + level.toLowerCase();
   center.appendChild(el('div', { className: 'context-level ' + levelClass, textContent: level }));
 
   body.appendChild(center);
@@ -1499,8 +2180,8 @@ function renderContext(context) {
 
 /* --- DECISION TRAIL --- */
 function renderTrail(trail) {
-  const body = $('trailBody');
-  const countEl = $('trailCount');
+  var body = $('trailBody');
+  var countEl = $('trailCount');
 
   if (!trail || trail.length === 0) {
     if (body.children.length === 0 || body.querySelector('.trail-empty')) {
@@ -1517,7 +2198,7 @@ function renderTrail(trail) {
   lastTrailCount = trail.length;
   if (countEl) countEl.textContent = trail.length + ' entries';
 
-  const typeColorMap = {
+  var typeColorMap = {
     command: 'type-command',
     decision: 'type-decision',
     routing: 'type-routing',
@@ -1528,44 +2209,63 @@ function renderTrail(trail) {
     recovery: 'type-recovery',
   };
 
-  for (const entry of trail) {
+  for (var i = 0; i < trail.length; i++) {
+    var entry = trail[i];
     if (!entry) continue;
-    const row = el('div', { className: 'trail-entry' });
+    var row = el('div', { className: 'trail-entry' });
+    row.style.animation = 'fadeInUp 0.3s ease ' + (i * 0.03) + 's both';
     row.appendChild(el('span', { className: 'trail-ts', textContent: fmtTs(entry.timestamp) }));
 
-    const evtType = (entry.event_type || 'event').toLowerCase();
-    const badgeClass = typeColorMap[evtType] || 'type-default';
+    var evtType = (entry.event_type || 'event').toLowerCase();
+    var badgeClass = typeColorMap[evtType] || 'type-default';
     row.appendChild(el('span', { className: 'type-badge ' + badgeClass, textContent: evtType }));
 
-    const desc = entry.description || entry.event || entry.event_type || '';
+    var desc = entry.description || entry.event || entry.event_type || '';
     row.appendChild(el('span', { className: 'trail-desc', textContent: desc }));
 
     body.appendChild(row);
   }
+
+  // Blinking cursor at bottom
+  body.appendChild(el('div', { className: 'trail-cursor' }));
 
   body.scrollTop = body.scrollHeight;
 }
 
 /* --- INTELLIGENCE MEMORY --- */
 function renderMemory(memory) {
-  const body = $('memoryBody');
+  var body = $('memoryBody');
   clearNode(body);
 
-  const rCount = (memory && memory.reflexion_count) || 0;
-  const tCount = (memory && memory.trace_count) || 0;
-  const pCount = (memory && memory.principle_count) || 0;
+  var rCount = (memory && memory.reflexion_count) || 0;
+  var tCount = (memory && memory.trace_count) || 0;
+  var pCount = (memory && memory.principle_count) || 0;
 
   if (rCount === 0 && tCount === 0 && pCount === 0) {
-    body.appendChild(el('div', { className: 'empty-state' }, [
-      el('div', { className: 'empty-icon empty-icon-mem', textContent: '\uD83E\uDDE0' }),
-      el('div', { className: 'empty-text', textContent: 'Memory builds as JuhBDI learns from your project' }),
-    ]));
+    var container = el('div', { className: 'memory-empty-container' });
+
+    // Animated neural icon
+    var neuralIcon = el('div', { className: 'memory-neural-icon' });
+    neuralIcon.appendChild(el('div', { className: 'neural-core' }));
+    neuralIcon.appendChild(el('div', { className: 'neural-ring' }));
+    neuralIcon.appendChild(el('div', { className: 'neural-ring' }));
+    neuralIcon.appendChild(el('div', { className: 'neural-ring' }));
+    neuralIcon.appendChild(el('div', { className: 'neural-ring' }));
+
+    var particles = el('div', { className: 'neural-particles' });
+    for (var p = 0; p < 4; p++) particles.appendChild(el('div', { className: 'neural-particle' }));
+    neuralIcon.appendChild(particles);
+
+    container.appendChild(neuralIcon);
+    container.appendChild(el('div', { className: 'memory-empty-title', textContent: 'Neural Memory Idle' }));
+    container.appendChild(el('div', { className: 'memory-empty-desc', textContent: 'Memory builds as JuhBDI learns from reflexions, traces, and principles during execution.' }));
+    body.appendChild(container);
     return;
   }
 
-  const row = el('div', { className: 'memory-stats-row' });
+  var row = el('div', { className: 'memory-stats-row' });
   function statBox(num, label) {
-    const box = el('div', { className: 'memory-stat-box' });
+    var box = el('div', { className: 'memory-stat-box' });
     box.appendChild(el('div', { className: 'memory-stat-num', textContent: String(num) }));
     box.appendChild(el('div', { className: 'memory-stat-label', textContent: label }));
     return box;
@@ -1575,18 +2275,19 @@ function renderMemory(memory) {
   row.appendChild(statBox(pCount, 'Principles'));
   body.appendChild(row);
 
-  const recent = (memory && memory.recent_reflexions) || [];
+  var recent = (memory && memory.recent_reflexions) || [];
   if (recent.length > 0) {
-    const list = el('div', { className: 'reflexion-list' });
-    for (const r of recent) {
-      const item = el('div', { className: 'reflexion-item', onClick: function() {
+    var list = el('div', { className: 'reflexion-list' });
+    for (var ri = 0; ri < recent.length; ri++) {
+      var r = recent[ri];
+      var item = el('div', { className: 'reflexion-item', onClick: function() {
         this.classList.toggle('expanded');
       }});
       item.appendChild(el('div', { className: 'reflexion-task', textContent: r.task || 'Unnamed task' }));
       item.appendChild(el('div', { className: 'reflexion-lesson', textContent: r.lesson || '' }));
       if (r.outcome) {
-        const oc = r.outcome === 'success' ? 'outcome-success' :
-                   r.outcome === 'failure' ? 'outcome-failure' : 'outcome-partial';
+        var oc = r.outcome === 'success' ? 'outcome-success' :
+                 r.outcome === 'failure' ? 'outcome-failure' : 'outcome-partial';
         item.appendChild(el('span', { className: 'reflexion-outcome ' + oc, textContent: r.outcome }));
       }
       list.appendChild(item);
@@ -1601,6 +2302,9 @@ function renderMemory(memory) {
 function updateDashboard(data) {
   if (!data) return;
 
+  // Cache state for cross-panel references
+  if (data.state !== undefined) cachedState = data.state;
+
   if (data.state !== undefined) {
     renderExecution(data.state);
     renderTrust(data.memory, { state: (data.state && data.state.state) || data.state, trail: data.trail || [] });
@@ -1610,8 +2314,9 @@ function updateDashboard(data) {
   if (data.trail !== undefined) renderTrail(data.trail);
   if (data.memory !== undefined) {
     renderMemory(data.memory);
-    if (data.state !== undefined) {
-      renderTrust(data.memory, { state: (data.state && data.state.state) || data.state, trail: data.trail || [] });
+    if (data.state !== undefined || cachedState) {
+      var st = data.state || cachedState;
+      renderTrust(data.memory, { state: (st && st.state) || st, trail: data.trail || [] });
     }
   }
 }
@@ -1619,21 +2324,21 @@ function updateDashboard(data) {
 /* ================================================================
    SSE CONNECTION
    ================================================================ */
-let evtSource = null;
+var evtSource = null;
 
 function connect() {
-  if (evtSource) { try { evtSource.close(); } catch {} }
+  if (evtSource) { try { evtSource.close(); } catch(e) {} }
   evtSource = new EventSource('/api/events');
   evtSource.onmessage = function(e) {
     try {
-      const data = JSON.parse(e.data);
+      var data = JSON.parse(e.data);
       if (data.type === 'connected') { setConnected(true); return; }
       updateDashboard(data);
-    } catch {}
+    } catch(err) {}
   };
   evtSource.onerror = function() {
     setConnected(false);
-    try { evtSource.close(); } catch {}
+    try { evtSource.close(); } catch(e) {}
     setTimeout(connect, 3000);
   };
 }
