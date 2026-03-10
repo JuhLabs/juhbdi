@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { getProjectState, getTrailEntries, getCostData, getMemoryStats, getContextHealth, getActiveSessions } from "./api";
+import { getProjectState, getTrailEntries, getCostData, getMemoryStats, getContextHealth, getActiveSessions, getCodeHealth } from "./api";
 
 const PORT = parseInt(process.env.JUHBDI_DASHBOARD_PORT || "3141", 10);
 const cwd = process.cwd();
@@ -52,6 +52,9 @@ setInterval(() => {
 
 const htmlPath = path.join(import.meta.dir, "index.html");
 const html = fs.existsSync(htmlPath) ? fs.readFileSync(htmlPath, "utf-8") : "<h1>Dashboard HTML not found</h1>";
+
+const appJsPath = path.join(import.meta.dir, "app.js");
+const appJs = fs.existsSync(appJsPath) ? fs.readFileSync(appJsPath, "utf-8") : "// app.js not found";
 
 Bun.serve({
   port: PORT,
@@ -113,6 +116,17 @@ Bun.serve({
             "Access-Control-Allow-Origin": "*",
           },
         });
+      }
+
+      case "/app.js":
+        return new Response(appJs, {
+          headers: { "Content-Type": "application/javascript", "Cache-Control": "no-cache" },
+        });
+
+      case "/api/codehealth": {
+        const refresh = url.searchParams.get("refresh") === "true";
+        const result = getCodeHealth(cwd, refresh);
+        return new Response(JSON.stringify(result), { headers });
       }
 
       case "/assets/dashboardicons.png":

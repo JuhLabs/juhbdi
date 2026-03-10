@@ -34,11 +34,29 @@ export function getCostData(juhbdiDir: string) {
   let opusEquivalent = 0;
   const modelCounts: Record<string, number> = {};
 
+  // Build time-series: sort by timestamp, accumulate
+  const sorted = [...routingEntries].sort((a: any, b: any) => {
+    const ta = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+    const tb = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+    return ta - tb;
+  });
+
+  let cumulative = 0;
+  const spendOverTime: Array<{ timestamp: string; cumulative: number }> = [];
+
+  for (const entry of sorted) {
+    const cost = entry.cost_estimate || 0;
+    cumulative += cost;
+    spendOverTime.push({
+      timestamp: entry.timestamp || new Date().toISOString(),
+      cumulative,
+    });
+  }
+
   for (const entry of routingEntries) {
     const cost = entry.cost_estimate || 0;
     totalSpend += cost;
     opusEquivalent += (entry.opus_equivalent_cost || cost);
-    // Extract model from routed_to field, or parse from description as fallback
     let model = entry.routed_to;
     if (!model && entry.description) {
       const match = entry.description.match(/\bto\s+(opus|sonnet|haiku|claude[^\s]*)/i);
@@ -54,6 +72,7 @@ export function getCostData(juhbdiDir: string) {
     savings: opusEquivalent - totalSpend,
     savings_pct: opusEquivalent > 0 ? Math.round(((opusEquivalent - totalSpend) / opusEquivalent) * 100) : 0,
     model_distribution: modelCounts,
+    spend_over_time: spendOverTime,
   };
 }
 
@@ -63,17 +82,33 @@ export function getMemoryStats(juhbdiDir: string) {
   const principles = safeReadJSON(path.join(juhbdiDir, "principle-bank.json"));
   const trust = safeReadJSON(path.join(juhbdiDir, "trust-store.json"));
 
+  const allReflexions = reflexions ? (reflexions.entries || []).map((e: any) => ({
+    task: e.task_description,
+    lesson: e.lesson,
+    outcome: e.outcome,
+  })) : [];
+
+  const allTraces = traces ? (traces.traces || []).map((t: any) => ({
+    summary: t.summary || t.description || "",
+    success: t.success ?? t.outcome === "success",
+  })) : [];
+
+  const allPrinciples = principles ? (principles.principles || []).map((p: any) => ({
+    text: p.text || p.principle || "",
+    source: p.source || "unknown",
+    confidence: p.confidence ?? 0,
+  })) : [];
+
   return {
-    reflexion_count: reflexions ? (reflexions.entries || []).length : 0,
-    trace_count: traces ? (traces.traces || []).length : 0,
-    principle_count: principles ? (principles.principles || []).length : 0,
+    reflexion_count: allReflexions.length,
+    trace_count: allTraces.length,
+    principle_count: allPrinciples.length,
     trust_score: trust?.overall_score ?? 0,
     trust_tier: trust?.tier ?? "unknown",
-    recent_reflexions: reflexions ? (reflexions.entries || []).slice(-3).map((e: any) => ({
-      task: e.task_description,
-      lesson: e.lesson,
-      outcome: e.outcome,
-    })) : [],
+    recent_reflexions: allReflexions.slice(-3),
+    all_reflexions: allReflexions,
+    all_traces: allTraces,
+    all_principles: allPrinciples,
   };
 }
 
@@ -185,4 +220,92 @@ export function getActiveSessions(): ProjectGroup[] {
   });
 
   return result;
+}
+
+// --- Code Health (M16 deep analysis, cached) ---
+
+import { analyzeFiles } from "../repomap/ast-analyzer";
+import { buildCallGraph } from "../repomap/call-graph";
+import { detectDeadCode } from "../repomap/dead-code";
+
+interface CodeHealthResult {
+  complexity: Array<{ file: string; function: string; complexity: number }>;
+  deadCode: Array<{ file: string; export: string; confidence: string }>;
+  callGraph: { entryPoints: string[]; hotPaths: string[]; edgeCount: number };
+  summary: { clean: number; warning: number; hot: number };
+  cached_at: string;
+}
+
+let codehealthCache: CodeHealthResult | null = null;
+
+export function getCodeHealth(projectRoot: string, refresh = false): CodeHealthResult {
+  if (codehealthCache && !refresh) return codehealthCache;
+
+  try {
+    const srcDir = path.join(projectRoot, "src");
+    const files = findTsFiles(srcDir, projectRoot);
+    const fileInputs = files.map(f => ({
+      path: f,
+      content: fs.readFileSync(path.join(projectRoot, f), "utf-8"),
+    }));
+
+    const analyses = analyzeFiles(fileInputs);
+    const callGraph = buildCallGraph(analyses);
+    const deadCode = detectDeadCode(analyses);
+
+    const complexity = analyses
+      .flatMap(a => a.symbols
+        .filter(s => s.kind === "function" || s.kind === "method")
+        .map(s => ({ file: a.filePath, function: s.name, complexity: s.complexity }))
+      )
+      .sort((a, b) => b.complexity - a.complexity)
+      .slice(0, 20);
+
+    const deadCodeList = deadCode.candidates
+      .filter(c => c.confidence === "high" || c.confidence === "medium")
+      .slice(0, 20)
+      .map(c => ({ file: c.file, export: c.symbol, confidence: c.confidence }));
+
+    let clean = 0, warning = 0, hot = 0;
+    for (const a of analyses) {
+      if (a.complexity > 15) hot++;
+      else if (a.complexity > 5) warning++;
+      else clean++;
+    }
+
+    codehealthCache = {
+      complexity,
+      deadCode: deadCodeList,
+      callGraph: {
+        entryPoints: callGraph.entry_points.slice(0, 10),
+        hotPaths: callGraph.hot_paths.slice(0, 10),
+        edgeCount: callGraph.edges.length,
+      },
+      summary: { clean, warning, hot },
+      cached_at: new Date().toISOString(),
+    };
+    return codehealthCache;
+  } catch {
+    return {
+      complexity: [], deadCode: [],
+      callGraph: { entryPoints: [], hotPaths: [], edgeCount: 0 },
+      summary: { clean: 0, warning: 0, hot: 0 },
+      cached_at: new Date().toISOString(),
+    };
+  }
+}
+
+function findTsFiles(dir: string, projectRoot: string): string[] {
+  const results: string[] = [];
+  if (!fs.existsSync(dir)) return results;
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory() && entry.name !== "node_modules" && entry.name !== ".git") {
+      results.push(...findTsFiles(fullPath, projectRoot));
+    } else if (entry.isFile() && /\.tsx?$/.test(entry.name) && !entry.name.endsWith(".test.ts")) {
+      results.push(path.relative(projectRoot, fullPath));
+    }
+  }
+  return results;
 }

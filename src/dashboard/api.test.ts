@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test";
-import { getProjectState, getTrailEntries, getCostData, getMemoryStats, getContextHealth, getActiveSessions } from "./api";
+import { getProjectState, getTrailEntries, getCostData, getMemoryStats, getContextHealth, getActiveSessions, getCodeHealth } from "./api";
 import fs from "fs";
 import path from "path";
 import os from "os";
@@ -135,6 +135,73 @@ describe("Dashboard API", () => {
       try { fs.unlinkSync(bp1); } catch {}
       try { fs.unlinkSync(bp2); } catch {}
     }
+  });
+
+  test("getCostData returns spend_over_time array", () => {
+    fs.writeFileSync(path.join(juhbdiDir, "decision-trail.log"), [
+      JSON.stringify({ event_type: "routing", description: "route to sonnet", cost_estimate: 0.01, opus_equivalent_cost: 0.05, timestamp: "2026-03-10T10:00:00Z", routed_to: "sonnet" }),
+      JSON.stringify({ event_type: "routing", description: "route to haiku", cost_estimate: 0.005, opus_equivalent_cost: 0.05, timestamp: "2026-03-10T10:01:00Z", routed_to: "haiku" }),
+      JSON.stringify({ event_type: "routing", description: "route to opus", cost_estimate: 0.05, opus_equivalent_cost: 0.05, timestamp: "2026-03-10T10:02:00Z", routed_to: "opus" }),
+    ].join("\n") + "\n");
+
+    const cost = getCostData(juhbdiDir);
+    expect(cost.spend_over_time).toBeDefined();
+    expect(Array.isArray(cost.spend_over_time)).toBe(true);
+    expect(cost.spend_over_time.length).toBe(3);
+    expect(cost.spend_over_time[0].cumulative).toBeCloseTo(0.01);
+    expect(cost.spend_over_time[1].cumulative).toBeCloseTo(0.015);
+    expect(cost.spend_over_time[2].cumulative).toBeCloseTo(0.065);
+    expect(cost.spend_over_time[0].timestamp).toBe("2026-03-10T10:00:00Z");
+  });
+
+  test("getMemoryStats returns full lists", () => {
+    fs.writeFileSync(path.join(juhbdiDir, "reflexion-bank.json"), JSON.stringify({
+      entries: [
+        { task_description: "task1", lesson: "lesson1", outcome: "success" },
+        { task_description: "task2", lesson: "lesson2", outcome: "failure" },
+        { task_description: "task3", lesson: "lesson3", outcome: "success" },
+        { task_description: "task4", lesson: "lesson4", outcome: "partial" },
+      ]
+    }));
+    fs.writeFileSync(path.join(juhbdiDir, "experiential-traces.json"), JSON.stringify({
+      traces: [
+        { summary: "trace1", success: true },
+        { summary: "trace2", success: false },
+      ]
+    }));
+    fs.writeFileSync(path.join(juhbdiDir, "principle-bank.json"), JSON.stringify({
+      principles: [
+        { text: "p1", source: "reflexion", confidence: 0.9 },
+      ]
+    }));
+
+    const stats = getMemoryStats(juhbdiDir);
+    expect(stats.reflexion_count).toBe(4);
+    expect(stats.all_reflexions).toBeDefined();
+    expect(stats.all_reflexions.length).toBe(4);
+    expect(stats.all_traces).toBeDefined();
+    expect(stats.all_traces.length).toBe(2);
+    expect(stats.all_principles).toBeDefined();
+    expect(stats.all_principles.length).toBe(1);
+    expect(stats.recent_reflexions.length).toBe(3);
+  });
+
+  test("getCodeHealth returns analysis result", () => {
+    const projectRoot = process.cwd();
+    const result = getCodeHealth(projectRoot);
+    expect(result).toHaveProperty("complexity");
+    expect(result).toHaveProperty("deadCode");
+    expect(result).toHaveProperty("callGraph");
+    expect(result).toHaveProperty("summary");
+    expect(result).toHaveProperty("cached_at");
+    expect(Array.isArray(result.complexity)).toBe(true);
+  });
+
+  test("getCodeHealth returns cached result on second call", () => {
+    const projectRoot = process.cwd();
+    const result1 = getCodeHealth(projectRoot);
+    const result2 = getCodeHealth(projectRoot);
+    expect(result2.cached_at).toBe(result1.cached_at);
   });
 
   test("cleanup", () => {
