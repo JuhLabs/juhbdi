@@ -1,5 +1,5 @@
 import { describe, test, expect, mock, afterEach } from "bun:test";
-import { mkdtemp, mkdir, writeFile, rm } from "fs/promises";
+import { mkdtemp, mkdir, writeFile, rm, readFile } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "path";
 import {
@@ -8,6 +8,7 @@ import {
   checkDashboard,
   checkDecisionTrail,
   runHealthChecks,
+  repairStateSchema,
 } from "./health-check";
 
 const VALID_STATE = JSON.stringify({
@@ -193,6 +194,67 @@ describe("checkDecisionTrail", () => {
     expect(result.name).toBe("decision_trail");
     expect(result.status).toBe("fail");
     expect(result.detail).toContain("not found");
+    await rm(dir, { recursive: true, force: true });
+  });
+});
+
+// ─── repairStateSchema ──────────────────────────────────────────────────────
+
+describe("repairStateSchema", () => {
+  test("returns repaired=false when state.json is already valid", async () => {
+    const dir = await makeTempDir();
+    await mkdir(join(dir, ".juhbdi"));
+    await writeFile(join(dir, ".juhbdi", "state.json"), VALID_STATE, "utf-8");
+    const result = await repairStateSchema(dir);
+    expect(result.repaired).toBe(false);
+    expect(result.detail).toContain("already valid");
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  test("repairs state.json with missing required fields", async () => {
+    const dir = await makeTempDir();
+    await mkdir(join(dir, ".juhbdi"));
+    // Only has version — missing project_name, conventions, architecture, etc.
+    await writeFile(
+      join(dir, ".juhbdi", "state.json"),
+      JSON.stringify({ version: "1.0.0" }),
+      "utf-8"
+    );
+    const result = await repairStateSchema(dir);
+    expect(result.repaired).toBe(true);
+    expect(result.detail).toContain("repaired");
+
+    // Verify the repaired file is now valid
+    const check = await checkStateSchema(dir);
+    expect(check.status).toBe("pass");
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  test("returns repaired=false when state.json is missing", async () => {
+    const dir = await makeTempDir();
+    await mkdir(join(dir, ".juhbdi"));
+    const result = await repairStateSchema(dir);
+    expect(result.repaired).toBe(false);
+    expect(result.detail).toContain("missing");
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  test("preserves existing valid fields during repair", async () => {
+    const dir = await makeTempDir();
+    await mkdir(join(dir, ".juhbdi"));
+    await writeFile(
+      join(dir, ".juhbdi", "state.json"),
+      JSON.stringify({ version: "2.0.0", project_name: "my-project" }),
+      "utf-8"
+    );
+    await repairStateSchema(dir);
+    const raw = JSON.parse(
+      await readFile(join(dir, ".juhbdi", "state.json"), "utf-8")
+    );
+    expect(raw.version).toBe("2.0.0");
+    expect(raw.project_name).toBe("my-project");
+    expect(raw.conventions).toEqual([]);
+    expect(raw.architecture).toBe("unknown");
     await rm(dir, { recursive: true, force: true });
   });
 });

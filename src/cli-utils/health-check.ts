@@ -43,6 +43,43 @@ export async function checkStateSchema(cwd: string): Promise<CheckResult> {
   }
 }
 
+/**
+ * Attempt to repair a broken state.json by filling in missing required fields.
+ * Returns true if repair was attempted, false if file was already valid or missing.
+ */
+export async function repairStateSchema(cwd: string): Promise<{ repaired: boolean; detail: string }> {
+  const statePath = join(cwd, ".juhbdi", "state.json");
+  try {
+    const raw = await readFile(statePath, "utf-8");
+    const data = JSON.parse(raw);
+    const result = StateSchema.safeParse(data);
+    if (result.success) {
+      return { repaired: false, detail: "state.json already valid" };
+    }
+
+    // Apply defaults for missing required fields
+    const repaired = {
+      version: data.version ?? "1.0.0",
+      project_name: data.project_name ?? "unknown",
+      conventions: Array.isArray(data.conventions) ? data.conventions : [],
+      architecture: data.architecture ?? "unknown",
+      compressed_history: data.compressed_history ?? "",
+      last_updated: data.last_updated ?? new Date().toISOString(),
+      ...(data.active_context ? { active_context: data.active_context } : {}),
+    };
+
+    const recheck = StateSchema.safeParse(repaired);
+    if (recheck.success) {
+      const { writeFile } = await import("fs/promises");
+      await writeFile(statePath, JSON.stringify(repaired, null, 2) + "\n");
+      return { repaired: true, detail: "state.json repaired with defaults" };
+    }
+    return { repaired: false, detail: "Could not auto-repair — manual fix needed" };
+  } catch {
+    return { repaired: false, detail: "state.json missing — run /juhbdi:init" };
+  }
+}
+
 export async function checkDashboard(): Promise<CheckResult> {
   try {
     const res = await fetch("http://localhost:3141", {
