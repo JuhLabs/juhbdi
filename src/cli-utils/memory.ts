@@ -99,8 +99,40 @@ if (import.meta.main) {
     }
     const { juhbdiDir } = await resolveContext();
     const bank = await loadMemoryBank(juhbdiDir);
-    const results = retrieveWithContext(taskDesc, bank.triplets as any, topK);
-    console.log(JSON.stringify({ matches: results, total_in_bank: bank.triplets.length }));
+    const localResults = retrieveWithContext(taskDesc, bank.triplets as any, topK);
+
+    // Query global bank (0.7x weight applied internally)
+    let globalResults: Array<any> = [];
+    try {
+      const { queryGlobalMemory, isDuplicate } = await import("../global/global-bank");
+      const globalMatches = await queryGlobalMemory(taskDesc, topK);
+      globalResults = globalMatches.map((r) => ({
+        task_description: r.task_description,
+        approach: r.approach,
+        utility: r.utility,
+        _relevance: r.relevance,
+        _source: "global",
+        _source_project: r.source_project,
+      }));
+
+      // Deduplicate: remove global entries similar to local
+      globalResults = globalResults.filter((gt) =>
+        !localResults.some((lt) =>
+          isDuplicate(lt.intent.task_description, gt.task_description)
+        )
+      );
+    } catch {
+      // Global bank not available — degrade gracefully
+    }
+
+    // Merge local (1.0x) + global (already 0.7x weighted)
+    const merged = [...localResults, ...globalResults].slice(0, topK);
+
+    console.log(JSON.stringify({
+      matches: merged,
+      total_in_bank: bank.triplets.length,
+      global_matches: globalResults.length,
+    }));
 
   } else {
     console.error(JSON.stringify({ error: "Usage: memory.ts <record|retrieve> ..." }));

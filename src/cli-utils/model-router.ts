@@ -5,6 +5,38 @@ import type { ExperienceTriplet } from "../schemas/memory";
 
 const TIERS: ModelTier[] = ["haiku", "sonnet", "opus"];
 
+// Global calibration cache — loaded once on first call
+let _globalCalibrationCache: { opus_threshold: number; haiku_threshold: number } | null = null;
+let _globalCalibrationLoaded = false;
+
+/**
+ * Attempt to load global router calibration into cache.
+ * Called once; result cached for lifetime of process.
+ * Non-blocking — if global bank doesn't exist, uses defaults.
+ */
+export async function initGlobalCalibration(): Promise<void> {
+  if (_globalCalibrationLoaded) return;
+  _globalCalibrationLoaded = true;
+  try {
+    const { loadGlobalCalibration } = await import("../global/global-bank");
+    const cal = await loadGlobalCalibration();
+    if (cal) {
+      _globalCalibrationCache = {
+        opus_threshold: cal.opus_threshold,
+        haiku_threshold: cal.haiku_threshold,
+      };
+    }
+  } catch {
+    // Global bank not available — use defaults
+  }
+}
+
+/** @internal Test helper — reset calibration cache */
+export function _resetCalibrationCache(): void {
+  _globalCalibrationCache = null;
+  _globalCalibrationLoaded = false;
+}
+
 const OPUS_KEYWORDS = [
   "architect", "refactor", "security", "migrate", "design",
   "complex", "integrate", "database schema", "overhaul",
@@ -243,10 +275,11 @@ export function routeTask(
   const memoryMatch = findMemoryMatch(task, memoryTriplets);
   const failureEscalation = (task.retry_count ?? 0) > 0;
 
-  // Determine complexity thresholds (default or calibrated)
-  let opusThreshold = 4;
-  let haikuThreshold = -4;
+  // Determine complexity thresholds: local accuracy > global calibration > defaults
+  let opusThreshold = _globalCalibrationCache?.opus_threshold ?? 4;
+  let haikuThreshold = _globalCalibrationCache?.haiku_threshold ?? -4;
   if (context && context.accuracy_history.length >= 5) {
+    // Local accuracy overrides global calibration
     const recent = context.accuracy_history.slice(-20);
     const correctCount = recent.filter((o) => o.actual_outcome === "correct").length;
     const accuracy = correctCount / recent.length;

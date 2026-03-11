@@ -35,23 +35,48 @@ if (import.meta.main) {
       description.toLowerCase().split(/[\s,.\-_/]+/).filter((w: string) => w.length > 3)
     );
 
-    // Score each principle by keyword overlap with the query
-    const scored = bank.principles
+    // Score project-local principles at 1.0x weight
+    const localScored = bank.principles
       .filter((p) => p.confidence >= 0.5)
       .map((p) => {
         const kwSet = new Set(p.keywords.map((k: string) => k.toLowerCase()));
         let overlap = 0;
         for (const w of queryWords) if (kwSet.has(w)) overlap++;
         const score = queryWords.size > 0 ? overlap / queryWords.size : 0;
-        return { principle: p, score };
+        return { ...p, relevance_score: score, source: "project" as const };
       })
-      .filter((e) => e.score > 0)
-      .sort((a, b) => b.score - a.score || b.principle.confidence - a.principle.confidence)
+      .filter((e) => e.relevance_score > 0);
+
+    // Query global bank (0.7x weight applied internally)
+    let globalScored: Array<{ relevance_score: number; source: "global"; [key: string]: any }> = [];
+    try {
+      const { queryGlobalPrinciples, isDuplicate } = await import("../global/global-bank");
+      const globalResults = await queryGlobalPrinciples(description, topK);
+      globalScored = globalResults.map((r) => ({
+        principle: r.text,
+        confidence: r.confidence,
+        relevance_score: r.relevance,
+        source: "global" as const,
+        source_project: r.source_project,
+      }));
+
+      // Deduplicate: remove global entries that are >80% similar to any local entry
+      globalScored = globalScored.filter((gp) =>
+        !localScored.some((lp) => isDuplicate(lp.principle, gp.principle))
+      );
+    } catch {
+      // Global bank not available — degrade gracefully
+    }
+
+    // Merge and sort
+    const merged = [...localScored, ...globalScored]
+      .sort((a, b) => b.relevance_score - a.relevance_score)
       .slice(0, topK);
 
     console.log(JSON.stringify({
-      matches: scored.map((s) => ({ ...s.principle, relevance_score: s.score })),
-      total_in_bank: bank.principles.length
+      matches: merged,
+      total_in_bank: bank.principles.length,
+      global_matches: globalScored.length,
     }));
 
   } else if (action === "save") {
