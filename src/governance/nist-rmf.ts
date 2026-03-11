@@ -62,8 +62,8 @@ export const NIST_CROSSWALK: NISTMapping[] = [
   },
   {
     function: "GOVERN", category: "2", subcategory: "2.1",
-    juhbdi_component: "User preferences (work_style, reporting_level)",
-    coverage: "full", evidence_source: ".juhbdi/user-preferences.json",
+    juhbdi_component: "Project config (model, HITL mode, retries)",
+    coverage: "full", evidence_source: ".juhbdi/config.json",
   },
   {
     function: "GOVERN", category: "2", subcategory: "2.2",

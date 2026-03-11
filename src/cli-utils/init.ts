@@ -84,6 +84,14 @@ export async function quickInit(cwd: string): Promise<void> {
 
 async function main() {
   const cwd = process.cwd();
+
+  // Support --quick flag for zero-config auto pipeline
+  if (process.argv.includes("--quick")) {
+    await quickInit(cwd);
+    console.log(JSON.stringify({ success: true, mode: "quick", files: ["state.json", "config.json", "decision-trail.log"] }));
+    return;
+  }
+
   const juhbdiDir = join(cwd, JUHBDI_DIR);
   const trailPath = join(juhbdiDir, "decision-trail.log");
 

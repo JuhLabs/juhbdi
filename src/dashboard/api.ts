@@ -13,7 +13,7 @@ export function getProjectState(juhbdiDir: string) {
     state: safeReadJSON(path.join(juhbdiDir, "state.json")),
     roadmap: safeReadJSON(path.join(juhbdiDir, "roadmap-intent.json")),
     intentSpec: safeReadJSON(path.join(juhbdiDir, "intent-spec.json")),
-    preferences: safeReadJSON(path.join(juhbdiDir, "user-preferences.json")),
+    preferences: null,
     timestamp: new Date().toISOString(),
   };
 }
@@ -153,7 +153,7 @@ export interface ProjectGroup {
 }
 
 const SESSION_STALE_MS = 120_000; // 2 minutes without update = stale
-const SESSION_EXPIRE_MS = 24 * 60 * 60_000; // drop sessions >24h old
+const SESSION_EXPIRE_MS = 4 * 60 * 60_000; // drop sessions >4h old
 
 export function getActiveSessions(): ProjectGroup[] {
   const bridgeFiles: string[] = [];
@@ -176,7 +176,11 @@ export function getActiveSessions(): ProjectGroup[] {
       if (!bridge.session_id) continue;
 
       const ts = bridge.timestamp ? new Date(bridge.timestamp).getTime() : 0;
-      if ((now - ts) > SESSION_EXPIRE_MS) continue; // drop sessions >24h old
+      if ((now - ts) > SESSION_EXPIRE_MS) {
+        // Auto-clean expired bridge files
+        try { fs.unlinkSync(filePath); } catch { /* ignore */ }
+        continue;
+      }
       const stale = (now - ts) > SESSION_STALE_MS;
       const pct = typeof bridge.remaining_pct === "number" ? bridge.remaining_pct : 100;
 

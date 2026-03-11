@@ -128,7 +128,6 @@ Use AskUserQuestion to show the preview:
 - .juhbdi/roadmap-intent.json — execution roadmap (empty)
 - .juhbdi/state.json — project beliefs & context
 - .juhbdi/config.json — JuhBDI configuration
-- .juhbdi/user-preferences.json — your work style preferences
 - .juhbdi/decision-trail.log — audit trail
 
 Does this look right? (yes / edit — tell me what to change)
@@ -158,26 +157,7 @@ After init creates the default files, update `.juhbdi/intent-spec.json` with the
 
 Write the updated intent-spec.json.
 
-## Step 6: Save User Preferences
-
-Write `.juhbdi/user-preferences.json` with the work style and reporting preferences:
-
-```json
-{
-  "work_style": "hands-off | hands-on | balanced",
-  "reporting_level": "minimal | standard | full",
-  "audience": "end-users | developers | internal",
-  "created": "<ISO timestamp>",
-  "version": "1.0.0"
-}
-```
-
-The execute command should read this file to determine:
-- `hands-off`: auto-approve waves, only pause at HITL gates
-- `hands-on`: ask before each wave
-- `balanced`: ask at wave boundaries for multi-wave plans, auto for single-wave
-
-## Step 7: Update State
+## Step 6: Update State
 
 Update `.juhbdi/state.json` with discovered codebase info:
 - `conventions`: detected patterns (test runner, linter, etc.)
@@ -205,7 +185,6 @@ Tell the user what was set up:
 - .juhbdi/roadmap-intent.json — execution roadmap (empty)
 - .juhbdi/state.json — project beliefs & context
 - .juhbdi/config.json — JuhBDI configuration
-- .juhbdi/user-preferences.json — your work style preferences
 - .juhbdi/decision-trail.log — audit trail
 
 **Next:** Run `/juhbdi:plan <what you want to build>` to create an execution plan.
