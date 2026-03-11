@@ -12,6 +12,7 @@ export const SymbolSchema = z.object({
   kind: SymbolKindSchema,
   exported: z.boolean(),
   line: z.number().int().min(1),
+  complexity: z.number().int().min(0).optional(),
 });
 
 export type Symbol = z.infer<typeof SymbolSchema>;

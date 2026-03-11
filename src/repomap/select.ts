@@ -104,11 +104,15 @@ export function selectRelevantFiles(
     let score = 0;
 
     // Symbol match: +10 per matching exported symbol
+    // Complexity boost: matching complex symbols get extra score (capped at +20)
     for (const sym of file.symbols) {
       if (!sym.exported) continue;
       for (const kw of keywords) {
         if (fuzzyMatch(kw, sym.name)) {
           score += 10;
+          if (sym.complexity && sym.complexity > 1) {
+            score += Math.min(sym.complexity * 2, 20);
+          }
         }
       }
     }

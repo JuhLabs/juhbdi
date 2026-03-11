@@ -38,7 +38,7 @@ else
   SURFACE="\033[38;5;240m"
 fi
 
-VERSION="1.4.1"
+VERSION=$(node -e "console.log(require('$(cd "$(dirname "$0")" && pwd)/.claude-plugin/plugin.json').version)" 2>/dev/null || echo "1.8.0")
 DOWNLOAD_URL="https://www.juhlabs.com/juhbdi/juhbdi-${VERSION}.tar.gz"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 GLOBAL_PLUGIN_DIR="${HOME}/.claude/plugins/cache/juhlabs/juhbdi/${VERSION}"
@@ -328,7 +328,10 @@ if [[ "$INSTALL_MODE" == "global" ]]; then
   cp -r "${SCRIPT_DIR}/.claude-plugin" "${CACHE_DIR}/.claude-plugin"
   cp -r "${SCRIPT_DIR}/commands" "${CACHE_DIR}/commands"
   cp -r "${SCRIPT_DIR}/agents" "${CACHE_DIR}/agents"
+  [[ -d "${SCRIPT_DIR}/skills" ]] && cp -r "${SCRIPT_DIR}/skills" "${CACHE_DIR}/skills"
   [[ -d "${SCRIPT_DIR}/hooks" ]] && cp -r "${SCRIPT_DIR}/hooks" "${CACHE_DIR}/hooks"
+  [[ -d "${SCRIPT_DIR}/bin" ]] && cp -r "${SCRIPT_DIR}/bin" "${CACHE_DIR}/bin"
+  [[ -d "${SCRIPT_DIR}/statusline" ]] && cp -r "${SCRIPT_DIR}/statusline" "${CACHE_DIR}/statusline"
   cp -r "${SCRIPT_DIR}/src" "${CACHE_DIR}/src"
   cp -r "${SCRIPT_DIR}/node_modules" "${CACHE_DIR}/node_modules"
   cp "${SCRIPT_DIR}/package.json" "${CACHE_DIR}/package.json"
@@ -377,7 +380,7 @@ if [[ "$INSTALL_MODE" == "global" ]]; then
   MARKETPLACE_DIR="${HOME}/.claude/plugins/marketplaces/juhlabs"
   mkdir -p "${MARKETPLACE_DIR}/.claude-plugin"
   mkdir -p "${MARKETPLACE_DIR}/plugins/juhbdi"
-  cat > "${MARKETPLACE_DIR}/.claude-plugin/marketplace.json" << 'MKTEOF'
+  cat > "${MARKETPLACE_DIR}/.claude-plugin/marketplace.json" << MKTEOF
 {
   "name": "juhlabs",
   "description": "JuhLabs — Intent-Driven Development Tools",
@@ -386,7 +389,7 @@ if [[ "$INSTALL_MODE" == "global" ]]; then
     {
       "name": "juhbdi",
       "description": "Intent-driven autonomous development engine with BDI governance, Socratic challenge, wave execution, and audit compliance",
-      "version": "1.4.1",
+      "version": "${VERSION}",
       "source": "./plugins/juhbdi",
       "author": { "name": "Julian Hermstad" }
     }
@@ -440,8 +443,8 @@ fi
 if [[ -f "${SCRIPT_DIR}/.claude-plugin/plugin.json" ]]; then
   PLUGIN_VER=$(node -e "console.log(require(process.argv[1]).version)" "${SCRIPT_DIR}/.claude-plugin/plugin.json" 2>/dev/null || echo "?")
   HOOK_COUNT=0
-  if [[ -f "${SCRIPT_DIR}/hooks/hooks.json" ]]; then
-    HOOK_COUNT=$(node -e "const h=require(process.argv[1]).hooks||{}; let c=0; for(const k in h) c+=h[k].length; console.log(c)" "${SCRIPT_DIR}/hooks/hooks.json" 2>/dev/null || echo "?")
+  if [[ -f "${SCRIPT_DIR}/.claude-plugin/hooks/hooks.json" ]]; then
+    HOOK_COUNT=$(node -e "const h=require(process.argv[1]).hooks||{}; let c=0; for(const k in h) c+=h[k].length; console.log(c)" "${SCRIPT_DIR}/.claude-plugin/hooks/hooks.json" 2>/dev/null || echo "?")
   fi
   ok "Manifest v${PLUGIN_VER} — ${HOOK_COUNT} hooks"
 fi
@@ -456,7 +459,7 @@ if [[ "$INSTALL_MODE" == "global" ]]; then
   blank
 
   LINK_OK=false
-  BIN_ENTRY="${CACHE_DIR}/bin/juhbdi.mjs"
+  BIN_ENTRY="${CACHE_DIR}/bin/juhbdi.js"
 
   # Try npm link without sudo first (works on macOS + nvm/fnm setups)
   cd "$CACHE_DIR"

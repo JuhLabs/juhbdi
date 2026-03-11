@@ -1,0 +1,53 @@
+{
+  "description": "JuhBDI governance hooks — context monitoring, session restoration, pre-compact state saving, auto-trigger pipeline",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/hooks/juhbdi-context-monitor.cjs",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/hooks/juhbdi-session-primer.cjs",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/hooks/juhbdi-precompact.cjs",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/hooks/juhbdi-auto-trigger.cjs",
+            "timeout": 3000
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -32,7 +32,10 @@ function formatFileEntry(file: FileNode): string {
 
   const lines = [`${file.path}:`];
   for (const sym of exportedSymbols) {
-    lines.push(`  ${KIND_PREFIX[sym.kind]} ${sym.name}`);
+    const complexityHint = sym.complexity && sym.complexity > 3
+      ? ` [complexity:${sym.complexity}]`
+      : "";
+    lines.push(`  ${KIND_PREFIX[sym.kind]} ${sym.name}${complexityHint}`);
   }
   return lines.join("\n") + "\n";
 }

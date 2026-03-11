@@ -390,77 +390,29 @@ async function main() {
     emergency_fired: state.emergency_fired || currentLevel === "EMERGENCY",
   });
 
-  // Build warning message
-  let message;
+  // Build warning message — kept short and directive to ensure model relays to user
   const pct = Math.round(remainingPct);
 
+  // Use BOTH additionalContext (model instructions) and user_message (direct user visibility)
+  // user_message ensures the warning is ALWAYS visible in the conversation
+  let modelContext;
+  let userMessage;
+
   if (currentLevel === "EMERGENCY") {
-    message = [
-      ``,
-      `!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`,
-      `!!! JUHBDI EMERGENCY — ${pct}% REMAINING — STOP NOW !!!`,
-      `!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`,
-      ``,
-      `STOP ALL WORK IMMEDIATELY. Context is at emergency level.`,
-      ``,
-      `State has been auto-saved${savedState ? ` to .juhbdi/handoffs/` : ``}.`,
-      `Handoff written to .juhbdi/handoffs/latest.json for session-primer.`,
-      ``,
-      `Tell the user:`,
-      `"Context is critically low at ${pct}%. All governance state has been saved.`,
-      ` Please start a new session and run /juhbdi:resume to continue.`,
-      ` Do NOT continue in this session — compaction will destroy governance state."`,
-      ``,
-      `DO NOT execute any more tool calls.`,
-      `DO NOT read any more files.`,
-      `DO NOT say "I'll continue" or "let me just finish this".`,
-      `Your ONLY remaining action is to tell the user to start a new session.`,
-    ].join("\n");
+    userMessage = `\n**JUHBDI EMERGENCY — ${pct}% context remaining — session must end NOW.**\nAll governance state has been auto-saved. Please start a new session and run \`/juhbdi:resume\` to continue.\nDo NOT continue in this session — compaction will destroy governance state.\n`;
+    modelContext = `STOP ALL WORK. Context at ${pct}%. State saved to .juhbdi/handoffs/. Do NOT execute any more tool calls. Your ONLY action is to tell the user to start a new session.`;
   } else if (currentLevel === "CRITICAL") {
-    message = [
-      `\n!!! JUHBDI CONTEXT CRITICAL — ${pct}% REMAINING !!!`,
-      ``,
-      `All state has been auto-saved${savedState ? ` to .juhbdi/handoffs/` : ``}.`,
-      `Handoff written to .juhbdi/handoffs/latest.json for session-primer.`,
-      ``,
-      `You MUST stop new work NOW. Do these things immediately:`,
-      `1. Save important context to memory files (Write tool -> ~/.claude/projects/*/memory/)`,
-      `2. Tell the user their context is at ${pct}%`,
-      `3. Give the user this FILLED-IN continuation prompt (replace all [brackets]):`,
-      ``,
-      `---BEGIN CONTINUATION TEMPLATE---`,
-      `Previous session paused at: ${new Date().toISOString()}`,
-      `Branch: [fill in current git branch]`,
-      `Task in progress: [fill in what you were working on]`,
-      `Files modified this session: [list the key files you changed]`,
-      `Progress: [what's done, what's left]`,
-      ``,
-      `To continue:`,
-      `1. Run /juhbdi:resume`,
-      `2. Then: [fill in the specific next action to take]`,
-      `---END CONTINUATION TEMPLATE---`,
-      ``,
-      `IMPORTANT: Fill in EVERY bracket above with real values from this session.`,
-      `DO NOT leave any [brackets] unfilled. DO NOT start new tool calls or file reads.`,
-    ].join("\n");
+    userMessage = `\n**JUHBDI CRITICAL — ${pct}% context remaining.**\nState has been auto-saved. Wrapping up — save memory and prepare handoff.\nRun \`/juhbdi:pause\` or start a new session with \`/juhbdi:resume\`.\n`;
+    modelContext = `Context CRITICAL at ${pct}%. State auto-saved. Stop new work. Save important context to memory files, then tell user to start a new session. Do NOT start new tool calls.`;
   } else if (currentLevel === "URGENT") {
-    message = [
-      `[JUHBDI CONTEXT URGENT] ${pct}% remaining — approaching critical.`,
-      `Finish your current task, then prepare to hand off:`,
-      `- Save key decisions to memory: ~/.claude/projects/*/memory/MEMORY.md`,
-      `- Run /juhbdi:pause to create a structured handoff file`,
-      `- Warn the user: "Context is at ${pct}%. We should wrap up soon or pause."`,
-      `Do NOT start new multi-step tasks. Complete what you're doing and stop.`,
-    ].join("\n");
+    userMessage = `\n**JUHBDI URGENT — ${pct}% context remaining.** Finish current task, then wrap up. Consider running \`/juhbdi:pause\`.\n`;
+    modelContext = `Context URGENT at ${pct}%. Finish current task, do NOT start new multi-step work. Warn user and prepare to hand off.`;
   } else {
-    message = [
-      `[JUHBDI CONTEXT WARNING] ${pct}% remaining.`,
-      `Context is getting tight. Consider running /juhbdi:pause if you have more work ahead.`,
-      `Wrap up your current task before starting anything new.`,
-    ].join("\n");
+    userMessage = `\n**JUHBDI WARNING — ${pct}% context remaining.** Wrap up current task before starting anything new.\n`;
+    modelContext = `Context WARNING at ${pct}%. Complete current task, avoid starting new work.`;
   }
 
-  console.log(JSON.stringify({ additionalContext: message }));
+  console.log(JSON.stringify({ user_message: userMessage, additionalContext: modelContext }));
 }
 
 main().catch(() => {

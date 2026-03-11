@@ -4,6 +4,7 @@ import { join, dirname, relative } from "path";
 import type { FileNode, RepoMap } from "./types";
 import { TypeScriptParser } from "./parser";
 import { buildDependencyGraph, computePageRank } from "./graph";
+import { analyzeFiles } from "./ast-analyzer";
 
 const EXTENSIONS = [".ts", ".tsx", ".js", ".jsx"];
 const INDEX_FILES = EXTENSIONS.map((ext) => `index${ext}`);
@@ -94,19 +95,22 @@ export function generateRepoMap(
     };
   }
 
-  // Parse files (with optional caching)
-  const fileNodes: FileNode[] = [];
-  const cachedNodes = new Map<string, FileNode>();
-
+  // Read all file contents once (avoids double reads for parsing + token counting)
+  const fileContents = new Map<string, string>();
   for (const filePath of filePaths) {
     const fullPath = join(projectRoot, filePath);
-    const content = readFileSync(fullPath, "utf-8");
+    fileContents.set(filePath, readFileSync(fullPath, "utf-8"));
+  }
+
+  // Parse files (with optional caching)
+  const fileNodes: FileNode[] = [];
+
+  for (const filePath of filePaths) {
+    const content = fileContents.get(filePath)!;
     const currentHash = new Bun.CryptoHasher("md5").update(content).digest("hex");
 
     if (cache && cache.get(filePath) === currentHash) {
-      // Content unchanged — parse anyway to get full node (but could be optimized further)
       const node = parser.parse(filePath, content);
-      cachedNodes.set(filePath, node);
       fileNodes.push(node);
     } else {
       const node = parser.parse(filePath, content);
@@ -124,17 +128,35 @@ export function generateRepoMap(
     }
   }
 
+  // Deep AST analysis: overlay complexity from M16 AST analyzer onto parsed symbols
+  try {
+    const astInput = filePaths.map((p) => ({ path: p, content: fileContents.get(p)! }));
+    const astAnalyses = analyzeFiles(astInput);
+    const astByPath = new Map(astAnalyses.map((a) => [a.filePath, a]));
+
+    for (const file of fileNodes) {
+      const ast = astByPath.get(file.path);
+      if (!ast) continue;
+      for (const sym of file.symbols) {
+        const matching = ast.symbols.find((s) => s.name === sym.name);
+        if (matching && matching.complexity > 0) {
+          sym.complexity = matching.complexity;
+        }
+      }
+    }
+  } catch {
+    // AST analysis failure is non-fatal — complexity data is optional
+  }
+
   // Build dependency graph
   const edges = buildDependencyGraph(fileNodes);
 
   // Compute PageRank
   const pagerank = computePageRank(fileNodes, edges);
 
-  // Estimate token count (chars / 4)
+  // Estimate token count from cached content (chars / 4)
   let totalChars = 0;
-  for (const file of fileNodes) {
-    const fullPath = join(projectRoot, file.path);
-    const content = readFileSync(fullPath, "utf-8");
+  for (const content of fileContents.values()) {
     totalChars += content.length;
   }
   const tokenCount = Math.ceil(totalChars / 4);
