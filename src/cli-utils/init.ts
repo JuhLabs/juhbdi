@@ -1,5 +1,5 @@
 import { mkdir, writeFile, stat } from "fs/promises";
-import { join } from "path";
+import { join, basename } from "path";
 import { JUHBDI_DIR } from "../core/config";
 import { IntentSpecSchema, type IntentSpec } from "../schemas/intent-spec";
 import { serializeState, type State } from "../schemas/state";
@@ -41,6 +41,46 @@ const DEFAULT_INTENT_SPEC: IntentSpec = {
     },
   ],
 };
+
+/**
+ * Minimal init for zero-config auto pipeline.
+ * Creates only: state.json, config.json, decision-trail.log.
+ * No intent-spec, no user-preferences, no roadmap.
+ * Idempotent — safe to call if .juhbdi/ already exists.
+ */
+export async function quickInit(cwd: string): Promise<void> {
+  const juhbdiDir = join(cwd, JUHBDI_DIR);
+  await mkdir(juhbdiDir, { recursive: true });
+
+  const projectName = basename(cwd) || "project";
+
+  const state: State = {
+    version: "1.0.0",
+    project_name: projectName,
+    conventions: [],
+    architecture: "Not yet analyzed",
+    compressed_history: "Quick-initialized for auto pipeline.",
+    last_updated: new Date().toISOString(),
+  };
+  await writeFile(join(juhbdiDir, "state.json"), serializeState(state));
+
+  const configPath = join(juhbdiDir, "config.json");
+  try { await stat(configPath); } catch {
+    await writeFile(configPath, JSON.stringify({ model: "claude-sonnet-4-6", hitl_mode: "prompt" }, null, 2) + "\n");
+  }
+
+  const trailPath = join(juhbdiDir, "decision-trail.log");
+  try { await stat(trailPath); } catch {
+    await appendTrailEntry(trailPath, {
+      event_type: "command",
+      description: "Quick-initialized JuhBDI project (zero-config auto)",
+      reasoning: "Auto pipeline needs minimal .juhbdi/ state",
+      alternatives_considered: ["full interactive init"],
+      constraint_refs: [],
+      outcome: "approved",
+    });
+  }
+}
 
 async function main() {
   const cwd = process.cwd();
@@ -111,7 +151,9 @@ async function main() {
   );
 }
 
-main().catch((err) => {
-  console.error(JSON.stringify({ error: String(err) }));
-  process.exit(1);
-});
+if (import.meta.path === Bun.main) {
+  main().catch((err) => {
+    console.error(JSON.stringify({ error: String(err) }));
+    process.exit(1);
+  });
+}
