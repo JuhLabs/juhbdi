@@ -299,6 +299,258 @@ export function getCodeHealth(projectRoot: string, refresh = false): CodeHealthR
   }
 }
 
+// --- Decision Intelligence (Phase 3) ---
+
+/**
+ * Query project + global memory for similar past work.
+ * Returns matches with approach, tier, duration, and outcome.
+ */
+export function getSimilarWork(juhbdiDir: string, query: string, topK: number = 5): Array<{
+  description: string;
+  approach: string;
+  tier: string;
+  duration_min: number;
+  outcome: "pass" | "fail" | "partial";
+  similarity: number;
+}> {
+  const results: Array<{
+    description: string;
+    approach: string;
+    tier: string;
+    duration_min: number;
+    outcome: "pass" | "fail" | "partial";
+    similarity: number;
+  }> = [];
+
+  const queryWords = new Set(query.toLowerCase().split(/\s+/).filter(w => w.length > 2));
+  if (queryWords.size === 0) return results;
+
+  // Source 1: Experiential traces (project-level)
+  const traces = safeReadJSON(path.join(juhbdiDir, "experiential-traces.json"));
+  const traceList: any[] = traces?.traces || [];
+
+  for (const trace of traceList) {
+    const desc = (trace.summary || trace.description || "").toLowerCase();
+    const descWords = new Set(desc.split(/\s+/).filter((w: string) => w.length > 2));
+    if (descWords.size === 0) continue;
+
+    const intersection = [...queryWords].filter(w => descWords.has(w)).length;
+    const union = new Set([...queryWords, ...descWords]).size;
+    const similarity = union > 0 ? intersection / union : 0;
+
+    if (similarity > 0.1) {
+      results.push({
+        description: trace.summary || trace.description || "",
+        approach: trace.approach || trace.strategy || "unknown",
+        tier: trace.tier || "unknown",
+        duration_min: trace.duration_min || trace.duration || 0,
+        outcome: trace.success ? "pass" : "fail",
+        similarity: Math.round(similarity * 100) / 100,
+      });
+    }
+  }
+
+  // Source 2: Reflexion bank (project-level)
+  const reflexions = safeReadJSON(path.join(juhbdiDir, "reflexion-bank.json"));
+  const reflexionList: any[] = reflexions?.entries || [];
+
+  for (const r of reflexionList) {
+    const desc = (r.task_description || r.task || "").toLowerCase();
+    const descWords = new Set(desc.split(/\s+/).filter((w: string) => w.length > 2));
+    if (descWords.size === 0) continue;
+
+    const intersection = [...queryWords].filter(w => descWords.has(w)).length;
+    const union = new Set([...queryWords, ...descWords]).size;
+    const similarity = union > 0 ? intersection / union : 0;
+
+    if (similarity > 0.1) {
+      results.push({
+        description: r.task_description || r.task || "",
+        approach: r.lesson || "no lesson recorded",
+        tier: "unknown",
+        duration_min: 0,
+        outcome: r.outcome === "success" ? "pass" : r.outcome === "failure" ? "fail" : "partial",
+        similarity: Math.round(similarity * 100) / 100,
+      });
+    }
+  }
+
+  // Source 3: Global memory bank (if exists)
+  const globalMemPath = path.join(process.env.HOME || "~", ".juhbdi", "global", "memory-bank.json");
+  const globalMem = safeReadJSON(globalMemPath);
+  const globalList: any[] = globalMem?.triplets || [];
+
+  for (const g of globalList) {
+    const desc = (g.intent?.task_description || g.description || "").toLowerCase();
+    const descWords = new Set(desc.split(/\s+/).filter((w: string) => w.length > 2));
+    if (descWords.size === 0) continue;
+
+    const intersection = [...queryWords].filter(w => descWords.has(w)).length;
+    const union = new Set([...queryWords, ...descWords]).size;
+    let similarity = union > 0 ? intersection / union : 0;
+    similarity *= 0.7; // Global discount
+
+    if (similarity > 0.07) {
+      results.push({
+        description: g.intent?.task_description || g.description || "",
+        approach: g.experience?.approach || "global knowledge",
+        tier: "unknown",
+        duration_min: 0,
+        outcome: g.experience?.test_result === "pass" ? "pass" : "fail",
+        similarity: Math.round(similarity * 100) / 100,
+      });
+    }
+  }
+
+  results.sort((a, b) => b.similarity - a.similarity);
+  return results.slice(0, topK);
+}
+
+/**
+ * Build trend data from decision trail: cumulative cost, pass rate, router accuracy.
+ * Aggregated per-day.
+ */
+export function getTrendData(juhbdiDir: string): {
+  cost_trend: Array<{ date: string; cumulative_cost: number }>;
+  pass_rate_trend: Array<{ date: string; pass_rate: number; total: number }>;
+  router_accuracy_trend: Array<{ date: string; accuracy: number; total: number }>;
+} {
+  const trail = getTrailEntries(juhbdiDir, 10000);
+
+  const costByDay = new Map<string, number>();
+  const passFailByDay = new Map<string, { pass: number; fail: number }>();
+  const routerByDay = new Map<string, { correct: number; total: number }>();
+
+  for (const entry of trail) {
+    const ts = entry.timestamp;
+    if (!ts) continue;
+    const day = ts.slice(0, 10);
+
+    if (entry.event_type === "routing") {
+      const cost = entry.cost_estimate || 0;
+      costByDay.set(day, (costByDay.get(day) || 0) + cost);
+
+      if (typeof entry.correct_routing === "boolean") {
+        const r = routerByDay.get(day) || { correct: 0, total: 0 };
+        r.total++;
+        if (entry.correct_routing) r.correct++;
+        routerByDay.set(day, r);
+      }
+    }
+
+    if (entry.event_type === "execution" || entry.event_type === "verification") {
+      const pf = passFailByDay.get(day) || { pass: 0, fail: 0 };
+      if (entry.outcome === "approved" || entry.outcome === "pass" || entry.outcome === "success") {
+        pf.pass++;
+      } else if (entry.outcome === "rejected" || entry.outcome === "fail" || entry.outcome === "failure") {
+        pf.fail++;
+      }
+      passFailByDay.set(day, pf);
+    }
+  }
+
+  const allDays = [...new Set([...costByDay.keys(), ...passFailByDay.keys(), ...routerByDay.keys()])].sort();
+  let cumCost = 0;
+  const cost_trend = allDays.map(day => {
+    cumCost += costByDay.get(day) || 0;
+    return { date: day, cumulative_cost: Math.round(cumCost * 10000) / 10000 };
+  });
+
+  const pass_rate_trend = allDays.map((day, i) => {
+    const windowDays = allDays.slice(Math.max(0, i - 6), i + 1);
+    let pass = 0, total = 0;
+    for (const d of windowDays) {
+      const pf = passFailByDay.get(d);
+      if (pf) { pass += pf.pass; total += pf.pass + pf.fail; }
+    }
+    return { date: day, pass_rate: total > 0 ? Math.round((pass / total) * 100) : 0, total };
+  });
+
+  const router_accuracy_trend = allDays
+    .filter(day => routerByDay.has(day))
+    .map(day => {
+      const r = routerByDay.get(day)!;
+      return {
+        date: day,
+        accuracy: r.total > 0 ? Math.round((r.correct / r.total) * 100) : 0,
+        total: r.total,
+      };
+    });
+
+  return { cost_trend, pass_rate_trend, router_accuracy_trend };
+}
+
+/**
+ * Get top principles across project + global banks.
+ */
+export function getHotPrinciples(juhbdiDir: string): {
+  top_applied: Array<{ text: string; confidence: number; times_applied: number; source: string }>;
+  recently_promoted: Array<{ text: string; promoted_at: string; source_project: string }>;
+  decay_warnings: Array<{ text: string; confidence: number; times_applied: number; times_validated: number }>;
+} {
+  const top_applied: Array<{ text: string; confidence: number; times_applied: number; source: string }> = [];
+  const recently_promoted: Array<{ text: string; promoted_at: string; source_project: string }> = [];
+  const decay_warnings: Array<{ text: string; confidence: number; times_applied: number; times_validated: number }> = [];
+
+  // Project-level principles
+  const projectPrinciples = safeReadJSON(path.join(juhbdiDir, "principle-bank.json"));
+  const projectList: any[] = projectPrinciples?.principles || [];
+
+  for (const p of projectList) {
+    top_applied.push({
+      text: p.text || p.principle || "",
+      confidence: p.confidence ?? 0,
+      times_applied: p.times_applied ?? 0,
+      source: "project",
+    });
+  }
+
+  // Global principles (if exists)
+  const globalPrinciplesPath = path.join(process.env.HOME || "~", ".juhbdi", "global", "principles.json");
+  const globalPrinciples = safeReadJSON(globalPrinciplesPath);
+  const globalList: any[] = globalPrinciples?.principles || [];
+
+  for (const p of globalList) {
+    top_applied.push({
+      text: p.text || p.principle || "",
+      confidence: p.confidence ?? 0,
+      times_applied: p.times_applied ?? 0,
+      source: p.source_project || "global",
+    });
+
+    if (p.promoted_at) {
+      const promotedMs = new Date(p.promoted_at).getTime();
+      const sevenDaysAgo = Date.now() - 7 * 86400000;
+      if (promotedMs > sevenDaysAgo) {
+        recently_promoted.push({
+          text: p.text || p.principle || "",
+          promoted_at: p.promoted_at,
+          source_project: p.source_project || "unknown",
+        });
+      }
+    }
+
+    const applied = p.times_applied ?? 0;
+    const validated = p.times_validated ?? 0;
+    if (applied >= 5 && (validated / applied) < 0.2) {
+      decay_warnings.push({
+        text: p.text || p.principle || "",
+        confidence: p.confidence ?? 0,
+        times_applied: applied,
+        times_validated: validated,
+      });
+    }
+  }
+
+  top_applied.sort((a, b) => b.times_applied - a.times_applied);
+
+  return {
+    top_applied: top_applied.slice(0, 5),
+    recently_promoted: recently_promoted.slice(0, 5),
+    decay_warnings: decay_warnings.slice(0, 5),
+  };
+}
+
 function findTsFiles(dir: string, projectRoot: string): string[] {
   const results: string[] = [];
   if (!fs.existsSync(dir)) return results;

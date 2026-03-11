@@ -1,12 +1,15 @@
 import fs from "fs";
 import path from "path";
-import { getProjectState, getTrailEntries, getCostData, getMemoryStats, getContextHealth, getActiveSessions, getCodeHealth } from "./api";
+import { getProjectState, getTrailEntries, getCostData, getMemoryStats, getContextHealth, getActiveSessions, getCodeHealth, getSimilarWork, getTrendData, getHotPrinciples } from "./api";
+import { appendEvent, replayEvents, compactEvents, type DashboardEvent } from "./event-log";
 
 const PORT = parseInt(process.env.JUHBDI_DASHBOARD_PORT || "3141", 10);
 const cwd = process.cwd();
 const juhbdiDir = path.join(cwd, ".juhbdi");
 
 const clients = new Set<ReadableStreamDefaultController>();
+const eventLogPath = path.join(juhbdiDir, "dashboard-events.jsonl");
+const eventArchivePath = path.join(juhbdiDir, "dashboard-events.archive.jsonl");
 
 function resolveProjectDir(url: URL): string {
   const pd = url.searchParams.get("project_dir");
@@ -19,14 +22,24 @@ function resolveProjectDir(url: URL): string {
 
 function broadcastUpdate() {
   const sessions = getActiveSessions();
-  const data = JSON.stringify({
+  const payload = {
     state: getProjectState(juhbdiDir),
     trail: getTrailEntries(juhbdiDir, 50),
     cost: getCostData(juhbdiDir),
     memory: getMemoryStats(juhbdiDir),
     context: getContextHealth(),
     sessions,
-  });
+  };
+  const data = JSON.stringify(payload);
+
+  // Persist event to JSONL log (fire-and-forget, don't block broadcast)
+  const event: DashboardEvent = {
+    timestamp: new Date().toISOString(),
+    type: "broadcast",
+    data: payload,
+  };
+  appendEvent(eventLogPath, event).catch(() => {});
+
   for (const controller of clients) {
     try { controller.enqueue(`data: ${data}\n\n`); }
     catch { clients.delete(controller); }
@@ -49,6 +62,14 @@ if (fs.existsSync(juhbdiDir)) {
 setInterval(() => {
   broadcastUpdate();
 }, 5000);
+
+// Auto-compact on startup
+compactEvents(eventLogPath, eventArchivePath).catch(() => {});
+
+// Auto-compact daily (every 24h)
+setInterval(() => {
+  compactEvents(eventLogPath, eventArchivePath).catch(() => {});
+}, 86400000);
 
 const htmlPath = path.join(import.meta.dir, "index.html");
 const html = fs.existsSync(htmlPath) ? fs.readFileSync(htmlPath, "utf-8") : "<h1>Dashboard HTML not found</h1>";
@@ -100,9 +121,23 @@ Bun.serve({
 
       case "/api/events": {
         const stream = new ReadableStream({
-          start(controller) {
+          async start(controller) {
             clients.add(controller);
             controller.enqueue(`data: ${JSON.stringify({ type: "connected" })}\n\n`);
+
+            // Replay persisted events on connect (last 7 days)
+            try {
+              const cutoff = new Date(Date.now() - 7 * 86400000).toISOString();
+              const history = await replayEvents(eventLogPath, cutoff);
+              for (const event of history) {
+                try {
+                  controller.enqueue(`data: ${JSON.stringify(event.data)}\n\n`);
+                } catch { break; }
+              }
+              controller.enqueue(`data: ${JSON.stringify({ type: "replay_complete", count: history.length })}\n\n`);
+            } catch {
+              // Replay failed — continue with live stream only
+            }
           },
           cancel(controller) {
             clients.delete(controller);
@@ -139,6 +174,23 @@ Bun.serve({
           });
         }
         return new Response("Not found", { status: 404 });
+      }
+
+      case "/api/similar-work": {
+        const dir = resolveProjectDir(url);
+        const query = url.searchParams.get("q") || "";
+        const topK = parseInt(url.searchParams.get("limit") || "5", 10);
+        return new Response(JSON.stringify(getSimilarWork(dir, query, topK)), { headers });
+      }
+
+      case "/api/trends": {
+        const dir = resolveProjectDir(url);
+        return new Response(JSON.stringify(getTrendData(dir)), { headers });
+      }
+
+      case "/api/hot-principles": {
+        const dir = resolveProjectDir(url);
+        return new Response(JSON.stringify(getHotPrinciples(dir)), { headers });
       }
 
       default:

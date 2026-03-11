@@ -47,6 +47,9 @@ let trailFilter = 'all';
 let trailSearch = '';
 let trailAutoScroll = true;
 let searchTimeout = null;
+let cachedSimilarWork = null;
+let cachedTrends = null;
+let cachedHotPrinciples = null;
 
 // ================================================================
 // DOM HELPERS
@@ -281,6 +284,40 @@ const fetchInitialData = () => {
     updateMetricsBar();
     if (currentView === 'sessions' || currentView === 'overview') renderView(currentView);
   }).catch(() => {});
+
+  fetchTrends();
+  fetchHotPrinciples();
+};
+
+const fetchSimilarWork = (query) => {
+  if (!query) return;
+  fetch('/api/similar-work?q=' + encodeURIComponent(query) + '&limit=5')
+    .then(r => r.json())
+    .then(d => {
+      cachedSimilarWork = d;
+      if (currentView === 'overview') renderOverview();
+    })
+    .catch(() => {});
+};
+
+const fetchTrends = () => {
+  fetch('/api/trends')
+    .then(r => r.json())
+    .then(d => {
+      cachedTrends = d;
+      if (currentView === 'cost') renderCost();
+    })
+    .catch(() => {});
+};
+
+const fetchHotPrinciples = () => {
+  fetch('/api/hot-principles')
+    .then(r => r.json())
+    .then(d => {
+      cachedHotPrinciples = d;
+      if (currentView === 'memory') renderMemory();
+    })
+    .catch(() => {});
 };
 
 // ================================================================
@@ -424,6 +461,49 @@ const renderOverview = () => {
   }, 'var(--accent-codehealth)'));
 
   container.appendChild(grid);
+
+  // Similar Work panel (Decision Intelligence)
+  if (cachedSimilarWork && cachedSimilarWork.length > 0) {
+    const swCard = el('div', { className: 'card mt-md' }, [
+      el('div', { className: 'card-title' }, [
+        el('span', { className: 'accent-dot', style: { background: 'var(--lavender)' } }),
+        document.createTextNode('SIMILAR WORK'),
+      ]),
+    ]);
+    for (const match of cachedSimilarWork) {
+      swCard.appendChild(el('div', { className: 'trail-entry' }, [
+        el('span', { className: 'badge badge-' + (match.outcome === 'pass' ? 'success' : match.outcome === 'fail' ? 'error' : 'warning'), textContent: match.outcome }),
+        el('span', { className: 'text-mono text-sm', textContent: Math.round(match.similarity * 100) + '% match' }),
+        el('span', { className: 'trail-entry-desc', textContent: match.description }),
+      ]));
+    }
+    container.appendChild(swCard);
+  }
+
+  // Similar Work search input
+  const swSearch = el('div', { className: 'card mt-md' }, [
+    el('div', { className: 'card-title' }, [
+      el('span', { className: 'accent-dot', style: { background: 'var(--lavender)' } }),
+      document.createTextNode('SEARCH PAST WORK'),
+    ]),
+    el('div', { className: 'flex-row gap-sm' }, [
+      el('input', {
+        className: 'trail-search',
+        type: 'text',
+        placeholder: 'Describe your next task...',
+        id: 'similarWorkInput',
+      }),
+      el('button', {
+        className: 'filter-btn active',
+        textContent: 'Find Similar',
+        onclick: () => {
+          const input = document.getElementById('similarWorkInput');
+          if (input && input.value.trim()) fetchSimilarWork(input.value.trim());
+        },
+      }),
+    ]),
+  ]);
+  container.appendChild(swSearch);
 };
 
 const miniCard = (view, title, dataFn, accentColor) => {
@@ -593,6 +673,59 @@ const renderCost = () => {
     donutRow.appendChild(legend);
     donutCard.appendChild(donutRow);
     container.appendChild(donutCard);
+  }
+
+  // Trend Line panels (Decision Intelligence — Phase 3)
+  if (cachedTrends) {
+    if (cachedTrends.cost_trend && cachedTrends.cost_trend.length > 1) {
+      const trendCard = el('div', { className: 'card mt-md' }, [
+        el('div', { className: 'card-title' }, [
+          el('span', { className: 'accent-dot', style: { background: 'var(--teal)' } }),
+          document.createTextNode('COST TREND (CUMULATIVE)'),
+        ]),
+      ]);
+      const chartDiv = el('div', { className: 'chart-container' });
+      chartDiv.appendChild(buildSparkline(
+        cachedTrends.cost_trend.map(d => ({ timestamp: d.date, cumulative: d.cumulative_cost })),
+        600, 140
+      ));
+      trendCard.appendChild(chartDiv);
+      container.appendChild(trendCard);
+    }
+
+    if (cachedTrends.pass_rate_trend && cachedTrends.pass_rate_trend.length > 1) {
+      const passCard = el('div', { className: 'card mt-md' }, [
+        el('div', { className: 'card-title' }, [
+          el('span', { className: 'accent-dot', style: { background: 'var(--green)' } }),
+          document.createTextNode('PASS RATE (7-DAY ROLLING)'),
+        ]),
+      ]);
+      const chartDiv = el('div', { className: 'chart-container' });
+      chartDiv.appendChild(buildSparkline(
+        cachedTrends.pass_rate_trend.map(d => ({ timestamp: d.date, cumulative: d.pass_rate })),
+        600, 140
+      ));
+      passCard.appendChild(chartDiv);
+      container.appendChild(passCard);
+    }
+
+    if (cachedTrends.router_accuracy_trend && cachedTrends.router_accuracy_trend.length > 1) {
+      const routerCard = el('div', { className: 'card mt-md' }, [
+        el('div', { className: 'card-title' }, [
+          el('span', { className: 'accent-dot', style: { background: 'var(--blue)' } }),
+          document.createTextNode('ROUTER ACCURACY'),
+        ]),
+      ]);
+      const chartDiv = el('div', { className: 'chart-container' });
+      chartDiv.appendChild(buildSparkline(
+        cachedTrends.router_accuracy_trend.map(d => ({ timestamp: d.date, cumulative: d.accuracy })),
+        600, 140
+      ));
+      routerCard.appendChild(chartDiv);
+      container.appendChild(routerCard);
+    }
+  } else {
+    fetchTrends();
   }
 };
 
@@ -816,41 +949,79 @@ const renderSessions = () => {
   if (!container) return;
   clear(container);
 
-  if (cachedSessions.length === 0) {
+  // Separate active and stale sessions
+  const activeSessions = [];
+  const staleSessions = [];
+  for (const group of cachedSessions) {
+    for (const s of group.sessions) {
+      if (s.stale) staleSessions.push({ ...s, project_dir: group.project_dir });
+      else activeSessions.push({ ...s, project_dir: group.project_dir });
+    }
+  }
+
+  if (activeSessions.length === 0 && staleSessions.length === 0) {
     container.appendChild(emptyState('No active sessions', 'Sessions appear when JuhBDI context bridges are active.'));
     return;
   }
 
-  for (const group of cachedSessions) {
-    container.appendChild(el('div', { className: 'project-group-header', textContent: group.project_dir }));
-
-    for (const s of group.sessions) {
-      const levelColor = s.level === 'EMERGENCY' ? 'var(--red)' :
-                         s.level === 'CRITICAL' ? 'var(--peach)' :
-                         s.level === 'URGENT' ? 'var(--yellow)' :
-                         s.level === 'WARNING' ? 'var(--yellow)' : 'var(--green)';
-
-      const progressClass = s.remaining_pct <= 22 ? 'progress-red' :
-                            s.remaining_pct <= 35 ? 'progress-yellow' :
-                            s.remaining_pct <= 45 ? 'progress-yellow' : 'progress-green';
-
-      const card = el('div', { className: 'session-card' + (s.stale ? ' stale' : '') }, [
-        el('div', { className: 'session-card-header' }, [
-          el('span', { className: 'session-id', textContent: s.session_id.slice(0, 12) + '...' }),
-          el('span', { className: 'session-ide', textContent: s.ide_platform }),
-        ]),
-        el('div', { className: 'flex-row', style: { justifyContent: 'space-between', marginBottom: '6px' } }, [
-          el('span', { className: 'text-mono', style: { fontSize: '1.1rem', fontWeight: '700', color: levelColor }, textContent: s.remaining_pct + '%' }),
-          el('span', { className: 'badge badge-' + (s.level === 'NORMAL' ? 'success' : s.level === 'WARNING' ? 'warning' : 'error'), textContent: s.level }),
-        ]),
-        el('div', { className: 'progress-bar ' + progressClass }, [
-          el('div', { className: 'progress-fill', style: { width: s.remaining_pct + '%' } }),
-        ]),
-        el('div', { className: 'text-xs text-muted mt-sm', textContent: s.stale ? 'Stale \u2014 ' + fmtTs(s.timestamp) : fmtTs(s.timestamp) }),
-      ]);
-      container.appendChild(card);
+  // Active sessions — shown prominently
+  if (activeSessions.length > 0) {
+    container.appendChild(el('div', { className: 'project-group-header', textContent: 'Active Sessions (' + activeSessions.length + ')' }));
+    for (const s of activeSessions) {
+      container.appendChild(buildSessionCard(s, false));
     }
   }
+
+  // Stale sessions — collapsed by default
+  if (staleSessions.length > 0) {
+    const staleSection = el('div', { className: 'expand-section' });
+    const staleHeader = el('div', { className: 'expand-header' }, [
+      el('span', { className: 'expand-header-title', textContent: 'Stale Sessions' }),
+      el('span', { className: 'expand-header-count', textContent: staleSessions.length + ' inactive' }),
+      el('span', { className: 'expand-header-arrow', textContent: '\u25B6' }),
+    ]);
+    staleHeader.addEventListener('click', () => staleSection.classList.toggle('open'));
+    staleSection.appendChild(staleHeader);
+    const staleBody = el('div', { className: 'expand-body' });
+    for (const s of staleSessions) {
+      staleBody.appendChild(buildSessionCard(s, true));
+    }
+    staleSection.appendChild(staleBody);
+    container.appendChild(staleSection);
+  }
+
+  if (activeSessions.length === 0 && staleSessions.length > 0) {
+    container.insertBefore(
+      emptyState('No active sessions', 'All sessions are stale. Start a new JuhBDI session to see live context.'),
+      container.firstChild
+    );
+  }
+};
+
+const buildSessionCard = (s, isStale) => {
+  const levelColor = s.level === 'EMERGENCY' ? 'var(--red)' :
+                     s.level === 'CRITICAL' ? 'var(--peach)' :
+                     s.level === 'URGENT' ? 'var(--yellow)' :
+                     s.level === 'WARNING' ? 'var(--yellow)' : 'var(--green)';
+
+  const progressClass = s.remaining_pct <= 22 ? 'progress-red' :
+                        s.remaining_pct <= 35 ? 'progress-yellow' :
+                        s.remaining_pct <= 45 ? 'progress-yellow' : 'progress-green';
+
+  return el('div', { className: 'session-card' + (isStale ? ' stale' : '') }, [
+    el('div', { className: 'session-card-header' }, [
+      el('span', { className: 'session-id', textContent: s.session_id.slice(0, 12) + '...' }),
+      el('span', { className: 'session-ide', textContent: s.ide_platform }),
+    ]),
+    el('div', { className: 'flex-row', style: { justifyContent: 'space-between', marginBottom: '6px' } }, [
+      el('span', { className: 'text-mono', style: { fontSize: '1.1rem', fontWeight: '700', color: levelColor }, textContent: s.remaining_pct + '%' }),
+      el('span', { className: 'badge badge-' + (s.level === 'NORMAL' ? 'success' : s.level === 'WARNING' ? 'warning' : 'error'), textContent: s.level }),
+    ]),
+    el('div', { className: 'progress-bar ' + progressClass }, [
+      el('div', { className: 'progress-fill', style: { width: s.remaining_pct + '%' } }),
+    ]),
+    el('div', { className: 'text-xs text-muted mt-sm', textContent: isStale ? 'Stale \u2014 ' + fmtTs(s.timestamp) : fmtTs(s.timestamp) }),
+  ]);
 };
 
 // ================================================================
@@ -1008,6 +1179,69 @@ const renderMemory = () => {
       'Confidence: ' + (typeof p.confidence === 'number' ? Math.round(p.confidence * 100) + '%' : '--'),
     ], 'var(--lavender)')
   )));
+
+  // Hot Principles panel (Decision Intelligence — Phase 3)
+  if (cachedHotPrinciples) {
+    if (cachedHotPrinciples.top_applied && cachedHotPrinciples.top_applied.length > 0) {
+      const hotCard = el('div', { className: 'card mt-md' }, [
+        el('div', { className: 'card-title' }, [
+          el('span', { className: 'accent-dot', style: { background: 'var(--peach)' } }),
+          document.createTextNode('HOT PRINCIPLES (MOST APPLIED)'),
+        ]),
+      ]);
+      for (const p of cachedHotPrinciples.top_applied) {
+        const confColor = p.confidence >= 0.8 ? 'var(--green)' :
+                          p.confidence >= 0.5 ? 'var(--yellow)' : 'var(--red)';
+        hotCard.appendChild(el('div', { className: 'trail-entry' }, [
+          el('span', { className: 'text-mono text-sm', style: { color: confColor, minWidth: '40px' },
+            textContent: Math.round(p.confidence * 100) + '%' }),
+          el('span', { className: 'badge badge-neutral', textContent: p.times_applied + 'x' }),
+          el('span', { className: 'trail-entry-desc', textContent: p.text }),
+          el('span', { className: 'text-xs text-muted', textContent: p.source }),
+        ]));
+      }
+      container.appendChild(hotCard);
+    }
+
+    if (cachedHotPrinciples.recently_promoted && cachedHotPrinciples.recently_promoted.length > 0) {
+      const promoCard = el('div', { className: 'card mt-md' }, [
+        el('div', { className: 'card-title' }, [
+          el('span', { className: 'accent-dot', style: { background: 'var(--green)' } }),
+          document.createTextNode('RECENTLY PROMOTED TO GLOBAL'),
+        ]),
+      ]);
+      for (const p of cachedHotPrinciples.recently_promoted) {
+        promoCard.appendChild(el('div', { className: 'trail-entry' }, [
+          el('span', { className: 'trail-entry-time', textContent: fmtTs(p.promoted_at) }),
+          el('span', { className: 'badge badge-success', textContent: 'promoted' }),
+          el('span', { className: 'trail-entry-desc', textContent: p.text }),
+          el('span', { className: 'text-xs text-muted', textContent: 'from ' + p.source_project }),
+        ]));
+      }
+      container.appendChild(promoCard);
+    }
+
+    if (cachedHotPrinciples.decay_warnings && cachedHotPrinciples.decay_warnings.length > 0) {
+      const decayCard = el('div', { className: 'card mt-md' }, [
+        el('div', { className: 'card-title' }, [
+          el('span', { className: 'accent-dot', style: { background: 'var(--red)' } }),
+          document.createTextNode('DECAY WARNINGS'),
+        ]),
+      ]);
+      for (const p of cachedHotPrinciples.decay_warnings) {
+        decayCard.appendChild(el('div', { className: 'trail-entry' }, [
+          el('span', { className: 'text-mono text-sm', style: { color: 'var(--red)', minWidth: '40px' },
+            textContent: Math.round(p.confidence * 100) + '%' }),
+          el('span', { className: 'badge badge-error',
+            textContent: p.times_validated + '/' + p.times_applied + ' validated' }),
+          el('span', { className: 'trail-entry-desc', textContent: p.text }),
+        ]));
+      }
+      container.appendChild(decayCard);
+    }
+  } else {
+    fetchHotPrinciples();
+  }
 };
 
 const statBox = (value, label) =>
