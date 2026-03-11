@@ -146,11 +146,16 @@ Tell the user: "Executing plan..."
 ### 3a. Pre-Execution Setup
 
 1. Read `.juhbdi/roadmap-intent.json` and `.juhbdi/intent-spec.json` (if exists)
-2. Log execution start:
+2. Load router calibration for threshold tuning:
+   ```bash
+   ~/.bun/bin/bun run ${CLAUDE_PLUGIN_ROOT}/src/cli-utils/router-calibration.ts load
+   ```
+   Pass the returned `opus_threshold` and `haiku_threshold` as the 5th argument to `routeTask()` calls during execution. If load returns defaults (no calibration file), the router falls back to global calibration → hardcoded defaults.
+3. Log execution start:
    ```bash
    ~/.bun/bin/bun run ${CLAUDE_PLUGIN_ROOT}/src/cli-utils/trail-append.ts '{"event_type":"command","description":"auto-execute: execution loop started","reasoning":"Processing N waves in auto pipeline (tier: TIER)","alternatives_considered":[],"constraint_refs":[],"outcome":"approved"}'
    ```
-3. Refresh repo map (if not already done in Step 2b)
+4. Refresh repo map (if not already done in Step 2b)
 
 ### 3b. Process Waves
 
@@ -166,6 +171,10 @@ For each wave in the roadmap, follow the FULL execution protocol from `/juhbdi:e
 8. **Governance check** — validate file writes
 9. **Handle results** — merge on pass, recovery on fail
 10. **Post-task wiring** — processTaskOutcome, verifyTask, article12 fields, divergence check
+11. **Router calibration update** — after each task completes, merge the routing outcome into the project calibration:
+    ```bash
+    ~/.bun/bin/bun run ${CLAUDE_PLUGIN_ROOT}/src/cli-utils/router-calibration.ts merge '{"task_id":"<id>","recommended_tier":"<tier>","actual_outcome":"<correct|escalated|overkill>","timestamp":"<ISO>"}'
+    ```
 
 **Parallel waves**: Dispatch all task-executors in a SINGLE response for actual parallelism.
 
@@ -221,7 +230,15 @@ For each successful task where planned approach diverged from actual (>30% word-
 ~/.bun/bin/bun run ${CLAUDE_PLUGIN_ROOT}/src/cli-utils/principles.ts save '<principles_json>'
 ```
 
-#### 4d. Dispatch Librarian (Large tier only, or Medium with 10+ tasks)
+#### 4d. Router Calibration Promotion
+
+After reflection, check if the project calibration should be promoted to global:
+```bash
+~/.bun/bin/bun run ${CLAUDE_PLUGIN_ROOT}/src/cli-utils/router-calibration.ts load
+```
+If `total_routed >= 50`, promote the project's thresholds to the global calibration bank so new projects benefit from this project's routing experience.
+
+#### 4e. Dispatch Librarian (Large tier only, or Medium with 10+ tasks)
 
 Non-fatal — compress execution state:
 Use the Agent tool to dispatch a `librarian` agent to compress the session state.

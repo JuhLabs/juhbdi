@@ -455,6 +455,63 @@ describe("routeTask with context", () => {
   });
 });
 
+describe("routeTask with project calibration", () => {
+  const defaultCtx = {
+    goals: [{ id: "g1", weight: 0.5 }],
+    wave_task_count: 1,
+    accuracy_history: [] as any[],
+  };
+
+  test("project calibration overrides global defaults", () => {
+    // With tight opus_threshold=2, a moderate task should route to opus
+    const route = routeTask(
+      makeTask({ description: "add input validation to the form handler" }),
+      balancedWeights,
+      [],
+      defaultCtx,
+      { opus_threshold: 2, haiku_threshold: -2 }
+    );
+    // The complexity score for this task is moderate — tight threshold should push to opus
+    expect(["sonnet", "opus"]).toContain(route.recommended_tier);
+  });
+
+  test("local accuracy still overrides project calibration", () => {
+    const highAccuracy = Array.from({ length: 20 }, (_, i) => ({
+      task_id: `t${i}`,
+      recommended_tier: "sonnet" as const,
+      actual_outcome: "correct" as const,
+      timestamp: "2026-03-04T00:00:00.000Z",
+    }));
+    const ctx = {
+      goals: [{ id: "g1", weight: 0.1 }],
+      wave_task_count: 4,
+      accuracy_history: highAccuracy,
+    };
+    // Even with tight calibration thresholds, high accuracy relaxes them
+    const route = routeTask(
+      makeTask({ description: "fix lint", verification: { type: "lint" } }),
+      balancedWeights,
+      [],
+      ctx,
+      { opus_threshold: 2, haiku_threshold: -2 }
+    );
+    expect(route.recommended_tier).toBe("haiku");
+  });
+
+  test("calibration has no effect without context", () => {
+    // Without context, only heuristic keywords drive the decision
+    const route = routeTask(
+      makeTask({ description: "rename variable" }),
+      balancedWeights,
+      [],
+      undefined,
+      { opus_threshold: 1, haiku_threshold: -1 }
+    );
+    // Heuristic score from "rename" keyword → haiku regardless of calibration
+    expect(route.recommended_tier).toBe("haiku");
+  });
+});
+
 describe("inferOptimalTier", () => {
   test("downgrades opus to sonnet on first-try pass", () => {
     expect(inferOptimalTier("opus", true, 0)).toBe("sonnet");

@@ -7,6 +7,8 @@ allowed-tools: ["Bash", "Read"]
 
 Extract principles from execution outcomes by comparing planned vs actual approaches. Principles that diverged significantly (planned approach != actual approach) and succeeded are captured as reusable knowledge.
 
+> **Note:** `/juhbdi:reflect` always runs full reflection regardless of governance tier. Tier-aware reflection (micro=skip, small=conditional, medium/large=full) only applies within the `/juhbdi:auto` pipeline. When invoked directly, assume the user wants maximum insight.
+
 ## Step 1: Load Context
 
 1. Read `.juhbdi/decision-trail.log` to find recent wave outcomes

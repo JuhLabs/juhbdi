@@ -247,7 +247,8 @@ export function routeTask(
   task: Task,
   tradeoffWeights: TradeoffWeights,
   memoryTriplets: ExperienceTriplet[],
-  context?: RouteContext
+  context?: RouteContext,
+  calibration?: { opus_threshold: number; haiku_threshold: number }
 ): ModelRoute {
   // Signal 1: User override
   if (task.model_tier && task.model_tier !== "auto") {
@@ -275,9 +276,9 @@ export function routeTask(
   const memoryMatch = findMemoryMatch(task, memoryTriplets);
   const failureEscalation = (task.retry_count ?? 0) > 0;
 
-  // Determine complexity thresholds: local accuracy > global calibration > defaults
-  let opusThreshold = _globalCalibrationCache?.opus_threshold ?? 4;
-  let haikuThreshold = _globalCalibrationCache?.haiku_threshold ?? -4;
+  // Determine complexity thresholds: local accuracy > project calibration > global calibration > defaults
+  let opusThreshold = calibration?.opus_threshold ?? _globalCalibrationCache?.opus_threshold ?? 4;
+  let haikuThreshold = calibration?.haiku_threshold ?? _globalCalibrationCache?.haiku_threshold ?? -4;
   if (context && context.accuracy_history.length >= 5) {
     // Local accuracy overrides global calibration
     const recent = context.accuracy_history.slice(-20);
