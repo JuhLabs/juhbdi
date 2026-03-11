@@ -489,7 +489,7 @@ body {
   border: 1px solid rgba(69, 71, 90, 0.35);
   border-radius: 16px;
   padding: 22px 24px;
-  transition: border-color 0.35s ease, box-shadow 0.35s ease, transform 0.3s ease;
+  transition: border-color 0.35s ease, box-shadow 0.35s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
   overflow: hidden;
 }
 
@@ -1013,13 +1013,13 @@ body {
   border-radius: 14px;
   padding: 18px 20px;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .mini-card:hover {
   border-color: rgba(180, 190, 254, 0.2);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18);
+  transform: scale(1.03) translateY(-3px);
 }
 
 .mini-card-title {
@@ -1309,6 +1309,253 @@ body {
 .refresh-btn:hover {
   background: rgba(49, 50, 68, 0.6);
   color: var(--text);
+}
+
+/* ================================================================
+   VIEW TRANSITIONS
+   ================================================================ */
+.view-enter {
+  animation: viewEnter 200ms ease-out both;
+}
+
+.view-exit {
+  animation: viewExit 150ms ease-in both;
+}
+
+@keyframes viewEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes viewExit {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-8px); }
+}
+
+/* ================================================================
+   COUNTER PULSE
+   ================================================================ */
+.counter-pulse {
+  animation: counterPulse 400ms ease-out;
+}
+
+@keyframes counterPulse {
+  0% { color: var(--green); transform: scale(1.08); }
+  50% { color: var(--green); transform: scale(1.03); }
+  100% { color: var(--text); transform: scale(1); }
+}
+
+/* ================================================================
+   TOAST NOTIFICATIONS
+   ================================================================ */
+.toast-container {
+  position: fixed;
+  top: 68px;
+  right: 24px;
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+  max-width: 360px;
+}
+
+.toast {
+  pointer-events: auto;
+  background: rgba(24, 24, 37, 0.95);
+  border: 1px solid var(--surface1);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  animation: slideInRight 300ms ease-out both;
+  transition: opacity 300ms ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.4;
+}
+
+.toast.toast-fade-out {
+  opacity: 0;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(120%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.toast-success { border-left: 3px solid var(--green); }
+.toast-info    { border-left: 3px solid var(--blue); }
+.toast-warning { border-left: 3px solid var(--yellow); }
+.toast-error   { border-left: 3px solid var(--red); }
+
+.toast-icon {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+/* ================================================================
+   ENHANCED MICRO-INTERACTIONS
+   ================================================================ */
+/* Ripple click effect */
+.ripple-effect {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(180, 190, 254, 0.15);
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  animation: rippleExpand 450ms ease-out forwards;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes rippleExpand {
+  from { width: 0; height: 0; opacity: 0.6; }
+  to { width: 300px; height: 300px; opacity: 0; }
+}
+
+/* Card stagger entrance */
+.card-stagger {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.card-stagger.card-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ================================================================
+   TRAIL TIMELINE
+   ================================================================ */
+.trail-entry-animated {
+  animation: slideInLeft 250ms ease-out both;
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.trail-type-border-routing    { border-left: 3px solid var(--green); }
+.trail-type-border-execution  { border-left: 3px solid var(--lavender); }
+.trail-type-border-decision   { border-left: 3px solid var(--blue); }
+.trail-type-border-governance { border-left: 3px solid var(--mauve); }
+.trail-type-border-verification { border-left: 3px solid var(--teal); }
+.trail-type-border-error      { border-left: 3px solid var(--red); }
+.trail-type-border-command    { border-left: 3px solid var(--peach); }
+
+.trail-connector {
+  position: relative;
+}
+
+.trail-connector::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--surface1);
+}
+
+.trail-relative-time {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  color: var(--overlay0);
+  margin-left: 4px;
+}
+
+/* ================================================================
+   TRUST GAUGE ANIMATIONS
+   ================================================================ */
+.gauge-arc-animated {
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.gauge-glow {
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+.gauge-threshold {
+  stroke-width: 1.5;
+  opacity: 0.4;
+}
+
+/* ================================================================
+   CHART TOOLTIP
+   ================================================================ */
+.chart-tooltip {
+  background: rgba(24, 24, 37, 0.95);
+  border: 1px solid rgba(69, 71, 90, 0.5);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text);
+  white-space: nowrap;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* ================================================================
+   HERO SECTION
+   ================================================================ */
+.hero-section {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.hero-status-text {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--subtext1);
+  max-width: 520px;
+  margin: 12px auto 0;
+  line-height: 1.5;
+}
+
+.hero-pulse {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+  vertical-align: middle;
+  animation: heroBreathe 2s ease-in-out infinite;
+}
+
+@keyframes heroBreathe {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.3); opacity: 1; }
+}
+
+.hero-pulse-green  { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.hero-pulse-yellow { background: var(--yellow); box-shadow: 0 0 8px var(--yellow); }
+.hero-pulse-red    { background: var(--red); box-shadow: 0 0 8px var(--red); }
+
+/* ================================================================
+   REDUCED MOTION
+   ================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .bg-orb, .bg-grid { animation: none; }
+  .hero-pulse { animation: none; }
+  .toast { animation: none; }
+  .view-enter, .view-exit { animation: none; }
+  .trail-entry-animated { animation: none; }
+  .gauge-arc-animated { transition: none; }
 }
 </style>
 </head>

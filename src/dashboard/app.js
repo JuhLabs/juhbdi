@@ -50,6 +50,9 @@ let searchTimeout = null;
 let cachedSimilarWork = null;
 let cachedTrends = null;
 let cachedHotPrinciples = null;
+let renderDebounceTimer = null;
+let overviewStaggerDone = false;
+let lastToastTime = {};  // key -> timestamp, prevents toast spam
 
 // ================================================================
 // DOM HELPERS
@@ -81,6 +84,43 @@ const svgEl = (tag, attrs = {}) => {
 
 const clear = (node) => { while (node.firstChild) node.removeChild(node.firstChild); };
 
+// ================================================================
+// TOAST NOTIFICATIONS
+// ================================================================
+const toastContainer = el('div', { className: 'toast-container' });
+document.body.appendChild(toastContainer);
+
+const TOAST_ICONS = { success: '\u2713', info: '\u2139', warning: '\u26A0', error: '\u2717' };
+const MAX_TOASTS = 4;
+
+const showToast = (message, type = 'info', cooldownKey = null) => {
+  // Prevent spam: same cooldownKey within 5s is suppressed
+  if (cooldownKey) {
+    const now = Date.now();
+    if (lastToastTime[cooldownKey] && now - lastToastTime[cooldownKey] < 5000) return;
+    lastToastTime[cooldownKey] = now;
+  }
+  const icon = TOAST_ICONS[type] || TOAST_ICONS.info;
+  const toast = el('div', { className: 'toast toast-' + type }, [
+    el('span', { className: 'toast-icon', textContent: icon }),
+    el('span', { textContent: message }),
+  ]);
+  toastContainer.appendChild(toast);
+
+  // Remove oldest if too many
+  while (toastContainer.children.length > MAX_TOASTS) {
+    toastContainer.removeChild(toastContainer.firstChild);
+  }
+
+  // Auto-remove after 4.2s with fade
+  setTimeout(() => {
+    toast.classList.add('toast-fade-out');
+    setTimeout(() => {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 300);
+  }, 4200);
+};
+
 const viewIcon = (view, large) => {
   const iconClass = VIEW_ICONS[view];
   if (!iconClass) return null;
@@ -99,28 +139,79 @@ const fmtTs = (ts) => {
   } catch { return ''; }
 };
 
+const relativeTime = (ts) => {
+  if (!ts) return '';
+  try {
+    const diff = Date.now() - new Date(ts).getTime();
+    if (diff < 60000) return Math.round(diff / 1000) + 's ago';
+    if (diff < 3600000) return Math.round(diff / 60000) + 'm ago';
+    if (diff < 86400000) return Math.round(diff / 3600000) + 'h ago';
+    return Math.round(diff / 86400000) + 'd ago';
+  } catch { return ''; }
+};
+
+// ================================================================
+// ANIMATED COUNTERS
+// ================================================================
+const prevMetrics = { exec: null, cost: null, trust: null, ctx: null };
+
+const animateValue = (element, start, end, duration, formatter) => {
+  if (!element || start === end) return;
+  const startTime = performance.now();
+  const step = (now) => {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    // Ease-out cubic
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = start + (end - start) * eased;
+    element.textContent = formatter(current);
+    if (progress < 1) requestAnimationFrame(step);
+    else {
+      element.textContent = formatter(end);
+      // Pulse on completion
+      element.classList.add('counter-pulse');
+      setTimeout(() => element.classList.remove('counter-pulse'), 400);
+    }
+  };
+  requestAnimationFrame(step);
+};
+
 // ================================================================
 // NAVIGATION
 // ================================================================
 const navigateTo = (view) => {
   if (!VIEWS.includes(view)) view = 'overview';
+  const viewChanged = currentView !== view;
   currentView = view;
+  if (viewChanged) overviewStaggerDone = false; // re-animate cards on view switch
 
   // Update sidebar
   $$('.nav-item[data-view]').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.view === view);
   });
 
-  // Update views
-  $$('.view').forEach(v => {
-    v.classList.toggle('active', v.dataset.view === view);
-  });
-
   // Update hash
   window.location.hash = view === 'overview' ? '' : view;
 
-  // Render current view
-  renderView(view);
+  // Animated view transition
+  const oldView = $('.view.active');
+  const newView = $('[data-view="' + view + '"].view');
+
+  if (oldView && oldView !== newView) {
+    oldView.classList.add('view-exit');
+    setTimeout(() => {
+      oldView.classList.remove('active', 'view-exit');
+      if (newView) {
+        newView.classList.add('active', 'view-enter');
+        renderViewImmediate(view);
+        setTimeout(() => newView.classList.remove('view-enter'), 200);
+      }
+    }, 150);
+  } else {
+    // Same view or first load
+    $$('.view').forEach(v => v.classList.toggle('active', v.dataset.view === view));
+    renderViewImmediate(view);
+  }
 
   // Lazy-fetch codehealth
   if (view === 'codehealth' && !codehealthData && !codehealthLoading) {
@@ -213,7 +304,10 @@ const connectSSE = () => {
 
   eventSource = new EventSource('/api/events');
 
-  eventSource.onopen = () => setConnected(true);
+  eventSource.onopen = () => {
+    setConnected(true);
+    showToast('Connected to dashboard', 'success', 'sse-connect');
+  };
 
   eventSource.onmessage = (event) => {
     try {
@@ -228,6 +322,7 @@ const connectSSE = () => {
 
   eventSource.onerror = () => {
     setConnected(false);
+    showToast('Connection lost — reconnecting…', 'error', 'sse-disconnect');
     if (eventSource) { try { eventSource.close(); } catch {} }
     eventSource = null;
     if (reconnectTimer) clearTimeout(reconnectTimer);
@@ -324,12 +419,23 @@ const fetchHotPrinciples = () => {
 // MASTER UPDATE
 // ================================================================
 const updateDashboard = (data) => {
+  const prevTrailLen = cachedTrail.length;
   if (data.state) cachedState = data.state;
   if (data.trail) cachedTrail = data.trail;
   if (data.cost) cachedCost = data.cost;
   if (data.memory) cachedMemory = data.memory;
   if (data.context) cachedContext = data.context;
   if (data.sessions) cachedSessions = data.sessions;
+
+  // Toast for new trail entries
+  if (data.trail && data.trail.length > prevTrailLen) {
+    const newest = data.trail[data.trail.length - 1];
+    if (newest) {
+      const typeMap = { governance: 'warning', verification: 'warning', error: 'error', execution: 'info', command: 'info', routing: 'success', decision: 'info' };
+      showToast(newest.description || newest.event_type, typeMap[newest.event_type] || 'info');
+    }
+  }
+
   updateMetricsBar();
   renderView(currentView);
 };
@@ -342,15 +448,28 @@ const updateMetricsBar = () => {
   const execVal = $('#metricExecValue');
   if (execVal && cachedState) {
     const st = cachedState.state?.state || cachedState.state;
-    const wave = st?.current_wave ?? '--';
-    execVal.textContent = 'W' + wave;
+    const wave = st?.current_wave ?? null;
+    if (wave !== null && wave !== prevMetrics.exec) {
+      const from = prevMetrics.exec ?? 0;
+      animateValue(execVal, from, wave, 500, v => 'W' + Math.round(v));
+      prevMetrics.exec = wave;
+    } else if (wave === null) {
+      execVal.textContent = 'W--';
+    }
   }
 
   // Cost
   const costVal = $('#metricCostValue');
   const costSub = $('#metricCostSub');
   if (costVal && cachedCost) {
-    costVal.textContent = fmt$(cachedCost.total_spend);
+    const newCost = cachedCost.total_spend;
+    if (typeof newCost === 'number' && newCost !== prevMetrics.cost) {
+      const from = prevMetrics.cost ?? 0;
+      animateValue(costVal, from, newCost, 600, v => '$' + v.toFixed(4));
+      prevMetrics.cost = newCost;
+    } else {
+      costVal.textContent = fmt$(newCost);
+    }
     if (costSub) costSub.textContent = cachedCost.savings_pct > 0 ? cachedCost.savings_pct + '% saved' : '';
   }
 
@@ -359,7 +478,14 @@ const updateMetricsBar = () => {
   const trustSub = $('#metricTrustSub');
   if (trustVal && cachedMemory) {
     const score = cachedMemory.trust_score;
-    trustVal.textContent = typeof score === 'number' ? Math.round(score * 100) + '%' : '--%';
+    const pctVal = typeof score === 'number' ? Math.round(score * 100) : null;
+    if (pctVal !== null && pctVal !== prevMetrics.trust) {
+      const from = prevMetrics.trust ?? 0;
+      animateValue(trustVal, from, pctVal, 700, v => Math.round(v) + '%');
+      prevMetrics.trust = pctVal;
+    } else if (pctVal === null) {
+      trustVal.textContent = '--%';
+    }
     if (trustSub) trustSub.textContent = cachedMemory.trust_tier !== 'unknown' ? cachedMemory.trust_tier : '';
   }
 
@@ -372,7 +498,11 @@ const updateMetricsBar = () => {
         if (!s.stale && s.remaining_pct < worstPct) worstPct = s.remaining_pct;
       }
     }
-    ctxVal.textContent = worstPct + '%';
+    if (worstPct !== prevMetrics.ctx) {
+      const from = prevMetrics.ctx ?? 100;
+      animateValue(ctxVal, from, worstPct, 500, v => Math.round(v) + '%');
+      prevMetrics.ctx = worstPct;
+    }
     ctxVal.style.color = worstPct <= 22 ? 'var(--red)' :
                          worstPct <= 35 ? 'var(--peach)' :
                          worstPct <= 45 ? 'var(--yellow)' : 'var(--text)';
@@ -380,9 +510,9 @@ const updateMetricsBar = () => {
 };
 
 // ================================================================
-// VIEW RENDERER
+// VIEW RENDERER (debounced to prevent rapid rebuild spam)
 // ================================================================
-const renderView = (view) => {
+const renderViewImmediate = (view) => {
   switch (view) {
     case 'overview': renderOverview(); break;
     case 'execution': renderExecution(); break;
@@ -395,6 +525,15 @@ const renderView = (view) => {
   }
 };
 
+// Debounced wrapper: coalesces rapid renders (e.g. 5 fetches resolving)
+const renderView = (view) => {
+  if (renderDebounceTimer) clearTimeout(renderDebounceTimer);
+  renderDebounceTimer = setTimeout(() => {
+    renderDebounceTimer = null;
+    renderViewImmediate(view);
+  }, 80);
+};
+
 // ================================================================
 // OVERVIEW VIEW
 // ================================================================
@@ -403,11 +542,36 @@ const renderOverview = () => {
   if (!container) return;
   clear(container);
 
-  // Robot mascot
-  const robot = el('div', { className: 'overview-robot' }, [
-    el('img', { src: '/assets/juhbdilogo.png', alt: 'JuhBDI' }),
+  // Hero section
+  const st = cachedState?.state?.state || cachedState?.state;
+  const heroStatus = (() => {
+    const wave = st?.current_wave;
+    const phase = st?.current_phase;
+    const spend = cachedCost?.total_spend;
+    const trust = cachedMemory?.trust_score;
+    const trailN = cachedTrail.length;
+    const reflexN = cachedMemory?.reflexion_count ?? 0;
+    if (wave && st?.status === 'executing') {
+      return 'Executing Wave ' + wave + ' of Phase ' + (phase || '?') +
+        (typeof spend === 'number' ? ' \u2014 $' + spend.toFixed(4) + ' spent' : '') +
+        (typeof trust === 'number' ? ', trust ' + Math.round(trust * 100) + '%' : '');
+    }
+    return 'Idle \u2014 ' + trailN + ' trail entries, ' + reflexN + ' reflexions';
+  })();
+  let worstCtx = 100;
+  for (const g of cachedSessions) for (const s of g.sessions) if (!s.stale && s.remaining_pct < worstCtx) worstCtx = s.remaining_pct;
+  const pulseClass = worstCtx <= 28 ? 'hero-pulse-red' : worstCtx <= 45 ? 'hero-pulse-yellow' : 'hero-pulse-green';
+
+  const hero = el('div', { className: 'hero-section' }, [
+    el('div', { className: 'overview-robot' }, [
+      el('img', { src: '/assets/juhbdilogo.png', alt: 'JuhBDI' }),
+    ]),
+    el('p', { className: 'hero-status-text' }, [
+      el('span', { className: 'hero-pulse ' + pulseClass }),
+      document.createTextNode(heroStatus),
+    ]),
   ]);
-  container.appendChild(robot);
+  container.appendChild(hero);
 
   const grid = el('div', { className: 'overview-grid' });
 
@@ -461,6 +625,21 @@ const renderOverview = () => {
   }, 'var(--accent-codehealth)'));
 
   container.appendChild(grid);
+
+  // Stagger card entrance — only animate on first render, skip on SSE updates
+  const cards = grid.querySelectorAll('.mini-card');
+  if (!overviewStaggerDone) {
+    overviewStaggerDone = true;
+    cards.forEach((card, i) => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(12px)';
+      card.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+      setTimeout(() => {
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      }, i * 60);
+    });
+  }
 
   // Similar Work panel (Decision Intelligence)
   if (cachedSimilarWork && cachedSimilarWork.length > 0) {
@@ -782,6 +961,50 @@ const buildSparkline = (data, width, height) => {
     svg.appendChild(circle);
   }
 
+  // Interactive tooltip layer
+  if (data.length > 1) {
+    const segW = width / data.length;
+    const hoverCircle = svgEl('circle', { r: '5', fill: '#a6e3a1', stroke: '#11111b', 'stroke-width': '2', display: 'none' });
+    svg.appendChild(hoverCircle);
+    const dashLine = svgEl('line', { stroke: '#585b70', 'stroke-width': '1', 'stroke-dasharray': '3,3', display: 'none' });
+    svg.appendChild(dashLine);
+    const tipGroup = svgEl('foreignObject', { width: '120', height: '40', display: 'none' });
+    const tipDiv = document.createElement('div');
+    tipDiv.className = 'chart-tooltip';
+    tipGroup.appendChild(tipDiv);
+    svg.appendChild(tipGroup);
+
+    for (let i = 0; i < data.length; i++) {
+      const pt = points[i].split(',');
+      const px = parseFloat(pt[0]);
+      const py = parseFloat(pt[1]);
+      const rect = svgEl('rect', {
+        x: String(px - segW / 2), y: '0', width: String(segW), height: String(height),
+        fill: 'transparent', style: 'cursor:crosshair',
+      });
+      rect.addEventListener('mouseenter', () => {
+        hoverCircle.setAttribute('cx', String(px));
+        hoverCircle.setAttribute('cy', String(py));
+        hoverCircle.setAttribute('display', '');
+        dashLine.setAttribute('x1', String(px));
+        dashLine.setAttribute('y1', String(py));
+        dashLine.setAttribute('x2', String(px));
+        dashLine.setAttribute('y2', String(height));
+        dashLine.setAttribute('display', '');
+        tipGroup.setAttribute('x', String(Math.max(0, Math.min(px - 55, width - 120))));
+        tipGroup.setAttribute('y', String(py > 30 ? py - 38 : py + 10));
+        tipGroup.setAttribute('display', '');
+        tipDiv.textContent = (data[i].timestamp ? fmtTs(data[i].timestamp) + ' \u2014 ' : '') + (typeof data[i].cumulative === 'number' ? data[i].cumulative.toFixed(4) : data[i].cumulative);
+      });
+      rect.addEventListener('mouseleave', () => {
+        hoverCircle.setAttribute('display', 'none');
+        dashLine.setAttribute('display', 'none');
+        tipGroup.setAttribute('display', 'none');
+      });
+      svg.appendChild(rect);
+    }
+  }
+
   return svg;
 };
 
@@ -908,14 +1131,46 @@ const buildGauge = (score) => {
   });
   svg.appendChild(bgArc);
 
-  // Arc fill
-  const endAngle = 180 + (pct / 100) * 180;
+  // Animated arc fill using stroke-dasharray/offset
   const color = pct > 70 ? '#a6e3a1' : pct > 40 ? '#f9e2af' : '#f38ba8';
+  const arcPath = describeArc(60, 60, 45, 180, 360);
+  const arcLen = Math.PI * 45; // half-circle circumference
+  const fillLen = (pct / 100) * arcLen;
   const fgArc = svgEl('path', {
-    d: describeArc(60, 60, 45, 180, endAngle),
+    d: arcPath,
     fill: 'none', stroke: color, 'stroke-width': '10', 'stroke-linecap': 'round',
+    'stroke-dasharray': arcLen,
+    'stroke-dashoffset': arcLen,
+    class: 'gauge-arc-animated',
   });
   svg.appendChild(fgArc);
+  // Trigger animation on next frame
+  requestAnimationFrame(() => {
+    fgArc.setAttribute('stroke-dashoffset', String(arcLen - fillLen));
+  });
+
+  // Threshold markers at 40% and 70%
+  const thresh40 = polarToCartesian(60, 60, 45, 180 + 0.4 * 180);
+  const thresh70 = polarToCartesian(60, 60, 45, 180 + 0.7 * 180);
+  const mark40i = polarToCartesian(60, 60, 38, 180 + 0.4 * 180);
+  const mark70i = polarToCartesian(60, 60, 38, 180 + 0.7 * 180);
+  svg.appendChild(svgEl('line', {
+    x1: String(mark40i.x), y1: String(mark40i.y), x2: String(thresh40.x), y2: String(thresh40.y),
+    stroke: '#f9e2af', class: 'gauge-threshold',
+  }));
+  svg.appendChild(svgEl('line', {
+    x1: String(mark70i.x), y1: String(mark70i.y), x2: String(thresh70.x), y2: String(thresh70.y),
+    stroke: '#a6e3a1', class: 'gauge-threshold',
+  }));
+
+  // Pulsing dot at current score
+  const dotPos = polarToCartesian(60, 60, 45, 180 + (pct / 100) * 180);
+  const pulseDot = svgEl('circle', {
+    cx: String(dotPos.x), cy: String(dotPos.y), r: '4',
+    fill: color, stroke: '#11111b', 'stroke-width': '1.5',
+    class: 'gauge-glow',
+  });
+  svg.appendChild(pulseDot);
 
   // Text
   const text = svgEl('text', {
@@ -1111,9 +1366,13 @@ const renderTrailEntries = () => {
   entriesDiv.appendChild(countBadge);
 
   for (const entry of filtered) {
-    const row = el('div', { className: 'trail-entry' }, [
-      el('span', { className: 'trail-entry-time', textContent: fmtTs(entry.timestamp) }),
-      el('span', { className: 'badge type-' + (entry.event_type || 'decision'), textContent: entry.event_type || 'unknown' }),
+    const evType = entry.event_type || 'decision';
+    const row = el('div', { className: 'trail-entry trail-connector trail-type-border-' + evType }, [
+      el('span', { className: 'trail-entry-time' }, [
+        document.createTextNode(fmtTs(entry.timestamp)),
+        el('span', { className: 'trail-relative-time', textContent: relativeTime(entry.timestamp) }),
+      ]),
+      el('span', { className: 'badge type-' + evType, textContent: evType }),
       el('span', { className: 'trail-entry-desc', textContent: entry.description || '' }),
     ]);
 
@@ -1124,6 +1383,21 @@ const renderTrailEntries = () => {
     entriesDiv.appendChild(row);
     entriesDiv.appendChild(detail);
   }
+
+  // Stagger trail entry animation
+  const entries = entriesDiv.querySelectorAll('.trail-entry');
+  entries.forEach((entry, i) => {
+    if (i < 15) {
+      entry.style.opacity = '0';
+      entry.style.transform = 'translateX(-12px)';
+      entry.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+      entry.style.transitionDelay = (i * 30) + 'ms';
+      requestAnimationFrame(() => {
+        entry.style.opacity = '1';
+        entry.style.transform = 'translateX(0)';
+      });
+    }
+  });
 
   // Cursor
   entriesDiv.appendChild(el('span', { className: 'trail-cursor' }));
@@ -1458,6 +1732,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Init from hash
   initFromHash();
+
+  // Ripple click effect on cards
+  document.addEventListener('click', (e) => {
+    const card = e.target.closest('.mini-card, .card');
+    if (!card) return;
+    if (!card.style.position || card.style.position === 'static') card.style.position = 'relative';
+    card.style.overflow = 'hidden';
+    const rect = card.getBoundingClientRect();
+    const ripple = el('span', {
+      className: 'ripple-effect',
+      style: { left: (e.clientX - rect.left) + 'px', top: (e.clientY - rect.top) + 'px' },
+    });
+    card.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 500);
+  });
 
   console.log('[JuhBDI] Dashboard V2 ready');
 });
