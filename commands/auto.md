@@ -41,6 +41,16 @@ Load intent-spec + state (skip if missing). Refresh repo map. Break REQUEST into
 
 Write: `validate-roadmap.ts '<json>'`. Log trail.
 
+## Step 2.25: Memory Gate Check
+
+After generating the plan and before execution, run a memory gate check:
+1. Extract keywords from the task/request description
+2. Run `queryMemoryGate()` from `src/governance/memory-gate.ts` against reflexion bank (`.juhbdi/reflexion-bank.json` if it exists)
+3. **BLOCKED**: Show block message with past failure details. Ask user to `--force` or stop. Do not proceed to execute until user confirms.
+4. **WARN**: Inject `injected_bans` into task descriptions as `banned_approaches`. Show warnings in plan summary. Continue.
+5. **BOOST**: Inject `recommended_approach` into the dispatch prompt for task-executor. Continue.
+6. Skip this step for **Micro** tier (reflexion overhead not warranted).
+
 ## Step 2.5: Context Budget Pre-Flight
 
 Before executing, estimate if the pipeline will fit in remaining context:

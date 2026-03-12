@@ -23,6 +23,14 @@ export const ReflexionEntrySchema = z.object({
   // Linkage
   wave_id: z.string().optional(),
   related_reflexion_ids: z.array(z.string()).default([]),
+
+  // Memory-backed governance fields
+  failure_signature: z.object({
+    task_keywords: z.array(z.string()),
+    error_pattern: z.string(),
+    resolution: z.string().optional(),
+  }).optional(),
+  memory_outcome: z.enum(["pass", "fail"]).optional(),
 });
 
 export type ReflexionEntry = z.infer<typeof ReflexionEntrySchema>;

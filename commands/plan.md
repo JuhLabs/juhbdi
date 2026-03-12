@@ -43,6 +43,15 @@ Wait for confirmation. Update if corrected.
 
 Read `.juhbdi/intent-spec.json` (goals, constraints, tradeoffs) and `.juhbdi/state.json` (history, conventions).
 
+## Step 2.5: Memory Gate Check
+
+1. Extract keywords from the refined task description
+2. Run `queryMemoryGate()` from `src/governance/memory-gate.ts` against the reflexion bank (`.juhbdi/reflexion-bank.json` if it exists)
+3. **BLOCKED** (similarity > 0.7 to a past failure): Show block message with past failure details and `what_fixed_it` if available. User can pass `--force` to continue past the block.
+4. **WARN** (similarity 0.5–0.7 to a past failure): Inject `injected_bans` as `banned_approaches`. Show warnings inline. Continue.
+5. **BOOST** (similarity > 0.7 to a past success): Inject `recommended_approach` as a hint for the Socratic Challenge step. Continue.
+6. Pass gate results (warnings, injected_bans, recommended_approach) to Step 3 as additional context.
+
 ## Step 3: Socratic Challenge
 
 Evaluate request against EVERY constraint in intent-spec:

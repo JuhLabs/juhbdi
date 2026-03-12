@@ -50,6 +50,7 @@ let searchTimeout = null;
 let cachedSimilarWork = null;
 let cachedTrends = null;
 let cachedHotPrinciples = null;
+let cachedAmbient = null;
 let renderDebounceTimer = null;
 let overviewStaggerDone = false;
 let lastToastTime = {};  // key -> timestamp, prevents toast spam
@@ -120,6 +121,64 @@ const showToast = (message, type = 'info', cooldownKey = null) => {
     }, 300);
   }, 4200);
 };
+
+// --- Action system ---
+async function dashAction(endpoint, body = {}) {
+  let token = sessionStorage.getItem('juhbdi-action-token');
+  if (!token) {
+    token = await showTokenModal();
+    if (!token) return;
+    sessionStorage.setItem('juhbdi-action-token', token);
+  }
+  try {
+    const res = await fetch('/api/action/' + endpoint, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      const msg = data.deferred ? data.message + ' (deferred)' : data.message;
+      showToast(msg, 'success');
+    } else {
+      if (res.status === 401) {
+        sessionStorage.removeItem('juhbdi-action-token');
+        showToast('Invalid token — try again', 'error');
+      } else {
+        showToast(data.error || 'Action failed', 'error');
+      }
+    }
+  } catch (e) {
+    showToast('Action failed: ' + e.message, 'error');
+  }
+}
+
+function showTokenModal() {
+  return new Promise((resolve) => {
+    const overlay = el('div', { className: 'token-modal-overlay' });
+    const modal = el('div', { className: 'token-modal' });
+    const title = el('h3', { textContent: 'Enter Action Token' });
+    const desc = el('p', { textContent: 'Find the token in your terminal where the dashboard was started, or at ' });
+    const code = el('code', { textContent: '/tmp/juhbdi-dashboard-*.token' });
+    desc.appendChild(code);
+    const input = el('input', { type: 'text', id: 'token-input', placeholder: 'Paste action token...', autocomplete: 'off' });
+    const btnRow = el('div', { className: 'btn-row' });
+    const cancelBtn = el('button', { className: 'action-btn', textContent: 'Cancel' });
+    const submitBtn = el('button', { className: 'action-btn primary', textContent: 'Submit' });
+    btnRow.appendChild(cancelBtn);
+    btnRow.appendChild(submitBtn);
+    modal.appendChild(title);
+    modal.appendChild(desc);
+    modal.appendChild(input);
+    modal.appendChild(btnRow);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    cancelBtn.onclick = () => { overlay.remove(); resolve(null); };
+    submitBtn.onclick = () => { const v = input.value.trim(); overlay.remove(); resolve(v || null); };
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { const v = input.value.trim(); overlay.remove(); resolve(v || null); } });
+    input.focus();
+  });
+}
 
 const viewIcon = (view, large) => {
   const iconClass = VIEW_ICONS[view];
@@ -382,6 +441,7 @@ const fetchInitialData = () => {
 
   fetchTrends();
   fetchHotPrinciples();
+  fetchAmbient();
 };
 
 const fetchSimilarWork = (query) => {
@@ -411,6 +471,16 @@ const fetchHotPrinciples = () => {
     .then(d => {
       cachedHotPrinciples = d;
       if (currentView === 'memory') renderMemory();
+    })
+    .catch(() => {});
+};
+
+const fetchAmbient = () => {
+  fetch('/api/ambient?limit=200')
+    .then(r => r.json())
+    .then(d => {
+      cachedAmbient = d;
+      if (currentView === 'overview') renderOverview();
     })
     .catch(() => {});
 };
@@ -626,6 +696,9 @@ const renderOverview = () => {
 
   container.appendChild(grid);
 
+  // Ambient activity cards
+  container.appendChild(renderAmbientCards());
+
   // Stagger card entrance — only animate on first render, skip on SSE updates
   const cards = grid.querySelectorAll('.mini-card');
   if (!overviewStaggerDone) {
@@ -683,6 +756,137 @@ const renderOverview = () => {
     ]),
   ]);
   container.appendChild(swSearch);
+};
+
+// ================================================================
+// AMBIENT CARDS
+// ================================================================
+const renderAmbientCards = () => {
+  const summary = cachedAmbient?.summary || null;
+  const events = cachedAmbient?.events || [];
+
+  const grid = el('div', { className: 'ambient-grid' });
+
+  // --- Card 1: File Hotspots ---
+  const hotspots = summary?.hotspots || [];
+  const maxEdits = hotspots.length > 0 ? hotspots[0].edits : 1;
+  const hotspotsCard = el('div', { className: 'ambient-card' }, [
+    el('div', { className: 'ambient-card-title' }, [
+      el('span', { className: 'accent-dot', style: { background: 'var(--lavender)' } }),
+      document.createTextNode('File Hotspots'),
+    ]),
+  ]);
+  const hotspotsBody = el('div', { className: 'ambient-card-body' });
+  if (hotspots.length === 0) {
+    hotspotsBody.appendChild(el('div', { className: 'ambient-empty', textContent: 'No activity yet' }));
+  } else {
+    for (const h of hotspots.slice(0, 5)) {
+      const pct = Math.max(8, Math.round((h.edits / maxEdits) * 100));
+      const fname = h.file.split('/').pop() || h.file;
+      const row = el('div', { className: 'hotspot-bar-row' }, [
+        el('div', { className: 'hotspot-bar-label', textContent: fname, title: h.file }),
+        el('div', { className: 'hotspot-bar-track' }, [
+          el('div', { className: 'hotspot-bar-fill', style: { width: pct + '%' } }),
+        ]),
+        el('div', { className: 'hotspot-bar-count', textContent: String(h.edits) }),
+      ]);
+      hotspotsBody.appendChild(row);
+    }
+  }
+  hotspotsCard.appendChild(hotspotsBody);
+  grid.appendChild(hotspotsCard);
+
+  // --- Card 2: Test Pulse ---
+  const testEvents = events.filter(e => e.category === 'test');
+  const testCard = el('div', { className: 'ambient-card' }, [
+    el('div', { className: 'ambient-card-title' }, [
+      el('span', { className: 'accent-dot', style: { background: 'var(--green)' } }),
+      document.createTextNode('Test Pulse'),
+    ]),
+  ]);
+  const testBody = el('div', { className: 'ambient-card-body' });
+  if (testEvents.length === 0) {
+    testBody.appendChild(el('div', { className: 'ambient-empty', textContent: 'No test runs yet' }));
+  } else {
+    const dotsRow = el('div', { className: 'test-dots-row' });
+    for (const t of testEvents.slice(-40)) {
+      const cls = t.result === 'pass' ? 'test-dot test-dot-pass' :
+                  t.result === 'fail' ? 'test-dot test-dot-fail' : 'test-dot test-dot-unknown';
+      dotsRow.appendChild(el('div', { className: cls, title: t.result }));
+    }
+    testBody.appendChild(dotsRow);
+    const passed = testEvents.filter(t => t.result === 'pass').length;
+    const failed = testEvents.filter(t => t.result === 'fail').length;
+    const rate = summary?.test_pass_rate ?? 0;
+    testBody.appendChild(el('div', { className: 'test-pulse-summary', textContent:
+      passed + ' passed, ' + failed + ' failed \u2014 ' + Math.round(rate * 100) + '% pass rate'
+    }));
+  }
+  testCard.appendChild(testBody);
+  grid.appendChild(testCard);
+
+  // --- Card 3: Git Timeline ---
+  const gitEvents = events.filter(e => e.category === 'git');
+  const gitCard = el('div', { className: 'ambient-card' }, [
+    el('div', { className: 'ambient-card-title' }, [
+      el('span', { className: 'accent-dot', style: { background: 'var(--teal)' } }),
+      document.createTextNode('Git Timeline'),
+    ]),
+  ]);
+  const gitBody = el('div', { className: 'ambient-card-body' });
+  if (gitEvents.length === 0) {
+    gitBody.appendChild(el('div', { className: 'ambient-empty', textContent: 'No git commands yet' }));
+  } else {
+    for (const g of gitEvents.slice(-6).reverse()) {
+      const cmd = (g.target || '').replace(/^git\s+/, '').slice(0, 60);
+      const row = el('div', { className: 'git-event-row' }, [
+        el('div', { className: 'git-event-dot' }),
+        el('div', { className: 'git-event-cmd', textContent: cmd, title: g.target }),
+        el('div', { className: 'git-event-time', textContent: relativeTime(g.timestamp) }),
+      ]);
+      gitBody.appendChild(row);
+    }
+  }
+  gitCard.appendChild(gitBody);
+  grid.appendChild(gitCard);
+
+  // --- Card 4: Session Activity ---
+  const categoryCounts = {};
+  for (const e of events) {
+    categoryCounts[e.category] = (categoryCounts[e.category] || 0) + 1;
+  }
+  const activityCard = el('div', { className: 'ambient-card' }, [
+    el('div', { className: 'ambient-card-title' }, [
+      el('span', { className: 'accent-dot', style: { background: 'var(--peach)' } }),
+      document.createTextNode('Session Activity'),
+    ]),
+  ]);
+  const activityBody = el('div', { className: 'ambient-card-body' });
+  const catOrder = ['edit', 'read', 'test', 'git', 'build', 'other'];
+  const hasActivity = events.length > 0;
+  if (!hasActivity) {
+    activityBody.appendChild(el('div', { className: 'ambient-empty', textContent: 'No activity yet' }));
+  } else {
+    for (const cat of catOrder) {
+      const count = categoryCounts[cat] || 0;
+      if (count === 0) continue;
+      const row = el('div', { className: 'activity-row' }, [
+        el('span', { className: 'activity-label', textContent: cat }),
+        el('span', { className: 'activity-count', textContent: String(count) }),
+      ]);
+      activityBody.appendChild(row);
+    }
+    if (summary?.session_duration && summary.session_duration !== 'N/A') {
+      activityBody.appendChild(el('div', { className: 'activity-row', style: { marginTop: '4px' } }, [
+        el('span', { className: 'activity-label', textContent: 'duration' }),
+        el('span', { className: 'activity-count', style: { color: 'var(--sapphire)' }, textContent: summary.session_duration }),
+      ]));
+    }
+  }
+  activityCard.appendChild(activityBody);
+  grid.appendChild(activityCard);
+
+  return grid;
 };
 
 const miniCard = (view, title, dataFn, accentColor) => {
@@ -750,11 +954,20 @@ const renderExecution = () => {
 
     for (const task of phase.tasks) {
       const statusClass = task.status === 'done' ? 'done' : task.status === 'active' || task.status === 'in_progress' ? 'active' : 'pending';
-      const bar = el('div', { className: 'task-bar' }, [
+      const barChildren = [
         el('div', { className: 'task-status-dot ' + statusClass }),
         el('span', { className: 'task-name', textContent: task.description || task.name || 'Task ' + task.id }),
         el('span', { className: 'badge badge-' + (statusClass === 'done' ? 'success' : statusClass === 'active' ? 'info' : 'neutral'), textContent: task.status || 'pending' }),
-      ]);
+      ];
+      if (task.status === 'failed' || task.status === 'error') {
+        const waveId = String(task.id || task.wave_id || '');
+        barChildren.push(el('button', {
+          className: 'action-btn deferred',
+          textContent: 'Queue Re-run',
+          onClick: (e) => { e.stopPropagation(); dashAction('queue-rerun', { wave_id: waveId }); },
+        }));
+      }
+      const bar = el('div', { className: 'task-bar' }, barChildren);
       const detail = el('div', { className: 'task-detail' });
       if (task.description) detail.textContent = task.description;
       if (task.routed_to) detail.textContent += '\nModel: ' + task.routed_to;
@@ -1110,11 +1323,27 @@ const renderTrust = () => {
     logCard.appendChild(el('div', { className: 'text-sm text-muted', textContent: 'No governance events yet.' }));
   } else {
     for (const entry of govEntries.reverse()) {
-      logCard.appendChild(el('div', { className: 'trail-entry' }, [
+      const decisionId = entry.id || entry.decision_id || (entry.event_type + '-' + (entry.timestamp || Date.now()));
+      const entryRow = el('div', { className: 'trail-entry' }, [
         el('span', { className: 'trail-entry-time', textContent: fmtTs(entry.timestamp) }),
         el('span', { className: 'badge type-' + entry.event_type, textContent: entry.event_type }),
         el('span', { className: 'trail-entry-desc', textContent: entry.description || '' }),
-      ]));
+      ]);
+      if (entry.event_type === 'governance') {
+        const approveBtn = el('button', {
+          className: 'action-btn primary',
+          textContent: 'Approve',
+          onClick: () => dashAction('approve', { decision_id: decisionId }),
+        });
+        const rejectBtn = el('button', {
+          className: 'action-btn danger',
+          textContent: 'Reject',
+          onClick: () => dashAction('reject', { decision_id: decisionId }),
+        });
+        entryRow.appendChild(approveBtn);
+        entryRow.appendChild(rejectBtn);
+      }
+      logCard.appendChild(entryRow);
     }
   }
   container.appendChild(logCard);
@@ -1330,6 +1559,13 @@ const renderTrail = () => {
       },
     });
     toolbar.appendChild(scrollBtn);
+
+    const exportBtn = el('button', {
+      className: 'action-btn deferred',
+      textContent: 'Export',
+      onClick: () => dashAction('export-trail', { format: 'json' }),
+    });
+    toolbar.appendChild(exportBtn);
 
     container.appendChild(toolbar);
 
@@ -1620,6 +1856,7 @@ const renderCodeHealth = () => {
         el('th', { textContent: 'File' }),
         el('th', { textContent: 'Complexity' }),
         el('th', { textContent: '' }),
+        el('th', { textContent: '' }),
       ]),
     ]);
     table.appendChild(thead);
@@ -1628,6 +1865,12 @@ const renderCodeHealth = () => {
     for (const item of data.complexity) {
       const level = item.complexity < 8 ? 'low' : item.complexity < 15 ? 'medium' : 'high';
       const pct = Math.min(100, (item.complexity / 20) * 100);
+      const fileRef = item.file;
+      const fixBtn = el('button', {
+        className: 'action-btn primary',
+        textContent: 'Fix',
+        onClick: () => dashAction('health-fix', { file: fileRef }),
+      });
       tbody.appendChild(el('tr', {}, [
         el('td', { textContent: item.function }),
         el('td', { className: 'text-muted', textContent: item.file }),
@@ -1637,6 +1880,7 @@ const renderCodeHealth = () => {
           ]),
         ]),
         el('td', { textContent: String(item.complexity) }),
+        el('td', {}, [fixBtn]),
       ]));
     }
     table.appendChild(tbody);

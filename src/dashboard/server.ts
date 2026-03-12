@@ -1,11 +1,19 @@
 import fs from "fs";
 import path from "path";
-import { getProjectState, getTrailEntries, getCostData, getMemoryStats, getContextHealth, getActiveSessions, getCodeHealth, getSimilarWork, getTrendData, getHotPrinciples } from "./api";
+import { randomBytes } from "crypto";
+import { getProjectState, getTrailEntries, getCostData, getMemoryStats, getContextHealth, getActiveSessions, getCodeHealth, getSimilarWork, getTrendData, getHotPrinciples, validateActionToken, handleHealthFix, handleExportTrail, handleExportAmbient, handleAmbientRequest, handleQueueTask, handleQueueRerun, handleApprove, handleReject } from "./api";
 import { appendEvent, replayEvents, compactEvents, type DashboardEvent } from "./event-log";
 
 const PORT = parseInt(process.env.JUHBDI_DASHBOARD_PORT || "3141", 10);
 const cwd = process.cwd();
 const juhbdiDir = path.join(cwd, ".juhbdi");
+
+// Generate action token on startup
+const ACTION_TOKEN = randomBytes(24).toString("hex");
+const tokenFilePath = `/tmp/juhbdi-dashboard-${process.pid}.token`;
+try {
+  fs.writeFileSync(tokenFilePath, ACTION_TOKEN, { mode: 0o600 });
+} catch { /* non-fatal if /tmp write fails */ }
 
 const clients = new Set<ReadableStreamDefaultController>();
 const eventLogPath = path.join(juhbdiDir, "dashboard-events.jsonl");
@@ -79,7 +87,7 @@ const appJs = fs.existsSync(appJsPath) ? fs.readFileSync(appJsPath, "utf-8") : "
 
 Bun.serve({
   port: PORT,
-  fetch(req) {
+  async fetch(req) {
     const url = new URL(req.url);
     const headers = {
       "Access-Control-Allow-Origin": "*",
@@ -193,6 +201,59 @@ Bun.serve({
         return new Response(JSON.stringify(getHotPrinciples(dir)), { headers });
       }
 
+      case "/api/ambient": {
+        return handleAmbientRequest(cwd, url.searchParams);
+      }
+
+      case "/api/action/health-fix": {
+        if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
+        if (!validateActionToken(req, ACTION_TOKEN)) return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+        const body = await req.json().catch(() => ({}));
+        return handleHealthFix(body, cwd);
+      }
+
+      case "/api/action/export-trail": {
+        if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
+        if (!validateActionToken(req, ACTION_TOKEN)) return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+        const body = await req.json().catch(() => ({}));
+        return handleExportTrail(body, cwd);
+      }
+
+      case "/api/action/export-ambient": {
+        if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
+        if (!validateActionToken(req, ACTION_TOKEN)) return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+        const body = await req.json().catch(() => ({}));
+        return handleExportAmbient(body, cwd);
+      }
+
+      case "/api/action/queue-task": {
+        if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
+        if (!validateActionToken(req, ACTION_TOKEN)) return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+        const body = await req.json().catch(() => ({}));
+        return handleQueueTask(body, cwd);
+      }
+
+      case "/api/action/queue-rerun": {
+        if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
+        if (!validateActionToken(req, ACTION_TOKEN)) return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+        const body = await req.json().catch(() => ({}));
+        return handleQueueRerun(body, cwd);
+      }
+
+      case "/api/action/approve": {
+        if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
+        if (!validateActionToken(req, ACTION_TOKEN)) return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+        const body = await req.json().catch(() => ({}));
+        return handleApprove(body, cwd);
+      }
+
+      case "/api/action/reject": {
+        if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
+        if (!validateActionToken(req, ACTION_TOKEN)) return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+        const body = await req.json().catch(() => ({}));
+        return handleReject(body, cwd);
+      }
+
       default:
         return new Response("Not found", { status: 404 });
     }
@@ -200,3 +261,4 @@ Bun.serve({
 });
 
 console.log(`JuhBDI Dashboard running at http://localhost:${PORT}`);
+console.log(`[JuhBDI Dashboard] Action token: ${ACTION_TOKEN}`);

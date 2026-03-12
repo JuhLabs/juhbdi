@@ -12,6 +12,10 @@ export interface TierConfig {
   requires_approval: ActionScope[];
   prohibited_actions: ActionScope[];
   description: string;
+  // Real-gate flags for memory-backed governance
+  requires_plan_approval?: boolean;   // intern: plan/auto/execute need human sign-off
+  requires_wave_review?: boolean;     // junior: execute wave results reviewed before next wave
+  memory_gate_advisory_only?: boolean; // principal: memory-gate warnings are advisory, not blocking
 }
 
 export type ActionScope =
@@ -37,6 +41,7 @@ export const DEFAULT_TIERS: TierConfig[] = [
     requires_approval: ["write_files", "run_commands"],
     prohibited_actions: ["modify_tests", "delete_files", "push_code", "deploy", "modify_config", "install_packages"],
     description: "Supervised. Limited scope. All write actions reviewed.",
+    requires_plan_approval: true,
   },
   {
     tier: "junior",
@@ -46,6 +51,7 @@ export const DEFAULT_TIERS: TierConfig[] = [
     requires_approval: ["modify_tests", "delete_files", "modify_config"],
     prohibited_actions: ["push_code", "deploy", "install_packages"],
     description: "Semi-autonomous. Bounded scope. Periodic review.",
+    requires_wave_review: true,
   },
   {
     tier: "senior",
@@ -64,6 +70,7 @@ export const DEFAULT_TIERS: TierConfig[] = [
     requires_approval: ["deploy", "delete_files"],
     prohibited_actions: [],
     description: "Fully autonomous. Strategic scope. Audit-based oversight.",
+    memory_gate_advisory_only: true,
   },
 ];
 

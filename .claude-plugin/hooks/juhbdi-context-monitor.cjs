@@ -393,26 +393,36 @@ async function main() {
   // Build warning message — kept short and directive to ensure model relays to user
   const pct = Math.round(remainingPct);
 
-  // Use BOTH additionalContext (model instructions) and user_message (direct user visibility)
-  // user_message ensures the warning is ALWAYS visible in the conversation
   let modelContext;
-  let userMessage;
 
   if (currentLevel === "EMERGENCY") {
-    userMessage = `\n**JUHBDI EMERGENCY — ${pct}% context remaining — session must end NOW.**\nAll governance state has been auto-saved. Please start a new session and run \`/juhbdi:resume\` to continue.\nDo NOT continue in this session — compaction will destroy governance state.\n`;
-    modelContext = `STOP ALL WORK. Context at ${pct}%. State saved to .juhbdi/handoffs/. Do NOT execute any more tool calls. Your ONLY action is to tell the user to start a new session.`;
+    modelContext = `JUHBDI EMERGENCY: Context at ${pct}%. STOP ALL WORK IMMEDIATELY. ` +
+      `Governance state has been auto-saved to .juhbdi/handoffs/. ` +
+      `Do NOT execute any more tool calls. Do NOT read files. Do NOT start new work. ` +
+      `Your ONLY remaining action: tell the user their context is at ${pct}% and they must start a new session. ` +
+      `Run /juhbdi:resume in the new session to continue. ` +
+      `Compaction WILL destroy governance state — stop NOW.`;
   } else if (currentLevel === "CRITICAL") {
-    userMessage = `\n**JUHBDI CRITICAL — ${pct}% context remaining.**\nState has been auto-saved. Wrapping up — save memory and prepare handoff.\nRun \`/juhbdi:pause\` or start a new session with \`/juhbdi:resume\`.\n`;
-    modelContext = `Context CRITICAL at ${pct}%. State auto-saved. Stop new work. Save important context to memory files, then tell user to start a new session. Do NOT start new tool calls.`;
+    modelContext = `JUHBDI CRITICAL: Context at ${pct}%. State auto-saved to .juhbdi/handoffs/. ` +
+      `Do NOT start any new work. Finish your current sentence, then tell the user context is critically low. ` +
+      `Suggest: start a new session and run /juhbdi:resume. Do NOT start new tool calls.`;
   } else if (currentLevel === "URGENT") {
-    userMessage = `\n**JUHBDI URGENT — ${pct}% context remaining.** Finish current task, then wrap up. Consider running \`/juhbdi:pause\`.\n`;
-    modelContext = `Context URGENT at ${pct}%. Finish current task, do NOT start new multi-step work. Warn user and prepare to hand off.`;
+    modelContext = `JUHBDI URGENT: Context at ${pct}%. Finish current task, do NOT start new multi-step work. ` +
+      `Inform the user that context is getting tight and they should prepare to pause. ` +
+      `Consider running /juhbdi:pause at the next natural stopping point.`;
   } else {
-    userMessage = `\n**JUHBDI WARNING — ${pct}% context remaining.** Wrap up current task before starting anything new.\n`;
-    modelContext = `Context WARNING at ${pct}%. Complete current task, avoid starting new work.`;
+    modelContext = `JUHBDI WARNING: Context at ${pct}%. Be aware context is limited. ` +
+      `Avoid starting new complex work. Complete current task first.`;
   }
 
-  console.log(JSON.stringify({ user_message: userMessage, additionalContext: modelContext }));
+  // Use hookSpecificOutput format — this is how Claude Code PostToolUse hooks
+  // inject context that the agent actually sees in conversation.
+  console.log(JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: "PostToolUse",
+      additionalContext: modelContext
+    }
+  }));
 }
 
 main().catch(() => {

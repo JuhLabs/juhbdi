@@ -34,6 +34,19 @@ For each completed task in the target wave(s), construct an outcome record:
 
 Only include tasks where `test_passed: true` — failures don't generate positive principles.
 
+## Step 2b: Process Failed Tasks
+
+1. Filter the completed tasks from Step 2 where `test_passed: false` or `status: 'failed'`
+2. For each failed task:
+   - Extract `task_keywords` using `extractKeywords()` from `src/governance/memory-gate.ts` on the task description
+   - Categorize `error_pattern`: scan `error_summary` and trail entries for the failure mode (e.g. "missing tests", "type error", "import failure")
+   - Check if a later task in the same wave resolved the issue — if so, capture its approach as `resolution`
+3. Store each failed task as a reflexion entry with:
+   - `outcome: 'fail'`
+   - `failure_signature: { task_keywords, error_pattern, resolution? }`
+   - Save via the same reflexion bank path (`.juhbdi/reflexion-bank.json`)
+4. These failure reflexions feed future `queryMemoryGate()` calls in plan/auto commands
+
 ## Step 3: Extract Principles
 
 Load the existing principle bank and run extraction:

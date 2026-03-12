@@ -551,6 +551,175 @@ export function getHotPrinciples(juhbdiDir: string): {
   };
 }
 
+// --- Action Token + Direct Action Endpoints ---
+
+export function validateActionToken(request: Request, validToken: string): boolean {
+  const auth = request.headers.get("Authorization");
+  if (!auth) return false;
+  const token = auth.replace("Bearer ", "");
+  return token === validToken;
+}
+
+// POST /api/action/health-fix
+// Body: { file: string }
+export async function handleHealthFix(body: { file: string }, projectDir: string): Promise<Response> {
+  const filePath = body.file;
+  if (!filePath) return Response.json({ ok: false, error: "file required" }, { status: 400 });
+
+  try {
+    const proc = Bun.spawn(["npx", "eslint", "--fix", filePath], { cwd: projectDir, stdout: "pipe", stderr: "pipe" });
+    await proc.exited;
+    return Response.json({ ok: true, message: `Applied lint fixes to ${filePath}` });
+  } catch {
+    try {
+      const proc = Bun.spawn(["npx", "prettier", "--write", filePath], { cwd: projectDir, stdout: "pipe", stderr: "pipe" });
+      await proc.exited;
+      return Response.json({ ok: true, message: `Applied prettier to ${filePath}` });
+    } catch (e) {
+      return Response.json({ ok: false, error: `Fix failed: ${e}` }, { status: 500 });
+    }
+  }
+}
+
+// POST /api/action/export-trail
+// Body: { format: 'json' | 'csv' }
+export function handleExportTrail(body: { format: string }, projectDir: string): Response {
+  const trailPath = path.join(projectDir, ".juhbdi", "decision-trail.log");
+  let entries: any[] = [];
+  try {
+    const raw = fs.readFileSync(trailPath, "utf8");
+    entries = raw.trim().split("\n").filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+  } catch { return Response.json({ ok: false, error: "Trail not found" }, { status: 404 }); }
+
+  if (body.format === "csv") {
+    const headers = "event_type,timestamp,description,risk_level,model_tier\n";
+    const rows = entries.map(e => `${e.event_type},${e.timestamp},"${(e.description || "").replace(/"/g, '""')}",${e.risk_level},${e.model_tier}`).join("\n");
+    return new Response(headers + rows, { headers: { "Content-Type": "text/csv", "Content-Disposition": "attachment; filename=decision-trail.csv" } });
+  }
+
+  return Response.json({ ok: true, entries });
+}
+
+// POST /api/action/export-ambient
+// Body: { date?: string }
+export function handleExportAmbient(body: { date?: string }, projectDir: string): Response {
+  const date = body.date || new Date().toISOString().slice(0, 10);
+  const ambientPath = path.join(projectDir, ".juhbdi", `ambient-${date}.jsonl`);
+  let events: any[] = [];
+  try {
+    const raw = fs.readFileSync(ambientPath, "utf8");
+    events = raw.trim().split("\n").filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+  } catch { return Response.json({ ok: false, error: "Ambient data not found" }, { status: 404 }); }
+
+  return Response.json({ ok: true, events, date });
+}
+
+// POST /api/action/queue-task
+// Body: { description: string }
+export function handleQueueTask(body: { description: string }, projectDir: string): Response {
+  if (!body.description) return Response.json({ ok: false, error: 'description required' }, { status: 400 });
+  const pendingPath = path.join(projectDir, '.juhbdi', 'pending-actions.json');
+  let pending: any[] = [];
+  try { pending = JSON.parse(fs.readFileSync(pendingPath, 'utf8')); } catch {}
+  pending.push({ type: 'task', description: body.description, queued_at: new Date().toISOString() });
+  fs.writeFileSync(pendingPath, JSON.stringify(pending, null, 2));
+  return Response.json({ ok: true, deferred: true, message: 'Task queued — will execute in next Claude Code session' });
+}
+
+// POST /api/action/queue-rerun
+// Body: { wave_id: string }
+export function handleQueueRerun(body: { wave_id: string }, projectDir: string): Response {
+  if (!body.wave_id) return Response.json({ ok: false, error: 'wave_id required' }, { status: 400 });
+  const pendingPath = path.join(projectDir, '.juhbdi', 'pending-actions.json');
+  let pending: any[] = [];
+  try { pending = JSON.parse(fs.readFileSync(pendingPath, 'utf8')); } catch {}
+  pending.push({ type: 'rerun', wave_id: body.wave_id, queued_at: new Date().toISOString() });
+  fs.writeFileSync(pendingPath, JSON.stringify(pending, null, 2));
+  return Response.json({ ok: true, deferred: true, message: `Wave ${body.wave_id} rerun queued — will execute in next Claude Code session` });
+}
+
+// POST /api/action/approve
+// Body: { decision_id: string }
+export function handleApprove(body: { decision_id: string }, projectDir: string): Response {
+  if (!body.decision_id) return Response.json({ ok: false, error: 'decision_id required' }, { status: 400 });
+  const decisionsPath = path.join(projectDir, '.juhbdi', 'governance-decisions.json');
+  let decisions: any[] = [];
+  try { decisions = JSON.parse(fs.readFileSync(decisionsPath, 'utf8')); } catch {}
+  decisions.push({ decision_id: body.decision_id, action: 'approve', timestamp: new Date().toISOString() });
+  fs.writeFileSync(decisionsPath, JSON.stringify(decisions, null, 2));
+  return Response.json({ ok: true, deferred: true, message: `Decision ${body.decision_id} approved` });
+}
+
+// POST /api/action/reject
+// Body: { decision_id: string, reason?: string }
+export function handleReject(body: { decision_id: string; reason?: string }, projectDir: string): Response {
+  if (!body.decision_id) return Response.json({ ok: false, error: 'decision_id required' }, { status: 400 });
+  const decisionsPath = path.join(projectDir, '.juhbdi', 'governance-decisions.json');
+  let decisions: any[] = [];
+  try { decisions = JSON.parse(fs.readFileSync(decisionsPath, 'utf8')); } catch {}
+  decisions.push({ decision_id: body.decision_id, action: 'reject', reason: body.reason || '', timestamp: new Date().toISOString() });
+  fs.writeFileSync(decisionsPath, JSON.stringify(decisions, null, 2));
+  return Response.json({ ok: true, deferred: true, message: `Decision ${body.decision_id} rejected` });
+}
+
+export function handleAmbientRequest(projectDir: string, params: URLSearchParams): Response {
+  const date = params.get('date') || new Date().toISOString().slice(0, 10);
+  const limit = parseInt(params.get('limit') || '200');
+  const ambientPath = path.join(projectDir, '.juhbdi', `ambient-${date}.jsonl`);
+
+  let events: any[] = [];
+  try {
+    const raw = fs.readFileSync(ambientPath, 'utf8');
+    events = raw.trim().split('\n').filter(Boolean).map(line => {
+      try { return JSON.parse(line); } catch { return null; }
+    }).filter(Boolean);
+  } catch { /* file doesn't exist yet */ }
+
+  if (limit > 0) events = events.slice(-limit);
+
+  const edits = events.filter((e: any) => e.category === 'edit');
+  const tests = events.filter((e: any) => e.category === 'test');
+  const gitEvents = events.filter((e: any) => e.category === 'git');
+
+  const fileEdits: Record<string, number> = {};
+  for (const e of edits) {
+    if (e.target) fileEdits[e.target] = (fileEdits[e.target] || 0) + 1;
+  }
+
+  const hotspots = Object.entries(fileEdits)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([file, count]) => ({ file, edits: count }));
+
+  const testsPassed = tests.filter((t: any) => t.result === 'pass').length;
+  const testPassRate = tests.length > 0 ? testsPassed / tests.length : 0;
+
+  const filesTouched = [...new Set(edits.map((e: any) => e.target).filter(Boolean))];
+
+  let sessionDuration = '';
+  if (events.length >= 2) {
+    const first = new Date(events[0].timestamp).getTime();
+    const last = new Date(events[events.length - 1].timestamp).getTime();
+    const mins = Math.round((last - first) / 60000);
+    if (mins >= 60) sessionDuration = `${Math.floor(mins / 60)}h ${mins % 60}m`;
+    else sessionDuration = `${mins}m`;
+  }
+
+  return Response.json({
+    events,
+    summary: {
+      total_edits: edits.length,
+      total_tests: tests.length,
+      test_pass_rate: Math.round(testPassRate * 100) / 100,
+      test_pass_rate_note: 'approximate, based on exit code and stdout pattern matching',
+      files_touched: filesTouched,
+      hotspots,
+      git_commits: gitEvents.length,
+      session_duration: sessionDuration || 'N/A',
+    },
+  });
+}
+
 function findTsFiles(dir: string, projectRoot: string): string[] {
   const results: string[] = [];
   if (!fs.existsSync(dir)) return results;

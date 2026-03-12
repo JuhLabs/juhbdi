@@ -1557,6 +1557,216 @@ body {
   .trail-entry-animated { animation: none; }
   .gauge-arc-animated { transition: none; }
 }
+
+/* ================================================================
+   AMBIENT COLLECTOR CARDS
+   ================================================================ */
+.ambient-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+
+@media (max-width: 1100px) {
+  .ambient-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .ambient-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ambient-card {
+  background: rgba(49, 50, 68, 0.45);
+  border: 1px solid rgba(69, 71, 90, 0.35);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 130px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: border-color 0.2s ease;
+}
+
+.ambient-card:hover {
+  border-color: rgba(180, 190, 254, 0.3);
+}
+
+.ambient-card-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--subtext0);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ambient-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.ambient-empty {
+  font-size: 0.78rem;
+  color: var(--overlay1);
+  font-style: italic;
+  margin: auto 0;
+}
+
+/* Hotspot bars */
+.hotspot-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+}
+
+.hotspot-bar-label {
+  flex: 0 0 auto;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--subtext1);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+
+.hotspot-bar-track {
+  flex: 1;
+  height: 5px;
+  background: rgba(69, 71, 90, 0.5);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.hotspot-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--lavender), var(--blue));
+  transition: width 0.4s ease;
+}
+
+.hotspot-bar-count {
+  flex: 0 0 auto;
+  color: var(--overlay2);
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  min-width: 18px;
+  text-align: right;
+}
+
+/* Test pulse dots */
+.test-dots-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.test-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.test-dot-pass { background: var(--green); box-shadow: 0 0 4px rgba(166, 227, 161, 0.5); }
+.test-dot-fail { background: var(--red); box-shadow: 0 0 4px rgba(243, 139, 168, 0.5); }
+.test-dot-unknown { background: var(--overlay0); }
+
+.test-pulse-summary {
+  font-size: 0.72rem;
+  color: var(--subtext0);
+  margin-top: 2px;
+}
+
+/* Git timeline */
+.git-event-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.git-event-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--teal);
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.git-event-cmd {
+  color: var(--subtext1);
+  font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.git-event-time {
+  flex-shrink: 0;
+  color: var(--overlay1);
+  font-size: 0.65rem;
+}
+
+/* Session activity */
+.activity-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(69, 71, 90, 0.2);
+}
+
+.activity-row:last-child {
+  border-bottom: none;
+}
+
+.activity-label {
+  color: var(--subtext1);
+  text-transform: capitalize;
+}
+
+.activity-count {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--lavender);
+}
+
+/* Action buttons */
+.action-btn { padding: 4px 10px; border-radius: 6px; border: 1px solid var(--surface1); background: var(--surface0); color: var(--text); font-size: 0.75rem; cursor: pointer; transition: all 0.2s; }
+.action-btn:hover { background: var(--surface1); }
+.action-btn.primary { background: var(--green); color: var(--base); border-color: var(--green); }
+.action-btn.primary:hover { opacity: 0.85; }
+.action-btn.danger { background: var(--red); color: var(--base); border-color: var(--red); }
+.action-btn.danger:hover { opacity: 0.85; }
+.action-btn.deferred { background: var(--blue); color: var(--base); border-color: var(--blue); }
+.action-btn.deferred:hover { opacity: 0.85; }
+
+/* Token modal */
+.token-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.token-modal { background: var(--mantle); border: 1px solid var(--surface1); border-radius: 12px; padding: 24px; width: 400px; max-width: 90vw; }
+.token-modal h3 { margin: 0 0 12px; color: var(--text); }
+.token-modal p { margin: 0 0 16px; color: var(--subtext0); font-size: 0.85rem; }
+.token-modal input { width: 100%; padding: 8px 12px; background: var(--surface0); border: 1px solid var(--surface1); border-radius: 6px; color: var(--text); font-family: monospace; margin-bottom: 12px; }
+.token-modal .btn-row { display: flex; gap: 8px; justify-content: flex-end; }
 </style>
 </head>
 <body>
