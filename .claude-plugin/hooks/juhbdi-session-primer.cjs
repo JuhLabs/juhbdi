@@ -31,11 +31,18 @@ function relativeTime(isoTs) {
 }
 
 async function main() {
-  const input = JSON.parse(await new Promise((resolve) => {
-    let data = "";
-    process.stdin.on("data", (chunk) => (data += chunk));
-    process.stdin.on("end", () => resolve(data));
-  }));
+  let input;
+  try {
+    const raw = await new Promise((resolve) => {
+      let data = "";
+      process.stdin.on("data", (chunk) => (data += chunk));
+      process.stdin.on("end", () => resolve(data));
+      setTimeout(() => resolve(data || "{}"), 3000);
+    });
+    input = JSON.parse(raw || "{}");
+  } catch {
+    input = {};
+  }
 
   const cwd = input.cwd || process.cwd();
   const juhbdiDir = path.join(cwd, ".juhbdi");
