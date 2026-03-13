@@ -1,6 +1,6 @@
 {
   "name": "juhbdi",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "type": "module",
   "description": "Enterprise-grade, intent-driven autonomous development engine",
   "author": "Julian Hermstad",
