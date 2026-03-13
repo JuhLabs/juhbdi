@@ -9,28 +9,14 @@
 // ================================================================
 const FOCUS_VIEWS = ['overview', 'state', 'trust', 'memory', 'goals', 'spec', 'waves', 'tasks', 'trail', 'cost', 'context', 'codehealth'];
 
-// Spritesheet icon CSS class per view (3D glass-morphism icons)
-const VIEW_ICONS = {
-  waves: 'panel-icon-exec',
-  tasks: 'panel-icon-exec',
-  cost: 'panel-icon-cost',
-  trust: 'panel-icon-trust',
-  context: 'panel-icon-sessions',
-  trail: 'panel-icon-trail',
-  memory: 'panel-icon-memory',
-  codehealth: 'panel-icon-trail',
-};
-
 // ================================================================
 // STATE
 // ================================================================
 let currentFocus = 'overview';
-let connected = false;
 let cachedState = null;
 let cachedTrail = [];
 let cachedCost = null;
 let cachedMemory = null;
-let cachedContext = null;
 let cachedSessions = [];
 let codehealthData = null;
 let codehealthLoading = false;
@@ -185,14 +171,7 @@ function showTokenModal() {
 // ================================================================
 // FORMATTERS
 // ================================================================
-const viewIcon = (view, large) => {
-  const iconClass = VIEW_ICONS[view];
-  if (!iconClass) return null;
-  return el('div', { className: 'panel-icon ' + (large ? 'panel-icon-lg ' : '') + iconClass });
-};
-
 const fmt$ = (n) => typeof n === 'number' ? '$' + n.toFixed(4) : '--';
-const fmtPct = (n) => typeof n === 'number' ? n + '%' : '--%';
 
 const fmtTs = (ts) => {
   if (!ts) return '';
@@ -211,30 +190,6 @@ const relativeTime = (ts) => {
     if (diff < 86400000) return Math.round(diff / 3600000) + 'h ago';
     return Math.round(diff / 86400000) + 'd ago';
   } catch { return ''; }
-};
-
-// ================================================================
-// ANIMATED COUNTERS
-// ================================================================
-const prevMetrics = {};
-
-const animateValue = (element, start, end, duration, formatter) => {
-  if (!element || start === end) return;
-  const startTime = performance.now();
-  const step = (now) => {
-    const elapsed = now - startTime;
-    const progress = Math.min(elapsed / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 3);
-    const current = start + (end - start) * eased;
-    element.textContent = formatter(current);
-    if (progress < 1) requestAnimationFrame(step);
-    else {
-      element.textContent = formatter(end);
-      element.classList.add('counter-pulse');
-      setTimeout(() => element.classList.remove('counter-pulse'), 400);
-    }
-  };
-  requestAnimationFrame(step);
 };
 
 // ================================================================
@@ -311,7 +266,7 @@ const navigateTo = (focus) => {
   if (!FOCUS_VIEWS.includes(focus)) focus = 'overview';
   const changed = currentFocus !== focus;
   currentFocus = focus;
-  if (changed) overviewStaggerDone = false;
+  if (changed) { overviewStaggerDone = false; lastViewHash = ''; lastTrailHash = ''; }
 
   // Update sidebar
   $$('.sidebar-card').forEach(card => {
@@ -405,7 +360,6 @@ const tickClock = () => {
 // CONNECTION STATE
 // ================================================================
 const setConnected = (state) => {
-  connected = state;
   const pulse = $('#sessionPulse');
   if (pulse) {
     pulse.classList.toggle('connected', state);
@@ -508,7 +462,6 @@ const updateDashboard = (data) => {
   if (data.trail) cachedTrail = data.trail;
   if (data.cost) cachedCost = data.cost;
   if (data.memory) cachedMemory = data.memory;
-  if (data.context) cachedContext = data.context;
   if (data.sessions) cachedSessions = data.sessions;
 
   // Toast for new trail entries
@@ -644,10 +597,28 @@ const renderCanvas = () => {
   renderDebounceTimer = setTimeout(renderView, 80);
 };
 
+let lastViewHash = '';
+let lastViewFocus = '';
+
+const dataFingerprint = () => {
+  const s = cachedState ? JSON.stringify(cachedState).length : 0;
+  const t = cachedTrail.length + ':' + (cachedTrail[cachedTrail.length - 1]?.timestamp || '');
+  const c = cachedCost ? (cachedCost.total_spend || 0) : 0;
+  const m = cachedMemory ? (cachedMemory.reflexion_count + ':' + cachedMemory.trust_score) : '';
+  const ss = cachedSessions.length;
+  return `${s}|${t}|${c}|${m}|${ss}`;
+};
+
 const renderView = () => {
   renderDebounceTimer = null;
   const container = $('#canvasInner');
   if (!container) return;
+
+  // Skip re-render if view and data unchanged (except context which always updates)
+  const fp = dataFingerprint();
+  if (currentFocus === lastViewFocus && fp === lastViewHash && currentFocus !== 'context') return;
+  lastViewFocus = currentFocus;
+  lastViewHash = fp;
 
   switch (currentFocus) {
     case 'overview': renderOverview(container); break;
@@ -802,11 +773,13 @@ const renderOverview = (container) => {
 
   cols.appendChild(intentCol);
 
-  // Flow arrows SVG overlay
+  // Flow arrows SVG overlay — curves between BDI columns
   const arrowsSvg = el('div', { className: 'flow-arrows', id: 'flowArrows' });
-  const svg = svgEl('svg', { viewBox: '0 0 1000 400', preserveAspectRatio: 'none' });
-  const path1 = svgEl('path', { d: 'M 310 100 C 370 100, 360 100, 370 100 L 380 100', class: 'flow-arrow-path belief-desire' });
-  const path2 = svgEl('path', { d: 'M 640 100 C 700 100, 690 100, 700 100 L 710 100', class: 'flow-arrow-path desire-intention' });
+  const svg = svgEl('svg', { viewBox: '0 0 900 300', preserveAspectRatio: 'none' });
+  // Belief→Desire arrow: right edge of col1 (300) to left edge of col2 (310), midpoint vertically
+  const path1 = svgEl('path', { d: 'M 295 80 C 300 80, 305 80, 310 80 M 295 150 C 300 150, 305 150, 310 150', class: 'flow-arrow-path belief-desire' });
+  // Desire→Intention arrow: right edge of col2 (600) to left edge of col3 (610)
+  const path2 = svgEl('path', { d: 'M 595 80 C 600 80, 605 80, 610 80 M 595 150 C 600 150, 605 150, 610 150', class: 'flow-arrow-path desire-intention' });
   svg.appendChild(path1);
   svg.appendChild(path2);
   arrowsSvg.appendChild(svg);
@@ -1304,10 +1277,13 @@ const renderFocusedTasks = (container) => {
 // ================================================================
 // FOCUSED: TRAIL
 // ================================================================
+let lastTrailHash = '';
+
 const renderFocusedTrail = (container) => {
   let toolbar = $('#trailToolbar', container);
   if (!toolbar) {
     clear(container);
+    lastTrailHash = '';
     container.appendChild(focusedHeader('Decision Trail', 'var(--bdi-intention)'));
 
     toolbar = el('div', { className: 'trail-toolbar', id: 'trailToolbar' });
@@ -1316,7 +1292,7 @@ const renderFocusedTrail = (container) => {
     searchInput.addEventListener('input', (e) => {
       trailSearch = e.target.value;
       if (searchTimeout) clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => renderTrailEntries(), 200);
+      searchTimeout = setTimeout(() => { lastTrailHash = ''; renderTrailEntries(); }, 200);
     });
     toolbar.appendChild(searchInput);
 
@@ -1325,7 +1301,7 @@ const renderFocusedTrail = (container) => {
       toolbar.appendChild(el('button', {
         className: 'filter-btn' + (trailFilter === t ? ' active' : ''),
         textContent: t,
-        onClick: () => { trailFilter = t; $$('.filter-btn', toolbar).forEach(b => b.classList.toggle('active', b.textContent === t)); renderTrailEntries(); },
+        onClick: () => { trailFilter = t; lastTrailHash = ''; $$('.filter-btn', toolbar).forEach(b => b.classList.toggle('active', b.textContent === t)); renderTrailEntries(); },
       }));
     }
 
@@ -1351,7 +1327,6 @@ const renderFocusedTrail = (container) => {
 const renderTrailEntries = () => {
   const entriesDiv = $('#trailEntries');
   if (!entriesDiv) return;
-  clear(entriesDiv);
 
   let filtered = cachedTrail;
   if (trailFilter !== 'all') filtered = filtered.filter(e => e.event_type === trailFilter);
@@ -1359,6 +1334,13 @@ const renderTrailEntries = () => {
     const q = trailSearch.toLowerCase();
     filtered = filtered.filter(e => (e.description || '').toLowerCase().includes(q) || (e.event_type || '').toLowerCase().includes(q));
   }
+
+  // Skip re-render if data hasn't changed
+  const hash = filtered.length + ':' + (filtered[filtered.length - 1]?.timestamp || '') + ':' + trailFilter + ':' + trailSearch;
+  if (hash === lastTrailHash) return;
+  lastTrailHash = hash;
+
+  clear(entriesDiv);
 
   if (filtered.length === 0) {
     entriesDiv.appendChild(el('div', { className: 'text-sm text-muted', style: { padding: '20px', textAlign: 'center' }, textContent: 'No matching trail entries.' }));

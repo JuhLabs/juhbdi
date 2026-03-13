@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JuhBDI — Cognitive Flow</title>
+<link rel="icon" type="image/png" href="/assets/juhbdilogo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -248,11 +249,11 @@ body {
 }
 
 .header-logo img {
-  width: 30px;
-  height: 30px;
+  width: 48px;
+  height: 48px;
   object-fit: contain;
-  border-radius: 8px;
-  filter: drop-shadow(0 0 6px rgba(180, 190, 254, 0.3));
+  border-radius: 10px;
+  filter: drop-shadow(0 0 8px rgba(180, 190, 254, 0.4));
 }
 
 .header-brand {
@@ -614,6 +615,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  position: relative;
+  z-index: 1;
 }
 
 .bdi-column-header {
@@ -655,7 +658,7 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 5;
+  z-index: 0;
 }
 
 .flow-arrows svg {
@@ -945,7 +948,7 @@ body {
 
 .footer-label {
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: 0.6rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -960,8 +963,8 @@ body {
   height: 100%;
   display: flex;
   align-items: center;
-  mask-image: linear-gradient(90deg, transparent 0%, black 5%, black 95%, transparent 100%);
-  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 5%, black 95%, transparent 100%);
+  mask-image: linear-gradient(90deg, black 0%, black 95%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, black 0%, black 95%, transparent 100%);
 }
 
 .ticker-inner {

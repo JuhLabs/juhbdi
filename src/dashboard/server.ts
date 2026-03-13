@@ -87,6 +87,7 @@ const appJs = fs.existsSync(appJsPath) ? fs.readFileSync(appJsPath, "utf-8") : "
 
 Bun.serve({
   port: PORT,
+  hostname: "0.0.0.0",
   async fetch(req) {
     const url = new URL(req.url);
     const headers = {
@@ -262,3 +263,7 @@ Bun.serve({
 
 console.log(`JuhBDI Dashboard running at http://localhost:${PORT}`);
 console.log(`[JuhBDI Dashboard] Action token: ${ACTION_TOKEN}`);
+
+// Keep process alive — Bun.serve alone may not hold event loop in some environments
+process.on("SIGINT", () => process.exit(0));
+process.on("SIGTERM", () => process.exit(0));

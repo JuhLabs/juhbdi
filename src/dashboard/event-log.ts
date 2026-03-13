@@ -1,6 +1,7 @@
 // src/dashboard/event-log.ts
-import { appendFile, readFile, writeFile } from "fs/promises";
-import { existsSync } from "fs";
+import { appendFile, writeFile, stat } from "fs/promises";
+import { existsSync, createReadStream } from "fs";
+import { createInterface } from "readline";
 
 export interface DashboardEvent {
   timestamp: string;
@@ -8,17 +9,28 @@ export interface DashboardEvent {
   data: any;
 }
 
+// Max log size before auto-truncation (50 MB)
+const MAX_LOG_BYTES = 50 * 1024 * 1024;
+
 /**
  * Append a single event as a JSON line to the JSONL log.
- * Creates the file on first write.
+ * Auto-truncates if the file exceeds MAX_LOG_BYTES.
  */
 export async function appendEvent(logPath: string, event: DashboardEvent): Promise<void> {
   const line = JSON.stringify(event) + "\n";
   await appendFile(logPath, line, "utf-8");
+
+  // Size guard — truncate to empty if file grows too large
+  try {
+    const info = await stat(logPath);
+    if (info.size > MAX_LOG_BYTES) {
+      await writeFile(logPath, "", "utf-8");
+    }
+  } catch { /* non-fatal */ }
 }
 
 /**
- * Replay all events from the JSONL log.
+ * Replay events from the JSONL log using streaming reads.
  * Optionally filter to events >= sinceTimestamp.
  * Skips malformed lines gracefully.
  */
@@ -28,13 +40,22 @@ export async function replayEvents(
 ): Promise<DashboardEvent[]> {
   if (!existsSync(logPath)) return [];
 
-  const raw = await readFile(logPath, "utf-8");
-  const lines = raw.trim().split("\n").filter(Boolean);
-  const events: DashboardEvent[] = [];
+  // Safety: skip files over 50 MB
+  try {
+    const info = await stat(logPath);
+    if (info.size > MAX_LOG_BYTES) return [];
+  } catch { return []; }
 
+  const events: DashboardEvent[] = [];
   const sinceMs = sinceTimestamp ? new Date(sinceTimestamp).getTime() : 0;
 
-  for (const line of lines) {
+  const rl = createInterface({
+    input: createReadStream(logPath, { encoding: "utf-8" }),
+    crlfDelay: Infinity,
+  });
+
+  for await (const line of rl) {
+    if (!line.trim()) continue;
     try {
       const event: DashboardEvent = JSON.parse(line);
       if (sinceTimestamp) {
@@ -51,8 +72,8 @@ export async function replayEvents(
 }
 
 /**
- * Compact the event log: move events older than 7 days to an archive file.
- * Returns count of archived and retained events.
+ * Compact the event log: keep only events from the last maxAgeDays.
+ * Uses streaming reads to avoid OOM on large files.
  */
 export async function compactEvents(
   logPath: string,
@@ -61,14 +82,26 @@ export async function compactEvents(
 ): Promise<{ archived: number; retained: number }> {
   if (!existsSync(logPath)) return { archived: 0, retained: 0 };
 
-  const raw = await readFile(logPath, "utf-8");
-  const lines = raw.trim().split("\n").filter(Boolean);
+  // Safety: if file is enormous, just truncate it
+  try {
+    const info = await stat(logPath);
+    if (info.size > MAX_LOG_BYTES) {
+      await writeFile(logPath, "", "utf-8");
+      return { archived: 0, retained: 0 };
+    }
+  } catch { return { archived: 0, retained: 0 }; }
 
   const cutoff = Date.now() - maxAgeDays * 86400000;
   const retained: string[] = [];
   const toArchive: string[] = [];
 
-  for (const line of lines) {
+  const rl = createInterface({
+    input: createReadStream(logPath, { encoding: "utf-8" }),
+    crlfDelay: Infinity,
+  });
+
+  for await (const line of rl) {
+    if (!line.trim()) continue;
     try {
       const event: DashboardEvent = JSON.parse(line);
       const eventMs = new Date(event.timestamp).getTime();
