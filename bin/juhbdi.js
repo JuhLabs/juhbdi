@@ -181,7 +181,12 @@ if (args.includes("--install")) {
   process.exit(0);
 }
 
-// Launch Claude Code
+// Launch Claude Code (only if interactive TTY available)
+if (!process.stdin.isTTY) {
+  console.log("\nRestart Claude Code to activate. Then use /juhbdi:init to start.");
+  process.exit(0);
+}
+
 console.log("\x1b[36mLaunching Claude Code...\x1b[0m\n");
 try {
   if (hasPluginDir) {
