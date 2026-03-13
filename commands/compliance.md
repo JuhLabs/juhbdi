@@ -66,3 +66,12 @@ List all actionable recommendations from the report:
 - Trail quality improvements
 
 If score < 100% for either framework, suggest: "Run `/juhbdi:execute` with trail enrichment to improve compliance coverage."
+
+## Next Steps
+
+After displaying compliance report, suggest based on score:
+
+- If overall score < 60%: "Significant gaps found. Run `/juhbdi:plan compliance improvements` to address them systematically."
+- If overall score 60-90%: "Partial coverage. Review the recommendations above and prioritize the highest-impact gaps."
+- If overall score > 90%: "Strong compliance posture. Export for records with `/juhbdi:audit --export csv`."
+- Always suggest: "Full audit trail: `/juhbdi:audit --compliance` | Visual report: `http://localhost:3141`"

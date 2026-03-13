@@ -41,3 +41,12 @@ Trail Summary: N decisions, X conflicts, Y overrides, Z recoveries
 ```
 
 This gives users an at-a-glance count without needing to manually tally entries.
+
+## Next Steps
+
+After displaying trail entries, suggest relevant follow-up actions:
+
+- "Filter by type: `/juhbdi:trail --type decision`"
+- "Show recent only: `/juhbdi:trail --last 10`"
+- "Full audit with compliance: `/juhbdi:audit --compliance`"
+- "Visual timeline: open dashboard at `http://localhost:3141`"

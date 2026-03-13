@@ -34,3 +34,11 @@ t2        Add input validation           haiku     $0.02
 ```
 
 3. Highlight the most expensive task with a callout: "Most expensive task: `<task_id>` ($X.XX) — consider if this could have been routed to a cheaper tier."
+
+## Next Steps
+
+After displaying cost report, suggest relevant follow-up actions:
+
+- "Routing details: `/juhbdi:trail --type routing`"
+- "Router accuracy and metrics: `/juhbdi:stats`"
+- "Visual cost trends: open dashboard at `http://localhost:3141`"

@@ -100,3 +100,12 @@ Never applied:  "Avoid global state" (confidence: 0.50, applied 0x) -- consider 
 ```
 
 If there are principles with confidence below 0.2, suggest: "N principles have very low confidence and may be obsolete. Consider reviewing and removing them manually from `.juhbdi/principle-bank.json`."
+
+## Next Steps
+
+After displaying reflection results, suggest relevant follow-up actions:
+
+- "Review principle health: `/juhbdi:stats`"
+- "Plan new work: `/juhbdi:plan <what to build>`"
+- "Save session state: `/juhbdi:pause`"
+- "Visual intelligence view: open dashboard at `http://localhost:3141`"

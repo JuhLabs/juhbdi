@@ -45,3 +45,12 @@ If `--compliance` is used, also show:
 ```
 Compliance: N/M fields populated (X%)
 ```
+
+## Next Steps
+
+After displaying audit results, suggest relevant follow-up actions:
+
+- "Filter further: `/juhbdi:audit --type decision` or `--task <id>`"
+- "Export report: `/juhbdi:audit --export csv` or `--export json`"
+- "Full compliance check: `/juhbdi:compliance`"
+- "Visual overview: open dashboard at `http://localhost:3141`"

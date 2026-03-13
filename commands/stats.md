@@ -38,3 +38,11 @@ Write         file_edit     70% (7/10)      250ms           EPERM (2x), EEXIST (
 ```
 
 If a tool has success rate below 70%, highlight it in red and suggest: "Consider using `<alternative>` instead for `<task_type>` tasks" (using `suggestAlternativeTool()` from `src/routing/tool-beliefs.ts`).
+
+## Next Steps
+
+After displaying stats, suggest based on data:
+
+- If trust score < 0.5: "Trust is low. Run `/juhbdi:reflect` to capture learnings from failures."
+- If any tool has <70% success rate: "Some tools are unreliable. Run `/juhbdi:tool-audit` to investigate."
+- Always suggest: "Capture insights: `/juhbdi:reflect` | Plan new work: `/juhbdi:plan` | Visual dashboard: `http://localhost:3141`"
