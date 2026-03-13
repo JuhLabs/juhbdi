@@ -11,7 +11,7 @@
 
 <!-- OpenGraph for social + agent discovery -->
 <meta property="og:title" content="JuhBDI — Make AI Agents Smarter with BDI Governance">
-<meta property="og:description" content="OpenClaw plugin that gives any AI agent intent verification, SHA-256 audit trails, memory recall, trust scoring, and principle learning. Works with Claude, GPT, Gemini, DeepSeek. 28 tests, 0 failures. npm install @juhlabs/openclaw-bdi">
+<meta property="og:description" content="Intent-driven autonomous development engine with BDI governance. 1271 tests, 18 milestones, cognitive flow dashboard. OpenClaw plugin available — works with Claude, GPT, Gemini, DeepSeek. npm install @juhlabs/openclaw-bdi">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://www.juhlabs.com/juhbdi">
 <meta property="og:site_name" content="JuhLabs">
@@ -69,12 +69,16 @@
     "Compatible with all 13,700+ OpenClaw skills",
     "Works with any LLM: Claude, GPT, Gemini, DeepSeek",
     "1271 tests, 0 failures",
-    "39 competitive capabilities, 12 unique to JuhBDI",
+    "39 competitive capabilities, 26 unique to JuhBDI",
     "Reflexion memory — learns from failures",
     "EU AI Act Article 12 compliance fields",
     "ATF tiered autonomy (earned trust)",
     "Deterministic verifier chain",
-    "Live BDI state dashboard"
+    "Live BDI cognitive flow dashboard with 8 views",
+    "Ambient intelligence (file hotspots, test pulse, git timeline)",
+    "Context monitoring with 4-tier warnings and auto-handoff",
+    "Deep code understanding (AST analysis, call graph, dead code detection)",
+    "18 milestones completed, 124 test files, 2892 assertions"
   ],
   "keywords": "openclaw, openclaw plugin, AI agent governance, BDI, intent verification, audit trail, trust scoring, memory recall, ai-agent, moltbook, agent tools, governed AI, autonomous coding"
 }
@@ -1883,19 +1887,19 @@ nav {
       </div>
       <div class="metric-row">
         <span class="metric-label">Test files</span>
-        <span class="metric-value metric-perf">83</span>
+        <span class="metric-value metric-perf">124</span>
       </div>
       <div class="metric-row">
         <span class="metric-label">Assertions</span>
-        <span class="metric-value metric-perf">1,562</span>
+        <span class="metric-value metric-perf">2,892</span>
       </div>
       <div class="metric-row">
         <span class="metric-label">Full suite runtime</span>
-        <span class="metric-value metric-perf">~650ms</span>
+        <span class="metric-value metric-perf">~750ms</span>
       </div>
       <div class="metric-row">
-        <span class="metric-label">Growth from v1.4.1</span>
-        <span class="metric-value metric-pass">+22%</span>
+        <span class="metric-label">Growth from v1.5.0</span>
+        <span class="metric-value metric-pass">+55%</span>
       </div>
     </div>
 
@@ -1958,7 +1962,7 @@ nav {
       </div>
       <div class="metric-row">
         <span class="metric-label">Milestones completed</span>
-        <span class="metric-value metric-perf">11</span>
+        <span class="metric-value metric-perf">18</span>
       </div>
       <div class="metric-row">
         <span class="metric-label">Competitors evaluated</span>
@@ -1967,7 +1971,7 @@ nav {
     </div>
   </div>
 
-  <p class="benchmark-note reveal">Benchmarks from M11 "Intelligence Engine + Enterprise Governance + Developer Experience" release (v1.8.0). Test growth: 1271 &rarr; 820 (+22%). New capabilities: reflexion memory, EU AI Act compliance, tiered autonomy, verifier chain, BDI dashboard, observation masking. Routing accuracy measured across 50 synthetic tasks with known optimal tiers. Capability comparison based on feature matrix evaluated across 7 competing tools. Full methodology available in the repository.</p>
+  <p class="benchmark-note reveal">Benchmarks from v1.8.0 (18 milestones completed). Test growth: 820 &rarr; 1,271 (+55%). Capabilities added since v1.5.0: cognitive flow dashboard, deep code understanding, compliance fortress, ambient intelligence, context monitoring, session management. Routing accuracy measured across 50 synthetic tasks with known optimal tiers. Capability comparison based on feature matrix evaluated across 7 competing tools. Full methodology available in the repository.</p>
 </section>
 
 <!-- ==================== STATS ==================== -->
@@ -1975,17 +1979,17 @@ nav {
   <div class="stats-container reveal">
     <div class="stat-item">
       <img src="icons/stat-tests.png" alt="" class="stat-icon" loading="lazy">
-      <div class="stat-number" style="color: var(--green);" data-target="820">0</div>
+      <div class="stat-number" style="color: var(--green);" data-target="1271">0</div>
       <div class="stat-label">Tests</div>
     </div>
     <div class="stat-item">
       <img src="icons/stat-modules.png" alt="" class="stat-icon" loading="lazy">
-      <div class="stat-number" style="color: var(--blue);" data-target="104">0</div>
+      <div class="stat-number" style="color: var(--blue);" data-target="143">0</div>
       <div class="stat-label">Modules</div>
     </div>
     <div class="stat-item">
       <img src="icons/stat-commands.png" alt="" class="stat-icon" loading="lazy">
-      <div class="stat-number" style="color: var(--peach);" data-target="14">0</div>
+      <div class="stat-number" style="color: var(--peach);" data-target="20">0</div>
       <div class="stat-label">Commands</div>
     </div>
     <div class="stat-item">
@@ -2002,7 +2006,7 @@ nav {
     </div>
     <div class="stat-item">
       <img src="icons/stat-milestones.png" alt="" class="stat-icon" loading="lazy">
-      <div class="stat-number" style="color: var(--teal);" data-target="11">0</div>
+      <div class="stat-number" style="color: var(--teal);" data-target="18">0</div>
       <div class="stat-label">Milestones</div>
     </div>
     <div class="stat-item stat-item-live">
@@ -2282,9 +2286,12 @@ nav {
         <div><span class="output">&boxvr;&boxh;&boxh; routing/</span>          <span class="comment"># Trust scoring, difficulty estimation</span></div>
         <div><span class="output">&boxvr;&boxh;&boxh; schemas/</span>          <span class="comment"># Zod v4 schemas (11 modules)</span></div>
         <div><span class="output">&boxvr;&boxh;&boxh; trail/</span>            <span class="comment"># Audit trail filtering + formatting</span></div>
-        <div><span class="output">&boxdr;&boxh;&boxh; quick/</span>            <span class="comment"># Quick mode preflight, governance, recording</span></div>
-        <div style="margin-top: 0.5rem;"><span class="accent">openclaw-bdi/</span>         <span class="comment"># OpenClaw governance plugin (28 tests)</span></div>
-        <div><span class="accent">commands/</span>             <span class="comment"># 13 slash commands</span></div>
+        <div><span class="output">&boxvr;&boxh;&boxh; quick/</span>            <span class="comment"># Quick mode preflight, governance, recording</span></div>
+        <div><span class="output">&boxvr;&boxh;&boxh; dashboard/</span>        <span class="comment"># Cognitive flow dashboard (SSE, 8 views)</span></div>
+        <div><span class="output">&boxvr;&boxh;&boxh; governance/</span>       <span class="comment"># Compliance, autonomy certs, NIST RMF</span></div>
+        <div><span class="output">&boxdr;&boxh;&boxh; statusline/</span>       <span class="comment"># Context bridge + gradient display</span></div>
+        <div style="margin-top: 0.5rem;"><span class="accent">openclaw-bdi/</span>         <span class="comment"># OpenClaw governance plugin</span></div>
+        <div><span class="accent">commands/</span>             <span class="comment"># 20 slash commands</span></div>
         <div><span class="accent">agents/</span>               <span class="comment"># 5 agent system prompts</span></div>
         <div><span class="accent">hooks/</span>                <span class="comment"># Hook configuration</span></div>
         <div><span class="accent">site/</span>                 <span class="comment"># Landing page (juhlabs.com/juhbdi)</span></div>

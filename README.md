@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="site/juhbdilogo.png" alt="JuhBDI" width="180" />
+  <img src="https://raw.githubusercontent.com/JuhLabs/juhbdi/main/site/juhbdilogo.png" alt="JuhBDI" width="180" />
 </p>
 
 <p align="center">
@@ -269,7 +269,10 @@ src/
 ├── routing/          # Trust scoring, difficulty estimation
 ├── schemas/          # Zod v4 schemas (11 modules)
 ├── trail/            # Audit trail filtering + formatting
-└── quick/            # Quick mode preflight, governance, recording
+├── quick/            # Quick mode preflight, governance, recording
+├── dashboard/        # Cognitive flow dashboard (SSE, 8 views)
+├── governance/       # Compliance, autonomy certs, NIST RMF
+└── statusline/       # Context bridge + gradient display
 
 openclaw-bdi/         # OpenClaw governance plugin
 ├── src/core/         # Portable BDI algorithms (adapted from src/)
@@ -277,7 +280,7 @@ openclaw-bdi/         # OpenClaw governance plugin
 ├── src/hooks/        # Governance injection + audit hooks
 └── tests/            # 28 tests
 
-commands/             # 13 slash commands
+commands/             # 20 slash commands
 agents/               # 5 agent system prompts
 hooks/                # Hook configuration
 site/                 # Landing page (juhlabs.com/juhbdi)
@@ -290,12 +293,14 @@ site/                 # Landing page (juhlabs.com/juhbdi)
 
 | Metric | Value |
 |--------|-------|
-| Test suite | **642 tests, 0 failures** |
+| Test suite | **1271 tests, 0 failures** across 124 files |
+| Assertions | **2,892** expect() calls |
 | Auto-trigger latency | **0.01ms** per evaluation |
 | Trust scoring | **<0.001ms** per update |
 | Routing savings | **~80% vs always-opus** |
-| Competitive score | **27/27 capabilities** (next closest: 12) |
-| Unique capabilities | **14** (zero competitors have them) |
+| Competitive score | **39 capabilities** implemented |
+| Unique to JuhBDI | **26** (zero competitors have them) |
+| Milestones completed | **18** |
 
 ## Built by
 
