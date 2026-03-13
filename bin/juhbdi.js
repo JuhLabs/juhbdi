@@ -141,14 +141,14 @@ function installPlugin() {
 
   // Copy plugin files to cache
   mkdirSync(cacheDir, { recursive: true });
-  for (const dir of [".claude-plugin", "src", "commands", "agents", "bin"]) {
+  for (const dir of [".claude-plugin", "src", "commands", "agents", "bin", "hooks", "skills", "statusline", "node_modules"]) {
     const src = join(pluginDir, dir);
     if (existsSync(src)) {
       cpSync(src, join(cacheDir, dir), { recursive: true });
     }
   }
-  // Copy package.json and README
-  for (const file of ["package.json", "README.md"]) {
+  // Copy standalone files
+  for (const file of ["package.json", "README.md", "tsconfig.json"]) {
     const src = join(pluginDir, file);
     if (existsSync(src)) cpSync(src, join(cacheDir, file));
   }

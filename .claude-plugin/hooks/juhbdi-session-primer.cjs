@@ -51,7 +51,9 @@ async function main() {
   // --- Line 1: version, trust, trail, ghost mode ---
   let version = "?";
   try {
-    const pluginJson = safeReadJSON(path.join(pluginRoot, "plugin.json"));
+    // Try .claude-plugin/plugin.json first (correct path when CLAUDE_PLUGIN_ROOT is cache dir)
+    let pluginJson = safeReadJSON(path.join(pluginRoot, ".claude-plugin", "plugin.json"));
+    if (!pluginJson) pluginJson = safeReadJSON(path.join(pluginRoot, "plugin.json"));
     if (pluginJson && pluginJson.version) version = pluginJson.version;
   } catch { /* non-fatal */ }
 

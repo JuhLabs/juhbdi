@@ -1,6 +1,6 @@
 {
   "name": "juhbdi",
-  "version": "1.8.2",
+  "version": "1.8.3",
   "type": "module",
   "description": "Enterprise-grade, intent-driven autonomous development engine",
   "author": "Julian Hermstad",
@@ -27,7 +27,12 @@
     "src/",
     "commands/",
     "agents/",
-    "bin/"
+    "bin/",
+    "hooks/",
+    "skills/",
+    "statusline/",
+    "install.sh",
+    "tsconfig.json"
   ],
   "scripts": {
     "test": "bun test && bun test ./.claude-plugin/hooks/",

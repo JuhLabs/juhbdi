@@ -9,6 +9,10 @@
     "PostToolUse": [
       {
         "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/hooks/juhbdi-ambient.cjs"
+      },
+      {
+        "type": "command",
         "command": "node ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/hooks/juhbdi-context-monitor.cjs"
       }
     ],

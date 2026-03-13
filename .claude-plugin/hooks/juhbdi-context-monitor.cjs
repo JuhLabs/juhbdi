@@ -304,11 +304,8 @@ async function main() {
   let bridge;
   try {
     if (!fs.existsSync(bridgePath)) {
-      // Bridge file missing — statusline hasn't run yet or file was deleted
-      logError(`Bridge file missing: ${bridgePath}`);
-      console.log(JSON.stringify({
-        additionalContext: "[JUHBDI] Context monitor cannot read statusline data — bridge file missing. If this persists, check that the statusline hook is active."
-      }));
+      // Bridge file missing — statusline hasn't written one yet (normal on fresh install)
+      console.log(JSON.stringify({}));
       return;
     }
     const raw = fs.readFileSync(bridgePath, "utf-8");

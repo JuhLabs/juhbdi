@@ -38,7 +38,7 @@ else
   SURFACE="\033[38;5;240m"
 fi
 
-VERSION=$(node -e "console.log(require('$(cd "$(dirname "$0")" && pwd)/.claude-plugin/plugin.json').version)" 2>/dev/null || echo "1.8.2")
+VERSION=$(node -e "console.log(require('$(cd "$(dirname "$0")" && pwd)/.claude-plugin/plugin.json').version)" 2>/dev/null || echo "1.8.3")
 DOWNLOAD_URL="https://www.juhlabs.com/juhbdi/juhbdi-${VERSION}.tar.gz"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 GLOBAL_PLUGIN_DIR="${HOME}/.claude/plugins/cache/juhlabs/juhbdi/${VERSION}"
