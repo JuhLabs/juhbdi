@@ -38,7 +38,7 @@ else
   SURFACE="\033[38;5;240m"
 fi
 
-VERSION=$(node -e "console.log(require('$(cd "$(dirname "$0")" && pwd)/.claude-plugin/plugin.json').version)" 2>/dev/null || echo "1.8.3")
+VERSION=$(node -e "console.log(require('$(cd "$(dirname "$0")" && pwd)/.claude-plugin/plugin.json').version)" 2>/dev/null || echo "1.8.4")
 DOWNLOAD_URL="https://www.juhlabs.com/juhbdi/juhbdi-${VERSION}.tar.gz"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 GLOBAL_PLUGIN_DIR="${HOME}/.claude/plugins/cache/juhlabs/juhbdi/${VERSION}"
@@ -348,38 +348,46 @@ if [[ "$INSTALL_MODE" == "global" ]]; then
   if [[ ! -f "$REGISTRY" ]]; then
     echo '{"version":2,"plugins":{}}' > "$REGISTRY"
   fi
-  node -e "
-    const fs = require('fs');
-    const [,, regPath, cacheDir, version] = process.argv;
-    let reg;
-    try { reg = JSON.parse(fs.readFileSync(regPath, 'utf-8')); } catch { reg = {version:2,plugins:{}}; }
-    if (!reg.plugins) reg.plugins = {};
-    const existing = (reg.plugins['juhbdi@juhlabs'] || [])[0];
-    reg.plugins['juhbdi@juhlabs'] = [{
-      scope: 'user',
-      installPath: cacheDir,
-      version: version,
-      installedAt: (existing && existing.installedAt) || new Date().toISOString(),
-      lastUpdated: new Date().toISOString()
-    }];
-    fs.writeFileSync(regPath, JSON.stringify(reg, null, 2) + '\n');
-  " "$REGISTRY" "$CACHE_DIR" "$VERSION" 2>/dev/null && ok "Plugin registered in installed_plugins.json" || warn "Could not update registry"
+  JUHBDI_REG_PATH="$REGISTRY" \
+  JUHBDI_CACHE_DIR="$CACHE_DIR" \
+  JUHBDI_VERSION="$VERSION" \
+  node << 'REGEOF'
+var fs = require('fs');
+var regPath = process.env.JUHBDI_REG_PATH;
+var cacheDir = process.env.JUHBDI_CACHE_DIR;
+var version = process.env.JUHBDI_VERSION;
+var reg;
+try { reg = JSON.parse(fs.readFileSync(regPath, 'utf-8')); } catch(e) { reg = {version:2,plugins:{}}; }
+if (!reg.plugins) reg.plugins = {};
+reg.plugins['juhbdi@juhlabs'] = [{
+  scope: 'user',
+  installPath: cacheDir,
+  version: version,
+  installedAt: new Date().toISOString(),
+  lastUpdated: new Date().toISOString()
+}];
+fs.writeFileSync(regPath, JSON.stringify(reg, null, 2) + '\n');
+REGEOF
+  if [[ $? -eq 0 ]]; then ok "Plugin registered in installed_plugins.json"; else warn "Could not update registry"; fi
 
   # --- 3c: Enable plugin + register marketplace in settings.json ---
-  node -e "
-    const fs = require('fs');
-    const [,, settingsPath, mktPath] = process.argv;
-    const s = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
-    // Enable plugin
-    if (!s.enabledPlugins) s.enabledPlugins = {};
-    s.enabledPlugins['juhbdi@juhlabs'] = true;
-    // Register marketplace for future updates
-    if (!s.extraKnownMarketplaces) s.extraKnownMarketplaces = {};
-    s.extraKnownMarketplaces['juhlabs'] = {
-      source: { source: 'directory', path: mktPath }
-    };
-    fs.writeFileSync(settingsPath, JSON.stringify(s, null, 2) + '\n');
-  " "$SETTINGS" "${HOME}/.claude/plugins/marketplaces/juhlabs" 2>/dev/null && ok "Plugin enabled in settings.json" || warn "Could not update settings"
+  JUHBDI_SETTINGS="$SETTINGS" \
+  JUHBDI_MKT_PATH="${HOME}/.claude/plugins/marketplaces/juhlabs" \
+  node << 'SETTEOF'
+var fs = require('fs');
+var settingsPath = process.env.JUHBDI_SETTINGS;
+var mktPath = process.env.JUHBDI_MKT_PATH;
+var s;
+try { s = JSON.parse(fs.readFileSync(settingsPath, 'utf-8')); } catch(e) { s = {}; }
+if (!s.enabledPlugins) s.enabledPlugins = {};
+s.enabledPlugins['juhbdi@juhlabs'] = true;
+if (!s.extraKnownMarketplaces) s.extraKnownMarketplaces = {};
+s.extraKnownMarketplaces['juhlabs'] = {
+  source: { source: 'directory', path: mktPath }
+};
+fs.writeFileSync(settingsPath, JSON.stringify(s, null, 2) + '\n');
+SETTEOF
+  if [[ $? -eq 0 ]]; then ok "Plugin enabled in settings.json"; else warn "Could not update settings"; fi
 
   # --- 3d: Set up marketplace (for future `claude plugin install` updates) ---
   MARKETPLACE_DIR="${HOME}/.claude/plugins/marketplaces/juhlabs"
@@ -417,17 +425,20 @@ MKTEOF
   fi
 
   # Set statusLine in settings.json (overwrite any existing)
-  node -e "
-    const fs = require('fs');
-    const [,, settingsPath] = process.argv;
-    const s = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
-    s.statusLine = {
-      type: 'command',
-      command: 'node ~/.claude/juhbdi-statusline.cjs',
-      padding: 1
-    };
-    fs.writeFileSync(settingsPath, JSON.stringify(s, null, 2) + '\n');
-  " "$SETTINGS" 2>/dev/null && ok "Statusline configured in settings" || warn "Could not set statusline config"
+  JUHBDI_SETTINGS="$SETTINGS" \
+  node << 'SLEOF'
+var fs = require('fs');
+var settingsPath = process.env.JUHBDI_SETTINGS;
+var s;
+try { s = JSON.parse(fs.readFileSync(settingsPath, 'utf-8')); } catch(e) { s = {}; }
+s.statusLine = {
+  type: 'command',
+  command: 'node ~/.claude/juhbdi-statusline.cjs',
+  padding: 1
+};
+fs.writeFileSync(settingsPath, JSON.stringify(s, null, 2) + '\n');
+SLEOF
+  if [[ $? -eq 0 ]]; then ok "Statusline configured in settings"; else warn "Could not set statusline config"; fi
 
 else
   step $CURRENT_STEP "Registering local plugin..."
@@ -448,8 +459,10 @@ fi
 if [[ -f "${SCRIPT_DIR}/.claude-plugin/plugin.json" ]]; then
   PLUGIN_VER=$(node -e "console.log(require(process.argv[1]).version)" "${SCRIPT_DIR}/.claude-plugin/plugin.json" 2>/dev/null || echo "?")
   HOOK_COUNT=0
-  if [[ -f "${SCRIPT_DIR}/.claude-plugin/hooks/hooks.json" ]]; then
-    HOOK_COUNT=$(node -e "const h=require(process.argv[1]).hooks||{}; let c=0; for(const k in h) c+=h[k].length; console.log(c)" "${SCRIPT_DIR}/.claude-plugin/hooks/hooks.json" 2>/dev/null || echo "?")
+  HOOKS_FILE="${SCRIPT_DIR}/hooks/hooks.json"
+  if [[ ! -f "$HOOKS_FILE" ]]; then HOOKS_FILE="${SCRIPT_DIR}/.claude-plugin/hooks/hooks.json"; fi
+  if [[ -f "$HOOKS_FILE" ]]; then
+    HOOK_COUNT=$(node -e "var h=require(process.argv[1]).hooks||{}; var c=0; for(var k in h) c+=h[k].length; console.log(c)" "$HOOKS_FILE" 2>/dev/null || echo "?")
   fi
   ok "Manifest v${PLUGIN_VER} — ${HOOK_COUNT} hooks"
 fi

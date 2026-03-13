@@ -1,31 +1,56 @@
 {
   "hooks": {
-    "PreCompact": [
-      {
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/hooks/juhbdi-precompact.cjs"
-      }
-    ],
     "PostToolUse": [
       {
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/hooks/juhbdi-ambient.cjs"
-      },
-      {
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/hooks/juhbdi-context-monitor.cjs"
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/hooks/juhbdi-ambient.cjs",
+            "timeout": 3000
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/hooks/juhbdi-context-monitor.cjs",
+            "timeout": 5000
+          }
+        ]
       }
     ],
     "SessionStart": [
       {
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/hooks/juhbdi-session-primer.cjs"
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/hooks/juhbdi-session-primer.cjs",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/hooks/juhbdi-precompact.cjs",
+            "timeout": 10000
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
       {
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/hooks/juhbdi-auto-trigger.cjs"
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/hooks/juhbdi-auto-trigger.cjs",
+            "timeout": 3000
+          }
+        ]
       }
     ]
   }
