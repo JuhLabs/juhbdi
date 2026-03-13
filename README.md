@@ -3,11 +3,11 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/v1.4.1-lavender?style=flat-square&label=JuhBDI&labelColor=1e1e2e&color=b4befe" alt="version" />
+  <img src="https://img.shields.io/badge/v1.8.0-lavender?style=flat-square&label=JuhBDI&labelColor=1e1e2e&color=b4befe" alt="version" />
   <a href="https://www.npmjs.com/package/juhbdi"><img src="https://img.shields.io/npm/v/juhbdi?style=flat-square&label=npm&labelColor=1e1e2e&color=f9e2af" alt="npm" /></a>
   <a href="https://www.npmjs.com/package/juhbdi"><img src="https://img.shields.io/npm/dm/juhbdi?style=flat-square&label=downloads&labelColor=1e1e2e&color=f9e2af" alt="downloads" /></a>
   <a href="https://github.com/JuhLabs/juhbdi"><img src="https://img.shields.io/github/stars/JuhLabs/juhbdi?style=flat-square&labelColor=1e1e2e&color=f2cdcd" alt="stars" /></a>
-  <img src="https://img.shields.io/badge/670-green?style=flat-square&label=tests&labelColor=1e1e2e&color=a6e3a1" alt="tests" />
+  <img src="https://img.shields.io/badge/1271-green?style=flat-square&label=tests&labelColor=1e1e2e&color=a6e3a1" alt="tests" />
   <img src="https://img.shields.io/badge/0-green?style=flat-square&label=failures&labelColor=1e1e2e&color=a6e3a1" alt="failures" />
   <img src="https://img.shields.io/badge/TypeScript-blue?style=flat-square&label=lang&labelColor=1e1e2e&color=89b4fa" alt="typescript" />
   <img src="https://img.shields.io/badge/Bun-peach?style=flat-square&label=runtime&labelColor=1e1e2e&color=fab387" alt="bun" />
@@ -132,6 +132,22 @@ npx juhbdi uninstall --ide cursor      # Remove from an IDE
 | `/juhbdi:resume` | Resume from handoff in a new session |
 | `/juhbdi:validate` | Validate roadmap structure and intent alignment |
 | `/juhbdi:activate` | Inject JuhBDI activation into CLAUDE.md |
+
+## Dashboard — Cognitive Flow
+
+Real-time visualization of the BDI agent model. Start with `/juhbdi:dashboard` or:
+
+```bash
+bun run src/dashboard/server.ts   # → http://localhost:3141
+```
+
+**Overview** — 3 BDI columns (Beliefs/Desires/Intentions) with live cards for trust, memory, state, roadmap, goals, spec, active wave, trail, and cost.
+
+**Focused Views** — Click any card to drill down: Trust gauge with tier progression, Intelligence Memory (reflexions/traces/principles), Cost Intelligence with cumulative spend chart and model distribution donut, Decision Trail with type filters and search, Context health from live session bridge files.
+
+**Ambient Intelligence** — File Hotspots (edit frequency), Test Pulse (pass/fail rate), Git Timeline, Session Activity summary, and a scrolling activity ticker in the footer.
+
+**Live Updates** — SSE streaming with 5s broadcast cycles, debounced rendering, and data-fingerprint skip to prevent UI thrashing.
 
 ## How It Works
 
