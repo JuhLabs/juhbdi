@@ -1,0 +1,279 @@
+<h2>Dashboard V2 — Layout Direction</h2>
+<p class="subtitle">Which overall structure feels right for the JuhBDI command center?</p>
+
+<div class="cards" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;margin-top:32px;">
+
+  <!-- Option A: Enhanced Grid -->
+  <div class="card" data-choice="a-enhanced-grid" onclick="toggleSelect(this)" style="padding:0;overflow:hidden;cursor:pointer;">
+    <div class="card-image" style="background:#1e1e2e;padding:16px;min-height:320px;">
+      <!-- Mockup: Enhanced version of current -->
+      <div style="background:#181825;border-radius:8px;padding:8px;margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="color:#b4befe;font-size:11px;font-weight:700;">JuhBDI</span>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <span style="width:6px;height:6px;border-radius:50%;background:#a6e3a1;display:inline-block;"></span>
+            <span style="color:#6c7086;font-size:9px;">LIVE</span>
+          </div>
+        </div>
+      </div>
+      <!-- 2x2 grid -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+        <div style="background:#181825;border-radius:6px;padding:10px;border-left:2px solid #b4befe;">
+          <div style="font-size:8px;color:#6c7086;text-transform:uppercase;margin-bottom:4px;">Execution</div>
+          <div style="font-size:16px;color:#b4befe;font-weight:700;">Wave 3</div>
+          <div style="background:#313244;border-radius:3px;height:4px;margin-top:6px;"><div style="background:#b4befe;border-radius:3px;height:4px;width:65%;"></div></div>
+        </div>
+        <div style="background:#181825;border-radius:6px;padding:10px;border-left:2px solid #cba6f7;">
+          <div style="font-size:8px;color:#6c7086;text-transform:uppercase;margin-bottom:4px;">Trust</div>
+          <div style="font-size:16px;color:#cba6f7;font-weight:700;">87%</div>
+          <div style="display:flex;gap:2px;margin-top:6px;">
+            <div style="flex:1;height:3px;background:#cba6f7;border-radius:2px;"></div>
+            <div style="flex:1;height:3px;background:#cba6f7;border-radius:2px;opacity:0.6;"></div>
+            <div style="flex:1;height:3px;background:#313244;border-radius:2px;"></div>
+          </div>
+        </div>
+        <div style="background:#181825;border-radius:6px;padding:10px;border-left:2px solid #a6e3a1;">
+          <div style="font-size:8px;color:#6c7086;text-transform:uppercase;margin-bottom:4px;">Cost</div>
+          <div style="font-size:16px;color:#a6e3a1;font-weight:700;">$2.41</div>
+          <div style="color:#a6e3a1;font-size:8px;margin-top:4px;">↓ 34% saved</div>
+        </div>
+        <div style="background:#181825;border-radius:6px;padding:10px;border-left:2px solid #74c7ec;">
+          <div style="font-size:8px;color:#6c7086;text-transform:uppercase;margin-bottom:4px;">Context</div>
+          <div style="font-size:16px;color:#74c7ec;font-weight:700;">62%</div>
+          <div style="background:#313244;border-radius:3px;height:4px;margin-top:6px;"><div style="background:#74c7ec;border-radius:3px;height:4px;width:62%;"></div></div>
+        </div>
+      </div>
+      <!-- Bottom: Trail + Memory -->
+      <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:6px;">
+        <div style="background:#181825;border-radius:6px;padding:8px;border-left:2px solid #94e2d5;">
+          <div style="font-size:8px;color:#6c7086;margin-bottom:4px;">TRAIL</div>
+          <div style="font-size:7px;color:#585b70;line-height:1.6;">
+            <div>▸ routing → sonnet</div>
+            <div>▸ execution → task_3</div>
+            <div>▸ decision → approve</div>
+          </div>
+        </div>
+        <div style="background:#181825;border-radius:6px;padding:8px;border-left:2px solid #f5c2e7;">
+          <div style="font-size:8px;color:#6c7086;margin-bottom:4px;">MEMORY</div>
+          <div style="display:flex;gap:8px;margin-top:4px;">
+            <div style="text-align:center;"><div style="color:#f5c2e7;font-size:12px;font-weight:700;">12</div><div style="color:#585b70;font-size:6px;">Reflexions</div></div>
+            <div style="text-align:center;"><div style="color:#f5c2e7;font-size:12px;font-weight:700;">8</div><div style="color:#585b70;font-size:6px;">Traces</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body" style="padding:16px;">
+      <h3>A. Enhanced Grid</h3>
+      <p style="font-size:13px;opacity:0.7;">Keep the current 2x2 + bottom row layout. Add interactivity, charts, search, and drill-downs within each card. Incremental improvement.</p>
+      <div class="pros-cons" style="margin-top:12px;">
+        <div class="pros"><h4>Pros</h4><ul><li>Familiar layout</li><li>Less risk</li><li>Faster to build</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Same spatial constraints</li><li>Hard to fit new panels</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option B: Sidebar + Workspace -->
+  <div class="card" data-choice="b-sidebar-workspace" onclick="toggleSelect(this)" style="padding:0;overflow:hidden;cursor:pointer;">
+    <div class="card-image" style="background:#1e1e2e;padding:16px;min-height:320px;">
+      <div style="display:flex;gap:8px;height:100%;">
+        <!-- Sidebar -->
+        <div style="width:44px;background:#181825;border-radius:8px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:10px;">
+          <div style="width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,#b4befe,#cba6f7);display:flex;align-items:center;justify-content:center;font-size:10px;">J</div>
+          <div style="width:3px;height:1px;background:#313244;width:20px;"></div>
+          <div style="width:20px;height:20px;border-radius:4px;background:#313244;border:1px solid #b4befe;"></div>
+          <div style="width:20px;height:20px;border-radius:4px;background:#313244;"></div>
+          <div style="width:20px;height:20px;border-radius:4px;background:#313244;"></div>
+          <div style="width:20px;height:20px;border-radius:4px;background:#313244;"></div>
+          <div style="width:20px;height:20px;border-radius:4px;background:#313244;"></div>
+          <div style="width:20px;height:20px;border-radius:4px;background:#313244;"></div>
+          <div style="flex:1;"></div>
+          <div style="width:20px;height:20px;border-radius:4px;background:#313244;"></div>
+        </div>
+        <!-- Main workspace -->
+        <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+          <!-- Top metrics bar -->
+          <div style="display:flex;gap:6px;">
+            <div style="flex:1;background:#181825;border-radius:6px;padding:8px;text-align:center;">
+              <div style="color:#b4befe;font-size:14px;font-weight:700;">Wave 3</div>
+              <div style="color:#585b70;font-size:7px;">EXECUTION</div>
+            </div>
+            <div style="flex:1;background:#181825;border-radius:6px;padding:8px;text-align:center;">
+              <div style="color:#a6e3a1;font-size:14px;font-weight:700;">$2.41</div>
+              <div style="color:#585b70;font-size:7px;">COST</div>
+            </div>
+            <div style="flex:1;background:#181825;border-radius:6px;padding:8px;text-align:center;">
+              <div style="color:#cba6f7;font-size:14px;font-weight:700;">87%</div>
+              <div style="color:#585b70;font-size:7px;">TRUST</div>
+            </div>
+            <div style="flex:1;background:#181825;border-radius:6px;padding:8px;text-align:center;">
+              <div style="color:#74c7ec;font-size:14px;font-weight:700;">62%</div>
+              <div style="color:#585b70;font-size:7px;">CONTEXT</div>
+            </div>
+          </div>
+          <!-- Main content area -->
+          <div style="flex:1;background:#181825;border-radius:6px;padding:10px;">
+            <div style="font-size:9px;color:#6c7086;text-transform:uppercase;margin-bottom:6px;display:flex;justify-content:space-between;">
+              <span>Execution Timeline</span>
+              <span style="color:#b4befe;">▾ Filter</span>
+            </div>
+            <!-- Mini Gantt -->
+            <div style="display:flex;flex-direction:column;gap:3px;margin-top:4px;">
+              <div style="display:flex;gap:4px;align-items:center;"><span style="color:#585b70;font-size:7px;width:40px;">Task 1</span><div style="background:#a6e3a1;height:6px;width:60%;border-radius:3px;"></div></div>
+              <div style="display:flex;gap:4px;align-items:center;"><span style="color:#585b70;font-size:7px;width:40px;">Task 2</span><div style="background:#b4befe;height:6px;width:45%;border-radius:3px;margin-left:20%;"></div></div>
+              <div style="display:flex;gap:4px;align-items:center;"><span style="color:#585b70;font-size:7px;width:40px;">Task 3</span><div style="background:#f9e2af;height:6px;width:30%;border-radius:3px;margin-left:35%;"></div></div>
+              <div style="display:flex;gap:4px;align-items:center;"><span style="color:#585b70;font-size:7px;width:40px;">Task 4</span><div style="background:#313244;height:6px;width:40%;border-radius:3px;margin-left:50%;"></div></div>
+            </div>
+          </div>
+          <!-- Bottom split -->
+          <div style="display:flex;gap:6px;">
+            <div style="flex:1;background:#181825;border-radius:6px;padding:8px;">
+              <div style="font-size:8px;color:#6c7086;">TRAIL</div>
+              <div style="font-size:7px;color:#585b70;line-height:1.8;margin-top:4px;">▸ routing<br>▸ exec<br>▸ decision</div>
+            </div>
+            <div style="flex:1;background:#181825;border-radius:6px;padding:8px;">
+              <div style="font-size:8px;color:#6c7086;">MEMORY</div>
+              <div style="font-size:7px;color:#585b70;line-height:1.8;margin-top:4px;">12 reflexions<br>8 traces<br>5 principles</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body" style="padding:16px;">
+      <h3>B. Sidebar + Workspace</h3>
+      <p style="font-size:13px;opacity:0.7;">Icon sidebar for navigation. Each panel becomes a "view" with full-width workspace. Metrics bar always visible. Click sidebar icons to switch views.</p>
+      <div class="pros-cons" style="margin-top:12px;">
+        <div class="pros"><h4>Pros</h4><ul><li>More space per view</li><li>Scales to new panels</li><li>App-like feel</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Lose overview-at-a-glance</li><li>More clicks to navigate</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option C: Command Center -->
+  <div class="card" data-choice="c-command-center" onclick="toggleSelect(this)" style="padding:0;overflow:hidden;cursor:pointer;">
+    <div class="card-image" style="background:#1e1e2e;padding:16px;min-height:320px;">
+      <!-- Header with key metrics -->
+      <div style="background:#181825;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;gap:12px;align-items:center;">
+          <span style="color:#b4befe;font-size:11px;font-weight:700;">JuhBDI</span>
+          <div style="display:flex;gap:8px;">
+            <span style="color:#a6e3a1;font-size:9px;background:rgba(166,227,161,0.1);padding:2px 6px;border-radius:4px;">$2.41</span>
+            <span style="color:#cba6f7;font-size:9px;background:rgba(203,166,247,0.1);padding:2px 6px;border-radius:4px;">87% trust</span>
+            <span style="color:#74c7ec;font-size:9px;background:rgba(116,199,236,0.1);padding:2px 6px;border-radius:4px;">62% ctx</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:4px;">
+          <span style="width:6px;height:6px;border-radius:50%;background:#a6e3a1;display:inline-block;"></span>
+        </div>
+      </div>
+      <!-- 3-column layout -->
+      <div style="display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:6px;">
+        <!-- Left: Execution + Cost -->
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="background:#181825;border-radius:6px;padding:8px;flex:1;">
+            <div style="font-size:8px;color:#b4befe;margin-bottom:4px;">EXECUTION</div>
+            <div style="font-size:14px;color:#cdd6f4;font-weight:600;">Wave 3</div>
+            <div style="font-size:7px;color:#585b70;margin-top:2px;">Phase 2 · 4/7 tasks</div>
+            <div style="background:#313244;border-radius:3px;height:4px;margin-top:6px;"><div style="background:#b4befe;border-radius:3px;height:4px;width:57%;"></div></div>
+          </div>
+          <div style="background:#181825;border-radius:6px;padding:8px;flex:1;">
+            <div style="font-size:8px;color:#a6e3a1;margin-bottom:4px;">COST</div>
+            <!-- Mini sparkline -->
+            <svg width="100%" height="30" viewBox="0 0 100 30" style="margin-top:4px;">
+              <polyline points="0,25 15,22 30,18 45,20 60,12 75,15 90,8 100,10" fill="none" stroke="#a6e3a1" stroke-width="1.5" opacity="0.7"/>
+              <circle cx="100" cy="10" r="2" fill="#a6e3a1"/>
+            </svg>
+            <div style="font-size:7px;color:#585b70;margin-top:2px;">34% savings vs opus-all</div>
+          </div>
+        </div>
+        <!-- Center: Timeline/Gantt (featured) -->
+        <div style="background:#181825;border-radius:6px;padding:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:8px;color:#6c7086;text-transform:uppercase;">Task Timeline</span>
+            <div style="display:flex;gap:4px;">
+              <span style="font-size:7px;color:#313244;background:#313244;padding:1px 4px;border-radius:3px;border:1px solid #45475a;color:#6c7086;">All</span>
+              <span style="font-size:7px;padding:1px 4px;border-radius:3px;background:rgba(180,190,254,0.1);color:#b4befe;border:1px solid rgba(180,190,254,0.2);">Active</span>
+            </div>
+          </div>
+          <!-- Gantt bars -->
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="display:flex;gap:4px;align-items:center;">
+              <span style="color:#585b70;font-size:7px;width:50px;white-space:nowrap;overflow:hidden;">schema-fix</span>
+              <div style="flex:1;position:relative;height:8px;">
+                <div style="position:absolute;left:0;width:70%;height:100%;background:linear-gradient(90deg,#a6e3a1,#94e2d5);border-radius:4px;"></div>
+              </div>
+              <span style="font-size:7px;color:#a6e3a1;">✓</span>
+            </div>
+            <div style="display:flex;gap:4px;align-items:center;">
+              <span style="color:#585b70;font-size:7px;width:50px;white-space:nowrap;overflow:hidden;">api-route</span>
+              <div style="flex:1;position:relative;height:8px;">
+                <div style="position:absolute;left:15%;width:55%;height:100%;background:linear-gradient(90deg,#b4befe,#89b4fa);border-radius:4px;animation:pulse 2s infinite;"></div>
+              </div>
+              <span style="font-size:7px;color:#b4befe;">▶</span>
+            </div>
+            <div style="display:flex;gap:4px;align-items:center;">
+              <span style="color:#585b70;font-size:7px;width:50px;white-space:nowrap;overflow:hidden;">test-suite</span>
+              <div style="flex:1;position:relative;height:8px;">
+                <div style="position:absolute;left:40%;width:45%;height:100%;background:#313244;border-radius:4px;border:1px dashed #45475a;"></div>
+              </div>
+              <span style="font-size:7px;color:#585b70;">○</span>
+            </div>
+            <div style="display:flex;gap:4px;align-items:center;">
+              <span style="color:#585b70;font-size:7px;width:50px;white-space:nowrap;overflow:hidden;">refactor</span>
+              <div style="flex:1;position:relative;height:8px;">
+                <div style="position:absolute;left:60%;width:35%;height:100%;background:#313244;border-radius:4px;border:1px dashed #45475a;"></div>
+              </div>
+              <span style="font-size:7px;color:#585b70;">○</span>
+            </div>
+          </div>
+        </div>
+        <!-- Right: Trail + Memory -->
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="background:#181825;border-radius:6px;padding:8px;flex:1;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <span style="font-size:8px;color:#94e2d5;">TRAIL</span>
+              <span style="font-size:7px;color:#45475a;background:#313244;padding:1px 4px;border-radius:3px;">🔍</span>
+            </div>
+            <div style="font-size:7px;color:#585b70;line-height:1.8;">
+              <div style="display:flex;gap:3px;"><span style="color:#a6e3a1;font-size:6px;background:rgba(166,227,161,0.1);padding:0 3px;border-radius:2px;">routing</span> → sonnet</div>
+              <div style="display:flex;gap:3px;"><span style="color:#b4befe;font-size:6px;background:rgba(180,190,254,0.1);padding:0 3px;border-radius:2px;">exec</span> → task_3</div>
+              <div style="display:flex;gap:3px;"><span style="color:#cba6f7;font-size:6px;background:rgba(203,166,247,0.1);padding:0 3px;border-radius:2px;">decision</span> → approve</div>
+            </div>
+          </div>
+          <div style="background:#181825;border-radius:6px;padding:8px;flex:1;">
+            <div style="font-size:8px;color:#f5c2e7;margin-bottom:4px;">INTELLIGENCE</div>
+            <div style="display:flex;gap:4px;justify-content:space-around;margin-top:6px;">
+              <div style="text-align:center;"><div style="color:#f5c2e7;font-size:12px;font-weight:700;">12</div><div style="color:#585b70;font-size:6px;">Refl</div></div>
+              <div style="text-align:center;"><div style="color:#cba6f7;font-size:12px;font-weight:700;">8</div><div style="color:#585b70;font-size:6px;">Trace</div></div>
+              <div style="text-align:center;"><div style="color:#b4befe;font-size:12px;font-weight:700;">5</div><div style="color:#585b70;font-size:6px;">Princ</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Code health bar at bottom -->
+      <div style="background:#181825;border-radius:6px;padding:6px 10px;margin-top:6px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:7px;color:#6c7086;">CODE HEALTH</span>
+        <div style="display:flex;gap:6px;">
+          <span style="font-size:7px;color:#a6e3a1;">●3 clean</span>
+          <span style="font-size:7px;color:#f9e2af;">●2 warn</span>
+          <span style="font-size:7px;color:#f38ba8;">●1 hot</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body" style="padding:16px;">
+      <h3>C. Command Center</h3>
+      <p style="font-size:13px;opacity:0.7;">Dense 3-column layout. Key metrics in header bar. Center column features task timeline. Panels visible at a glance but compact. Code health bar at bottom.</p>
+      <div class="pros-cons" style="margin-top:12px;">
+        <div class="pros"><h4>Pros</h4><ul><li>Everything visible at once</li><li>Timeline is featured</li><li>Info-dense, pro feel</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Can feel cramped</li><li>Needs careful spacing</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+</style>

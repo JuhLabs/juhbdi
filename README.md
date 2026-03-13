@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/v1.8.1-lavender?style=flat-square&label=JuhBDI&labelColor=1e1e2e&color=b4befe" alt="version" />
+  <img src="https://img.shields.io/badge/v1.8.2-lavender?style=flat-square&label=JuhBDI&labelColor=1e1e2e&color=b4befe" alt="version" />
   <a href="https://www.npmjs.com/package/juhbdi"><img src="https://img.shields.io/npm/v/juhbdi?style=flat-square&label=npm&labelColor=1e1e2e&color=f9e2af" alt="npm" /></a>
   <a href="https://www.npmjs.com/package/juhbdi"><img src="https://img.shields.io/npm/dm/juhbdi?style=flat-square&label=downloads&labelColor=1e1e2e&color=f9e2af" alt="downloads" /></a>
   <a href="https://github.com/JuhLabs/juhbdi"><img src="https://img.shields.io/github/stars/JuhLabs/juhbdi?style=flat-square&labelColor=1e1e2e&color=f2cdcd" alt="stars" /></a>
